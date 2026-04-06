@@ -186,16 +186,44 @@ fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_file
         
         let outpath = Path::new(dest_path).join(&sanitized);
 
+        let mode = file.unix_mode();
+
         if decoded_name.ends_with('/') || decoded_name.ends_with('\\') {
             fs::create_dir_all(&outpath).map_err(|e| e.to_string())?;
+            #[cfg(unix)]
+            if let Some(m) = mode {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(m));
+            }
         } else {
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
                     fs::create_dir_all(p).map_err(|e| e.to_string())?;
                 }
             }
-            let mut outfile = fs::File::create(&outpath).map_err(|e| e.to_string())?;
-            std::io::copy(&mut file, &mut outfile).map_err(|e| e.to_string())?;
+            
+            #[cfg(unix)]
+            let is_symlink = mode.map_or(false, |m| m & 0o170000 == 0o120000);
+            #[cfg(not(unix))]
+            let is_symlink = false;
+
+            if is_symlink {
+                let mut target = String::new();
+                std::io::Read::read_to_string(&mut file, &mut target).map_err(|e| e.to_string())?;
+                #[cfg(unix)]
+                {
+                    let _ = std::os::unix::fs::symlink(&target, &outpath);
+                }
+            } else {
+                let mut outfile = fs::File::create(&outpath).map_err(|e| e.to_string())?;
+                std::io::copy(&mut file, &mut outfile).map_err(|e| e.to_string())?;
+                
+                #[cfg(unix)]
+                if let Some(m) = mode {
+                    use std::os::unix::fs::PermissionsExt;
+                    let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(m));
+                }
+            }
         }
         
         let mut count = processed_count.lock().unwrap();
