@@ -278,7 +278,7 @@ async function extractArchive() {
         try {
             await invoke("extract_archive", { 
                 archivePath: loadedArchive, 
-                destDir, 
+                destPath: destDir, 
                 password: currentArchivePassword, 
                 targetFiles 
             });
