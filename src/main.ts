@@ -13,6 +13,8 @@ let currentArchivePassword: string | null = null;
 let isProcessing = false;
 let startTime = 0;
 let timerInterval: number | null = null;
+let currentProgress = 0;
+
 
 interface StartupAction {
   action: "extract" | "compress" | "";
@@ -271,6 +273,7 @@ async function extractArchive() {
 
         setProcessing(true, "Extracting...");
         const unlisten = await listen<number>("extract_progress", (e) => {
+            currentProgress = e.payload;
             if (elements.progressFill) elements.progressFill.style.width = `${e.payload}%`;
             if (elements.progressText) elements.progressText.innerText = `${Math.round(e.payload)}%`;
         });
@@ -369,11 +372,22 @@ function setProcessing(processing: boolean, statusLine: string = "") {
             progressFill.style.width = "0%";
             progressText.innerText = "0%";
             progressStatus.innerText = statusLine;
+            currentProgress = 0;
             startTime = Date.now();
+            if (elements.progressEta) elements.progressEta.innerText = "ETA: --:--";
+            if (elements.progressElapsed) elements.progressElapsed.innerText = "00:00";
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = window.setInterval(() => {
-                const elapsed = (Date.now() - startTime) / 1000;
-                if (elements.progressElapsed) elements.progressElapsed.innerText = formatTime(elapsed);
+                const elapsedSec = (Date.now() - startTime) / 1000;
+                if (elements.progressElapsed) elements.progressElapsed.innerText = formatTime(elapsedSec);
+
+                if (currentProgress > 0 && currentProgress < 100) {
+                    const totalEstSec = (elapsedSec / currentProgress) * 100;
+                    const remainingSec = totalEstSec - elapsedSec;
+                    if (elements.progressEta) elements.progressEta.innerText = `ETA: ${formatTime(remainingSec)}`;
+                } else if (currentProgress >= 100) {
+                    if (elements.progressEta) elements.progressEta.innerText = "ETA: 00:00";
+                }
             }, 500);
         } else {
             if (timerInterval) clearInterval(timerInterval);
