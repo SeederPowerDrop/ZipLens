@@ -1,0 +1,51 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "dialog:default",
+    {
+      "identifier": "dialog:allow-open",
+      "allow": [
+        {
+          "filter": ".*"
+        }
+      ]
+    },
+    {
+      "identifier": "dialog:allow-save",
+      "allow": [
+        {
+          "filter": ".*"
+        }
+      ]
+    },
+    "dialog:allow-ask",
+    "dialog:allow-confirm",
+    "dialog:allow-message",
+    "core:event:default",
+    "core:window:default",
+    "core:window:allow-set-size",
+    "core:window:allow-inner-size",
+    "core:window:allow-current-monitor",
+    "core:window:allow-set-min-size",
+    "core:window:allow-start-dragging",
+    "core:app:default",
+    {
+      "identifier": "core:default",
+      "allow": [
+        {
+          "cmd": "extract_archive"
+        },
+        {
+          "cmd": "compress_archive"
+        }
+      ]
+    }
+  ]
+}
