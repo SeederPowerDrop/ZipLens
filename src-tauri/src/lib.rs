@@ -16,8 +16,8 @@ struct StartupAction {
 
 /// CLI 인수를 파싱합니다.
 /// 지원 형식:
-///   unzipper --extract /path/to/archive.zip
-///   unzipper --compress /path/to/file1 /path/to/file2 ...
+///   ziplens --extract /path/to/archive.zip
+///   ziplens --compress /path/to/file1 /path/to/file2 ...
 fn parse_startup_args() -> StartupAction {
     let args: Vec<String> = std::env::args().skip(1).collect();
     
@@ -96,7 +96,10 @@ pub fn run() {
             greet,
             archive::extract_archive,
             archive::compress_archive,
-            archive::preview_archive
+            archive::preview_archive,
+            archive::check_conflicts,
+            archive::save_report_file,
+            archive::resolve_extract_error
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

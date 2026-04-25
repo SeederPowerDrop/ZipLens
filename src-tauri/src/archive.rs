@@ -10,20 +10,118 @@ use encoding_rs::EUC_KR;
 /// 2) 아니면 EUC-KR(=CP949 슈퍼셋)으로 디코딩 시도
 /// 3) 그래도 깨지면 lossy UTF-8로 반환
 fn decode_zip_filename(raw: &[u8]) -> String {
-    // ZIP 엔트리에 UTF-8 플래그가 설정된 경우 already-valid UTF-8
-    if let Ok(s) = std::str::from_utf8(raw) {
+    if raw.is_ascii() {
+        return String::from_utf8_lossy(raw).into_owned();
+    }
+
+    let (euckr_decoded, _, _) = EUC_KR.decode(raw);
+    let euckr_str = euckr_decoded.into_owned();
+    let euckr_korean = euckr_str.chars()
+        .filter(|c| (*c >= '\u{AC00}' && *c <= '\u{D7A3}') || 
+                (*c >= '\u{3130}' && *c <= '\u{318F}') || 
+                (*c >= '\u{1100}' && *c <= '\u{11FF}'))
+        .count();
+
+    if euckr_korean > 0 {
+        return euckr_str;
+    }
+
+    if let Ok(utf8_str) = std::str::from_utf8(raw) {
+        return utf8_str.to_string();
+    }
+
+    euckr_str
+}
+
+pub fn recover_pua_string(s: &str) -> String {
+    let mut has_pua = false;
+    for c in s.chars() {
+        let cp = c as u32;
+        if cp >= 0xEF00 && cp <= 0xEFFF {
+            has_pua = true;
+            break;
+        }
+    }
+    
+    if !has_pua {
         return s.to_string();
     }
-    // EUC-KR (CP949의 슈퍼셋) 으로 디코딩 시도
-    let (decoded, _, had_errors) = EUC_KR.decode(raw);
-    if !had_errors {
-        return decoded.into_owned();
+
+    let mut recovered_bytes = Vec::new();
+    for c in s.chars() {
+        let cp = c as u32;
+        if cp >= 0xEF00 && cp <= 0xEFFF {
+            recovered_bytes.push((cp & 0xFF) as u8);
+        } else {
+            let mut b = [0; 4];
+            let bytes = c.encode_utf8(&mut b).as_bytes();
+            recovered_bytes.extend_from_slice(bytes);
+        }
     }
-    // 최후 수단: lossy UTF-8
-    String::from_utf8_lossy(raw).into_owned()
+    
+    let (euckr_decoded, _, _) = EUC_KR.decode(&recovered_bytes);
+    let euckr_str = euckr_decoded.into_owned();
+    let euckr_korean = euckr_str.chars()
+        .filter(|c| (*c >= '\u{AC00}' && *c <= '\u{D7A3}') || 
+                (*c >= '\u{3130}' && *c <= '\u{318F}') || 
+                (*c >= '\u{1100}' && *c <= '\u{11FF}'))
+        .count();
+
+    if euckr_korean > 0 {
+        return euckr_str;
+    }
+
+    if let Ok(utf8_str) = std::str::from_utf8(&recovered_bytes) {
+        return utf8_str.to_string();
+    }
+    
+    euckr_str
 }
 
 
+
+
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::Sender;
+
+static ERROR_RESOLUTION_TX: Mutex<Option<Sender<String>>> = Mutex::new(None);
+static IGNORE_ALL_ERRORS: AtomicBool = AtomicBool::new(false);
+static PROMPT_MUTEX: Mutex<()> = Mutex::new(());
+
+#[derive(serde::Serialize, Clone)]
+pub struct ExtractReport {
+    pub success_files: Vec<String>,
+    pub failed_files: Vec<(String, String)>,
+    pub cancelled: bool,
+}
+
+#[derive(serde::Serialize, Clone)]
+pub struct ErrorPromptInfo {
+    pub path: String,
+    pub error: String,
+}
+
+#[tauri::command]
+pub fn resolve_extract_error(choice: String) {
+    let mut tx_guard = ERROR_RESOLUTION_TX.lock().unwrap();
+    if let Some(tx) = tx_guard.take() {
+        let _ = tx.send(choice);
+    }
+}
+
+#[tauri::command]
+pub fn check_conflicts(dest_path: String, root_items: Vec<String>) -> Vec<String> {
+    let mut conflicts = Vec::new();
+    let dest = Path::new(&dest_path);
+    for item in root_items {
+        let full_path = dest.join(&item);
+        if full_path.exists() {
+            conflicts.push(item);
+        }
+    }
+    conflicts
+}
 
 #[tauri::command]
 pub async fn extract_archive(
@@ -32,38 +130,135 @@ pub async fn extract_archive(
     dest_path: String,
     target_files: Option<Vec<String>>,
     password: Option<String>,
-) -> Result<(), String> {
+    conflict_resolution: String,
+    root_items: Vec<String>,
+) -> Result<ExtractReport, String> {
+    IGNORE_ALL_ERRORS.store(false, Ordering::SeqCst);
     let path = Path::new(&archive_path);
 
     if !path.exists() {
         return Err("Archive file not found".into());
     }
 
+    let is_keep_both = conflict_resolution == "keep_both";
+    let is_overwrite = conflict_resolution == "overwrite";
+
+    if is_overwrite {
+        let dest_p = Path::new(&dest_path);
+        for item in &root_items {
+            let p = dest_p.join(item);
+            if p.exists() {
+                if p.is_dir() {
+                    let _ = std::fs::remove_dir_all(&p);
+                } else {
+                    let _ = std::fs::remove_file(&p);
+                }
+            }
+        }
+    }
+
+    let actual_dest = if is_keep_both {
+        let temp_name = format!(".ziplens_temp_{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
+        let p = Path::new(&dest_path).join(&temp_name);
+        std::fs::create_dir_all(&p).unwrap_or_default();
+        p.to_string_lossy().to_string()
+    } else {
+        dest_path.clone()
+    };
+
     let file_name = path.file_name().unwrap_or_default().to_string_lossy().to_lowercase();
+    let contains_app = root_items.iter().any(|item| item.to_lowercase().ends_with(".app") || item.to_lowercase().ends_with(".app/"));
     
-    if file_name.ends_with(".zip") {
-        extract_zip(&app, &archive_path, &dest_path, &target_files, &password)
+    let result = if file_name.ends_with(".zip") {
+        let zip_res = {
+            #[cfg(target_os = "macos")]
+            if contains_app && password.is_none() && target_files.is_none() {
+                extract_ditto(&app, &archive_path, &actual_dest)
+            } else {
+                extract_zip(&app, &archive_path, &actual_dest, &target_files, &password)
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                extract_zip(&app, &archive_path, &actual_dest, &target_files, &password)
+            }
+        };
+        match zip_res {
+            Ok(r) => Ok(r),
+            Err(e) => {
+                println!("Native zip extraction failed: {}. Falling back to 7zz...", e);
+                extract_7zz(app.clone(), &archive_path, &actual_dest, &target_files, &password).await
+            }
+        }
     } else if file_name.ends_with(".tar.gz") || file_name.ends_with(".tgz") {
-        extract_tar_gz(&app, &archive_path, &dest_path, &target_files)
+        extract_tar_gz(&app, &archive_path, &actual_dest, &target_files)
     } else if file_name.ends_with(".tar.zst") || file_name.ends_with(".tzst") {
-        extract_tar_zst(&app, &archive_path, &dest_path, &target_files)
+        extract_tar_zst(&app, &archive_path, &actual_dest, &target_files)
     } else if file_name.ends_with(".tar") {
-        extract_tar(&app, &archive_path, &dest_path, &target_files)
+        extract_tar(&app, &archive_path, &actual_dest, &target_files)
     } else if file_name.ends_with(".7z") {
         if password.is_some() {
-            extract_7zz(app, &archive_path, &dest_path, &target_files, &password).await
+            extract_7zz(app, &archive_path, &actual_dest, &target_files, &password).await
         } else {
-            match extract_7z(&app, &archive_path, &dest_path, &target_files) {
-                Ok(_) => Ok(()),
+            match extract_7z(&app, &archive_path, &actual_dest, &target_files) {
+                Ok(r) => Ok(r),
                 Err(e) => {
                     println!("Native 7z extraction failed: {}. Falling back to 7zz...", e);
-                    extract_7zz(app, &archive_path, &dest_path, &target_files, &password).await
+                    extract_7zz(app, &archive_path, &actual_dest, &target_files, &password).await
                 }
             }
         }
     } else {
-        extract_7zz(app, &archive_path, &dest_path, &target_files, &password).await
+        extract_7zz(app, &archive_path, &actual_dest, &target_files, &password).await
+    };
+
+    let report = match result {
+        Ok(r) => r,
+        Err(e) => {
+            if is_keep_both {
+                let _ = std::fs::remove_dir_all(&actual_dest);
+            }
+            return Err(e);
+        }
+    };
+
+    let mut final_extracted_paths: Vec<String> = Vec::new();
+
+    if is_keep_both {
+        let temp_dir = Path::new(&actual_dest);
+        if let Ok(entries) = std::fs::read_dir(temp_dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name();
+                let mut final_path = Path::new(&dest_path).join(&name);
+                
+                if final_path.exists() {
+                    let stem = Path::new(&name).file_stem().unwrap_or_default().to_string_lossy().to_string();
+                    let ext = Path::new(&name).extension().unwrap_or_default().to_string_lossy().to_string();
+                    let suffix = if ext.is_empty() { "".to_string() } else { format!(".{}", ext) };
+                    
+                    let mut counter = 1;
+                    loop {
+                        let new_name = format!("{} ({}){}", stem, counter, suffix);
+                        final_path = Path::new(&dest_path).join(&new_name);
+                        if !final_path.exists() {
+                            break;
+                        }
+                        counter += 1;
+                    }
+                }
+                
+                if std::fs::rename(entry.path(), &final_path).is_ok() {
+                    final_extracted_paths.push(final_path.to_string_lossy().to_string());
+                }
+            }
+        }
+        let _ = std::fs::remove_dir_all(temp_dir);
+    } else {
+        for item in root_items {
+            final_extracted_paths.push(Path::new(&dest_path).join(item).to_string_lossy().to_string());
+        }
     }
+
+    Ok(report)
 }
 
 // 7-Zip Sidecar Extraction for (RAR, ISO, CAB, LZH, ALZ, EGG, etc.)
@@ -71,10 +266,10 @@ use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::CommandEvent;
 use tauri::Emitter;
 
-async fn extract_7zz(app: AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>, password: &Option<String>) -> Result<(), String> {
+async fn extract_7zz(app: AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>, password: &Option<String>) -> Result<ExtractReport, String> {
     let sidecar_command = app.shell().sidecar("7zz").map_err(|e| format!("Failed to create sidecar: {}", e))?;
     
-    let mut args = vec!["x".to_string(), archive_path.to_string(), format!("-o{}", dest_path), "-y".to_string()];
+    let mut args = vec!["x".to_string(), archive_path.to_string(), format!("-o{}", dest_path), "-y".to_string(), "-mcp=949".to_string(), "-sccUTF-8".to_string(), "-bb1".to_string()];
     if let Some(pw) = password {
         args.push(format!("-p{}", pw));
     } else {
@@ -83,12 +278,14 @@ async fn extract_7zz(app: AppHandle, archive_path: &str, dest_path: &str, target
     
     if let Some(targets) = target_files {
         let list_path = std::env::temp_dir().join(format!("7z_list_{}.txt", std::process::id()));
-        let mut list_content = String::new();
+        let mut list_content = Vec::new();
         for t in targets {
-            list_content.push_str(t);
-            list_content.push('\n');
+            let (encoded, _, _) = EUC_KR.encode(t);
+            list_content.extend_from_slice(&encoded);
+            list_content.push(b'\n');
         }
-        std::fs::write(&list_path, list_content).map_err(|e| e.to_string())?;
+        std::fs::write(&list_path, &list_content).map_err(|e| e.to_string())?;
+        args.push("-scsWIN".to_string());
         args.push(format!("-i@{}", list_path.display()));
     }
     
@@ -98,39 +295,216 @@ async fn extract_7zz(app: AppHandle, archive_path: &str, dest_path: &str, target
     
     let _ = app.emit("extract_progress", 50);
 
+    let mut success_files = Vec::new();
+    let mut failed_files = Vec::new();
+    let mut current_extracting = String::new();
+
     // Read stdout/stderr from 7zz
     while let Some(event) = rx.recv().await {
         match event {
             CommandEvent::Stdout(line) => {
                 let s = String::from_utf8_lossy(&line).to_string();
-                // 7zz usually prints "Extracting archive: [name]" or "Extracting  [file]"
-                if s.starts_with("Extracting  ") {
-                    let filename = s.replace("Extracting  ", "").trim().to_string();
-                    let _ = app.emit("extract_filename", filename);
+                if s.starts_with("- ") {
+                    if !current_extracting.is_empty() {
+                        success_files.push(current_extracting.clone());
+                    }
+                    let filename = s[2..].trim().to_string();
+                    let decoded_filename = crate::archive::recover_pua_string(&filename);
+                    current_extracting = decoded_filename.clone();
+                    let _ = app.emit("extract_filename", decoded_filename);
+                } else if s.starts_with("ERROR: ") {
+                    let decoded_error = crate::archive::recover_pua_string(s.trim());
+                    let mut err_filename = "archive".to_string();
+                    if let Some(idx) = decoded_error.rfind(" : ") {
+                        let potential_path = decoded_error[idx + 3..].trim();
+                        if !potential_path.is_empty() {
+                            err_filename = potential_path.to_string();
+                        }
+                    } else if !current_extracting.is_empty() {
+                        err_filename = current_extracting.clone();
+                    }
+                    failed_files.push((err_filename, decoded_error));
+                    current_extracting.clear();
                 }
             }
-            CommandEvent::Stderr(_line) => {
-                // Handle stderr if needed
+            CommandEvent::Stderr(line) => {
+                 let s = String::from_utf8_lossy(&line).to_string();
+                 if s.starts_with("- ") {
+                     // -bb1 mode: some lines may come via stderr
+                     if !current_extracting.is_empty() {
+                         success_files.push(current_extracting.clone());
+                     }
+                     let filename = s[2..].trim().to_string();
+                     let decoded_filename = crate::archive::recover_pua_string(&filename);
+                     current_extracting = decoded_filename.clone();
+                     let _ = app.emit("extract_filename", decoded_filename);
+                 } else if s.starts_with("ERROR: ") {
+                     let decoded_error = crate::archive::recover_pua_string(s.trim());
+                     let mut err_filename = "archive".to_string();
+                     if let Some(idx) = decoded_error.rfind(" : ") {
+                         let potential_path = decoded_error[idx + 3..].trim();
+                         if !potential_path.is_empty() {
+                             err_filename = potential_path.to_string();
+                         }
+                     } else if !current_extracting.is_empty() {
+                         err_filename = current_extracting.clone();
+                     }
+                     failed_files.push((err_filename, decoded_error));
+                     current_extracting.clear();
+                 }
             }
             CommandEvent::Terminated(payload) => {
                 if payload.code != Some(0) {
-                    return Err("PASSWORD_REQUIRED".into());
+                    let code = payload.code.unwrap_or(-1);
+                    if code == 2 && failed_files.is_empty() {
+                        return Err("PASSWORD_REQUIRED".into());
+                    } else if failed_files.is_empty() {
+                        return Err(format!("7zz extraction failed (exit code: {})", code));
+                    }
+                    // If we have failed files, we let it return ExtractReport instead of erroring out fully
                 }
-            }
-            CommandEvent::Error(err) => {
-                return Err(err.to_string());
             }
             _ => {}
         }
     }
     
+    if !current_extracting.is_empty() {
+        success_files.push(current_extracting);
+    }
+    
+    // Fix PUA mangled filenames from 7zz
+    let mut fixed_success_files = Vec::new();
+    for f in success_files {
+        fixed_success_files.push(recover_pua_string(&f));
+    }
+    
+    let mut fixed_failed_files = Vec::new();
+    for (f, err) in failed_files {
+        fixed_failed_files.push((recover_pua_string(&f), err));
+    }
+
+    // Recursively rename files on disk
+    fn rename_pua_recursively(dir: &std::path::Path) {
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            let mut paths = Vec::new();
+            for entry in entries.flatten() {
+                paths.push(entry.path());
+            }
+            
+            // Rename children first (bottom-up)
+            for path in &paths {
+                if path.is_dir() {
+                    rename_pua_recursively(path);
+                }
+            }
+            
+            // Rename current level
+            for path in &paths {
+                if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                    let recovered = recover_pua_string(name);
+                    if name != recovered {
+                        let new_path = path.with_file_name(recovered);
+                        let _ = std::fs::rename(path, &new_path);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Only rename PUA-mangled entries within top-level items that were just extracted,
+    // not the entire dest_path (which could be the user's home folder).
+    if let Ok(entries) = std::fs::read_dir(std::path::Path::new(dest_path)) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                rename_pua_recursively(&path);
+            }
+            // Rename the top-level item itself if needed
+            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                let recovered = recover_pua_string(name);
+                if name != recovered {
+                    let new_path = path.with_file_name(recovered);
+                    let _ = std::fs::rename(&path, &new_path);
+                }
+            }
+        }
+    }
+    
     let _ = app.emit("extract_progress", 100);
-    Ok(())
+    Ok(ExtractReport { success_files: fixed_success_files, failed_files: fixed_failed_files, cancelled: false })
 }
 
-fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>, password: &Option<String>) -> Result<(), String> {
+#[cfg(target_os = "macos")]
+fn extract_ditto(app: &AppHandle, archive_path: &str, dest_path: &str) -> Result<ExtractReport, String> {
+    let sidecar_command = app.shell().sidecar("ditto").map_err(|e| format!("Failed to create ditto sidecar: {}", e))?;
+    let args = vec!["-x".to_string(), "-k".to_string(), archive_path.to_string(), dest_path.to_string()];
+    let output = tauri::async_runtime::block_on(async {
+        sidecar_command.args(args).output().await
+    }).map_err(|e| e.to_string())?;
+
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).to_string());
+    }
+    
+    use tauri::Emitter;
+    let _ = app.emit("extract_progress", 100);
+
+    Ok(ExtractReport { success_files: vec!["ditto_extracted".to_string()], failed_files: vec![], cancelled: false })
+}
+
+
+use std::sync::Arc;
+
+fn handle_extract_error(
+    app: &AppHandle, 
+    path: &str, 
+    error: &str, 
+    failed_files: &Arc<Mutex<Vec<(String, String)>>>, 
+    cancelled: &Arc<std::sync::atomic::AtomicBool>
+) -> Result<(), String> {
+    if IGNORE_ALL_ERRORS.load(Ordering::SeqCst) || cancelled.load(Ordering::SeqCst) {
+        if !cancelled.load(Ordering::SeqCst) {
+            failed_files.lock().unwrap().push((path.to_string(), error.to_string()));
+        }
+        return Ok(());
+    }
+
+    let _lock = PROMPT_MUTEX.lock().unwrap();
+    if IGNORE_ALL_ERRORS.load(Ordering::SeqCst) || cancelled.load(Ordering::SeqCst) {
+        if !cancelled.load(Ordering::SeqCst) {
+            failed_files.lock().unwrap().push((path.to_string(), error.to_string()));
+        }
+        return Ok(());
+    }
+
+    let (tx, rx) = std::sync::mpsc::channel();
+    *ERROR_RESOLUTION_TX.lock().unwrap() = Some(tx);
+
+    use tauri::Emitter;
+    let _ = app.emit("extract_error_prompt", ErrorPromptInfo { path: path.to_string(), error: error.to_string() });
+
+    let choice = rx.recv().unwrap_or_else(|_| "cancel".to_string());
+    
+    match choice.as_str() {
+        "ignore" => {
+            failed_files.lock().unwrap().push((path.to_string(), error.to_string()));
+            Ok(())
+        },
+        "ignore_all" => {
+            IGNORE_ALL_ERRORS.store(true, Ordering::SeqCst);
+            failed_files.lock().unwrap().push((path.to_string(), error.to_string()));
+            Ok(())
+        },
+        _ => {
+            cancelled.store(true, Ordering::SeqCst);
+            Err("CANCELLED".into())
+        }
+    }
+}
+
+
+fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>, password: &Option<String>) -> Result<ExtractReport, String> {
     let archive_path_clone = Path::new(archive_path).to_path_buf();
-    let dest_path_clone = Path::new(dest_path).to_path_buf();
     let file = fs::File::open(&archive_path_clone).map_err(|e| e.to_string())?;
     let archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
 
@@ -140,31 +514,52 @@ fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_file
     use rayon::prelude::*;
     let processed_count = Arc::new(Mutex::new(0usize));
     
+    let success_files = Arc::new(Mutex::new(Vec::new()));
+    let failed_files = Arc::new(Mutex::new(Vec::new()));
+    let cancelled = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    
     let indexes: Vec<usize> = (0..total_files).collect();
     let pw_clone = password.clone();
     
-    indexes.par_iter().try_for_each(|&i| -> Result<(), String> {
-        let f = fs::File::open(&archive_path_clone).map_err(|e| e.to_string())?;
-        let mut thread_archive = ZipArchive::new(f).map_err(|e| e.to_string())?;
+    let err = indexes.par_iter().try_for_each(|&i| -> Result<(), String> {
+        let f = match fs::File::open(&archive_path_clone) {
+            Ok(f) => f,
+            Err(_) => return Ok(()) // skip
+        };
+        let mut thread_archive = match ZipArchive::new(f) {
+            Ok(a) => a,
+            Err(_) => return Ok(()) // skip
+        };
         
-        // Peek at the file to check encryption first, then drop it to release borrow
-        let (encrypted, decoded_name) = {
-            let file = thread_archive.by_index_raw(i).map_err(|e| e.to_string())?;
-            let name = decode_zip_filename(file.name_raw());
-            (file.encrypted(), name)
+        let (encrypted, decoded_name) = match thread_archive.by_index_raw(i) {
+            Ok(file) => (file.encrypted(), decode_zip_filename(file.name_raw())),
+            Err(e) => {
+                let _ = handle_extract_error(app, &format!("File_Index_{}", i), &e.to_string(), &failed_files, &cancelled);
+                return Ok(());
+            }
         };
         
         if encrypted && pw_clone.is_none() {
-            return Err("PASSWORD_REQUIRED".into());
+            let _ = handle_extract_error(app, &decoded_name, "PASSWORD_REQUIRED", &failed_files, &cancelled);
+            return Ok(());
         }
         
         let mut file = if let Some(pw) = &pw_clone {
             match thread_archive.by_index_decrypt(i, pw.as_bytes()) {
                 Ok(f) => f,
-                Err(_) => return Err("PASSWORD_REQUIRED".into())
+                Err(e) => {
+                    let _ = handle_extract_error(app, &decoded_name, &e.to_string(), &failed_files, &cancelled);
+                    return Ok(());
+                }
             }
         } else {
-            thread_archive.by_index(i).map_err(|e| e.to_string())?
+            match thread_archive.by_index(i) {
+                Ok(f) => f,
+                Err(e) => {
+                    let _ = handle_extract_error(app, &decoded_name, &e.to_string(), &failed_files, &cancelled);
+                    return Ok(());
+                }
+            }
         };
         
         if let Some(targets) = target_files {
@@ -173,9 +568,9 @@ fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_file
             }
         }
         
-        // 디렉토리 traversal 공격 방지: ".."가 포함된 경로는 스킵
+        // Directory traversal protection
         let sanitized: std::path::PathBuf = decoded_name
-            .replace('\\', "/")
+            .replace("\\\\", "/")
             .split('/')
             .filter(|c| !c.is_empty() && *c != "..")
             .collect();
@@ -188,17 +583,19 @@ fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_file
 
         let mode = file.unix_mode();
 
-        if decoded_name.ends_with('/') || decoded_name.ends_with('\\') {
-            fs::create_dir_all(&outpath).map_err(|e| e.to_string())?;
+        if decoded_name.ends_with('/') || decoded_name.ends_with("\\\\") {
+            fs::create_dir_all(&outpath).unwrap_or_default();
             #[cfg(unix)]
             if let Some(m) = mode {
+                let m = m & 0o777;
                 use std::os::unix::fs::PermissionsExt;
                 let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(m));
             }
+            success_files.lock().unwrap().push(decoded_name.clone());
         } else {
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(p).map_err(|e| e.to_string())?;
+                    let _ = fs::create_dir_all(p);
                 }
             }
             
@@ -209,19 +606,42 @@ fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_file
 
             if is_symlink {
                 let mut target = String::new();
-                std::io::Read::read_to_string(&mut file, &mut target).map_err(|e| e.to_string())?;
-                #[cfg(unix)]
-                {
-                    let _ = std::os::unix::fs::symlink(&target, &outpath);
+                if let Err(e) = std::io::Read::read_to_string(&mut file, &mut target) {
+                    if handle_extract_error(app, &decoded_name, &e.to_string(), &failed_files, &cancelled).is_err() {
+                        return Err("CANCELLED".into());
+                    }
+                } else {
+                    #[cfg(unix)]
+                    {
+                        if outpath.exists() || outpath.is_symlink() {
+                            let _ = fs::remove_file(&outpath);
+                        }
+                        let _ = std::os::unix::fs::symlink(&target, &outpath);
+                    }
+                    success_files.lock().unwrap().push(decoded_name.clone());
                 }
             } else {
-                let mut outfile = fs::File::create(&outpath).map_err(|e| e.to_string())?;
-                std::io::copy(&mut file, &mut outfile).map_err(|e| e.to_string())?;
-                
-                #[cfg(unix)]
-                if let Some(m) = mode {
-                    use std::os::unix::fs::PermissionsExt;
-                    let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(m));
+                let mut outfile = match fs::File::create(&outpath) {
+                    Ok(f) => f,
+                    Err(e) => {
+                        if handle_extract_error(app, &decoded_name, &e.to_string(), &failed_files, &cancelled).is_err() {
+                            return Err("CANCELLED".into());
+                        }
+                        return Ok(());
+                    }
+                };
+                if let Err(e) = std::io::copy(&mut file, &mut outfile) {
+                    if handle_extract_error(app, &decoded_name, &e.to_string(), &failed_files, &cancelled).is_err() {
+                        return Err("CANCELLED".into());
+                    }
+                } else {
+                    #[cfg(unix)]
+                    if let Some(m) = mode {
+                        let m = m & 0o777;
+                        use std::os::unix::fs::PermissionsExt;
+                        let _ = fs::set_permissions(&outpath, fs::Permissions::from_mode(m));
+                    }
+                    success_files.lock().unwrap().push(decoded_name.clone());
                 }
             }
         }
@@ -235,44 +655,74 @@ fn extract_zip(app: &AppHandle, archive_path: &str, dest_path: &str, target_file
         let _ = app.emit("extract_filename", decoded_name);
         
         Ok(())
-    })?;
+    });
 
     use tauri::Emitter;
     let _ = app.emit("extract_progress", 100);
 
-    Ok(())
+    let is_cancelled = cancelled.load(Ordering::SeqCst) || err.is_err();
+    
+    let s = success_files.lock().unwrap().clone();
+    let f = failed_files.lock().unwrap().clone();
+    Ok(ExtractReport {
+        success_files: s,
+        failed_files: f,
+        cancelled: is_cancelled,
+    })
 }
 
-fn extract_tar_gz(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<(), String> {
+
+fn extract_tar_gz(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<ExtractReport, String> {
     let file = fs::File::open(archive_path).map_err(|e| e.to_string())?;
     let dec = flate2::read::GzDecoder::new(file);
     let mut archive = tar::Archive::new(dec);
     extract_tar_inner(app, &mut archive, dest_path, target_files)
 }
 
-fn extract_tar_zst(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<(), String> {
+fn extract_tar_zst(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<ExtractReport, String> {
     let file = fs::File::open(archive_path).map_err(|e| e.to_string())?;
     let dec = zstd::stream::Decoder::new(file).map_err(|e| e.to_string())?;
     let mut archive = tar::Archive::new(dec);
     extract_tar_inner(app, &mut archive, dest_path, target_files)
 }
 
-fn extract_tar(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<(), String> {
+fn extract_tar(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<ExtractReport, String> {
     let file = fs::File::open(archive_path).map_err(|e| e.to_string())?;
     let mut archive = tar::Archive::new(file);
     extract_tar_inner(app, &mut archive, dest_path, target_files)
 }
 
-fn extract_tar_inner<R: std::io::Read>(app: &AppHandle, archive: &mut tar::Archive<R>, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<(), String> {
+fn extract_tar_inner<R: std::io::Read>(app: &AppHandle, archive: &mut tar::Archive<R>, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<ExtractReport, String> {
     let dest_path = Path::new(dest_path);
-    // Emit 50 to kick off the indeterminate progress bar timer immediately
     use tauri::Emitter;
     let _ = app.emit("extract_progress", 50);
 
-    // We can just iterate and emit filenames
-    for entry in archive.entries().map_err(|e| e.to_string())? {
-        let mut entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path().map_err(|e| e.to_string())?.to_path_buf();
+    let success_files = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let failed_files = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let cancelled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    let entries = match archive.entries() {
+        Ok(e) => e,
+        Err(_) => return Ok(ExtractReport { success_files: vec![], failed_files: vec![("TAR_ARCHIVE".to_string(), "Corrupt tar entries".to_string())], cancelled: false })
+    };
+
+    for entry in entries {
+        if cancelled.load(Ordering::SeqCst) { break; }
+        
+        let mut entry = match entry {
+            Ok(e) => e,
+            Err(e) => {
+                let _ = handle_extract_error(app, "unknown_tar_entry", &e.to_string(), &failed_files, &cancelled);
+                continue;
+            }
+        };
+        let path = match entry.path() {
+            Ok(p) => p.to_path_buf(),
+            Err(e) => {
+                let _ = handle_extract_error(app, "unknown_tar_path", &e.to_string(), &failed_files, &cancelled);
+                continue;
+            }
+        };
         let name_str = path.to_string_lossy().to_string();
         
         if let Some(targets) = target_files {
@@ -281,23 +731,42 @@ fn extract_tar_inner<R: std::io::Read>(app: &AppHandle, archive: &mut tar::Archi
             }
         }
         
-        let _ = app.emit("extract_filename", name_str);
+        let _ = app.emit("extract_filename", name_str.clone());
         
-        entry.unpack_in(dest_path).map_err(|e| e.to_string())?;
+        if let Err(e) = entry.unpack_in(dest_path) {
+            let _ = handle_extract_error(app, &name_str, &e.to_string(), &failed_files, &cancelled);
+        } else {
+            success_files.lock().unwrap().push(name_str);
+        }
     }
     
     let _ = app.emit("extract_progress", 100);
     
-    Ok(())
+    let s = success_files.lock().unwrap().clone();
+    let f = failed_files.lock().unwrap().clone();
+    let c = cancelled.load(Ordering::SeqCst);
+    Ok(ExtractReport {
+        success_files: s,
+        failed_files: f,
+        cancelled: c,
+    })
 }
 
-fn extract_7z(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<(), String> {
+fn extract_7z(app: &AppHandle, archive_path: &str, dest_path: &str, target_files: &Option<Vec<String>>) -> Result<ExtractReport, String> {
     let archive_path_clone = archive_path.to_string();
     let dest_path_clone = dest_path.to_string();
     let app_clone = app.clone();
     let target_files_clone = target_files.clone();
 
-    match sevenz_rust::decompress_file_with_extract_fn(&archive_path_clone, &dest_path_clone, move |entry, reader, dest| {
+    let success_files = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let failed_files = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let cancelled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    let success_files_copy = success_files.clone();
+    let failed_files_copy = failed_files.clone();
+    let cancelled_copy = cancelled.clone();
+
+    match sevenz_rust::decompress_file_with_extract_fn(archive_path_clone.clone(), dest_path_clone.clone(), move |entry, reader, dest| {
         let name = entry.name().to_string();
         
         if let Some(targets) = &target_files_clone {
@@ -308,11 +777,28 @@ fn extract_7z(app: &AppHandle, archive_path: &str, dest_path: &str, target_files
         
         let _ = app_clone.emit("extract_filename", name.clone());
         let p = dest.to_path_buf();
-        sevenz_rust::default_entry_extract_fn(entry, reader, &p)
+        let res = sevenz_rust::default_entry_extract_fn(entry, reader, &p);
+        if let Err(e) = &res {
+            let _ = handle_extract_error(&app_clone, &name, &e.to_string(), &failed_files_copy, &cancelled_copy);
+            if cancelled_copy.load(Ordering::SeqCst) {
+                return Err(sevenz_rust::Error::io(std::io::Error::new(std::io::ErrorKind::Interrupted, "CANCELLED")));
+            }
+            return Ok(true);
+        } else {
+            success_files_copy.lock().unwrap().push(name);
+        }
+        res
     }) {
         Ok(_) => {
             let _ = app.emit("extract_progress", 100);
-            Ok(())
+            let s = success_files.lock().unwrap().clone();
+            let f = failed_files.lock().unwrap().clone();
+            let c = cancelled.load(Ordering::SeqCst);
+            Ok(ExtractReport {
+                success_files: s,
+                failed_files: f,
+                cancelled: c,
+            })
         },
         Err(sevenz_rust::Error::PasswordRequired) | Err(sevenz_rust::Error::UnsupportedCompressionMethod(_)) => {
             Err("PASSWORD_REQUIRED".to_string())
@@ -553,6 +1039,7 @@ pub struct ArchiveFileInfo {
     pub size: u64,
     pub compressed_size: Option<u64>,
     pub is_encrypted: bool,
+    pub error: Option<String>,
 }
 
 #[tauri::command]
@@ -561,6 +1048,7 @@ pub async fn preview_archive(
     archive_path: String,
     password: Option<String>,
 ) -> Result<Vec<ArchiveFileInfo>, String> {
+    IGNORE_ALL_ERRORS.store(false, Ordering::SeqCst);
     let path = Path::new(&archive_path);
     if !path.exists() {
         return Err("Archive file not found".into());
@@ -569,7 +1057,13 @@ pub async fn preview_archive(
     let file_name = path.file_name().unwrap_or_default().to_string_lossy().to_lowercase();
     
     if file_name.ends_with(".zip") {
-        preview_zip(&archive_path)
+        match preview_zip(&archive_path) {
+            Ok(files) => Ok(files),
+            Err(e) => {
+                println!("Native zip preview failed: {}. Falling back to 7zz...", e);
+                Box::pin(preview_7zz(app, &archive_path, &password)).await
+            }
+        }
     } else if file_name.ends_with(".tar.gz") || file_name.ends_with(".tgz") {
         preview_tar_gz(&archive_path)
     } else if file_name.ends_with(".tar.zst") || file_name.ends_with(".tzst") {
@@ -601,14 +1095,34 @@ fn preview_zip(archive_path: &str) -> Result<Vec<ArchiveFileInfo>, String> {
     let mut archive = ZipArchive::new(file).map_err(|e| e.to_string())?;
     let mut files = Vec::new();
     for i in 0..archive.len() {
-        let file = archive.by_index_raw(i).map_err(|e| e.to_string())?;
-        let decoded_name = decode_zip_filename(file.name_raw());
-        files.push(ArchiveFileInfo {
-            path: decoded_name,
-            size: file.size(),
-            compressed_size: Some(file.compressed_size()),
-            is_encrypted: file.encrypted(),
-        });
+        match archive.by_index_raw(i) {
+            Ok(file) => {
+                let raw = file.name_raw();
+                if i < 3 {
+                    println!("[ZipLens DIAG] Entry {}: name_raw() hex={:02X?}, name()='{}'", i, &raw[..raw.len().min(40)], file.name());
+                }
+                let decoded_name = decode_zip_filename(raw);
+                if i < 3 {
+                    println!("[ZipLens DIAG] Entry {}: decoded='{}'", i, decoded_name);
+                }
+                files.push(ArchiveFileInfo {
+                    path: decoded_name,
+                    size: file.size(),
+                    compressed_size: Some(file.compressed_size()),
+                    is_encrypted: file.encrypted(),
+                    error: None,
+                });
+            },
+            Err(e) => {
+                files.push(ArchiveFileInfo {
+                    path: format!("[Entry #{}]", i),
+                    size: 0,
+                    compressed_size: None,
+                    is_encrypted: false,
+                    error: Some(e.to_string()),
+                });
+            }
+        }
     }
     Ok(files)
 }
@@ -643,6 +1157,7 @@ fn preview_tar_inner<R: std::io::Read>(archive: &mut tar::Archive<R>) -> Result<
             size: entry.header().size().unwrap_or(0),
             compressed_size: None,
             is_encrypted: false,
+            error: None,
         });
     }
     Ok(files)
@@ -667,6 +1182,7 @@ fn preview_7z(archive_path: &str) -> Result<Vec<ArchiveFileInfo>, String> {
             size: entry.size(),
             compressed_size: None,
             is_encrypted: false,
+            error: None,
         });
     }
     Ok(files)
@@ -674,7 +1190,7 @@ fn preview_7z(archive_path: &str) -> Result<Vec<ArchiveFileInfo>, String> {
 
 async fn preview_7zz(app: AppHandle, archive_path: &str, password: &Option<String>) -> Result<Vec<ArchiveFileInfo>, String> {
     let sidecar_command = app.shell().sidecar("7zz").map_err(|e| format!("Failed to create sidecar: {}", e))?;
-    let mut args = vec!["l".to_string(), archive_path.to_string(), "-slt".to_string()];
+    let mut args = vec!["l".to_string(), archive_path.to_string(), "-slt".to_string(), "-mcp=949".to_string(), "-sccUTF-8".to_string()];
     if let Some(pw) = password {
         args.push(format!("-p{}", pw));
     } else {
@@ -686,12 +1202,18 @@ async fn preview_7zz(app: AppHandle, archive_path: &str, password: &Option<Strin
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     
-    if stderr.contains("Wrong password") || stdout.contains("Wrong password") || stdout.contains("Cannot open encrypted archive") || stderr.contains("Cannot open encrypted archive") || stderr.contains("Data Error") || stdout.contains("Data Error") || stdout.contains("Enter password") || stderr.contains("Enter password") {
+    if stderr.contains("Wrong password") || stdout.contains("Wrong password") || stdout.contains("Cannot open encrypted archive") || stderr.contains("Cannot open encrypted archive") || stdout.contains("Enter password") || stderr.contains("Enter password") {
         if password.is_none() {
             return Err("PASSWORD_REQUIRED".into());
         } else {
             return Err("Wrong password provided".into());
         }
+    }
+    if stdout.contains("Is not archive") || stderr.contains("Is not archive") || stdout.contains("Cannot open the file as") || stderr.contains("Cannot open the file as") {
+        return Err("CORRUPTED_ARCHIVE".into());
+    }
+    if output.status.code() == Some(2) {
+        return Err("CORRUPTED_ARCHIVE".into());
     }
     let mut files = Vec::new();
     let mut current_path = String::new();
@@ -708,6 +1230,7 @@ async fn preview_7zz(app: AppHandle, archive_path: &str, password: &Option<Strin
                     size: current_size,
                     compressed_size: current_packed,
                     is_encrypted: current_encrypted,
+                    error: None,
                 });
                 current_path.clear();
                 current_size = 0;
@@ -715,7 +1238,8 @@ async fn preview_7zz(app: AppHandle, archive_path: &str, password: &Option<Strin
                 current_encrypted = false;
             }
         } else if line.starts_with("Path = ") {
-            current_path = line.replace("Path = ", "").trim().to_string();
+            let p = line.replace("Path = ", "").trim().to_string();
+            current_path = recover_pua_string(&p);
         } else if line.starts_with("Size = ") {
             if let Ok(sz) = line.replace("Size = ", "").trim().parse::<u64>() {
                 current_size = sz;
@@ -732,10 +1256,11 @@ async fn preview_7zz(app: AppHandle, archive_path: &str, password: &Option<Strin
     }
     if !current_path.is_empty() {
         files.push(ArchiveFileInfo {
-            path: current_path,
+            path: current_path.clone(),
             size: current_size,
             compressed_size: current_packed,
             is_encrypted: current_encrypted,
+            error: None,
         });
     }
     
@@ -743,4 +1268,9 @@ async fn preview_7zz(app: AppHandle, archive_path: &str, password: &Option<Strin
         files.remove(0); // The first entry is usually the archive file itself in 7zz l -slt
     }
     Ok(files)
+}
+
+#[tauri::command]
+pub fn save_report_file(file_path: String, content: String) -> Result<(), String> {
+    std::fs::write(&file_path, content.as_bytes()).map_err(|e| format!("Failed to write report: {}", e))
 }

@@ -1,4 +1,4 @@
-# Unzipper v1.1.0
+# ZipLens v1.1.0
 
 A modern, universal archive extraction and compression utility built on **Tauri**, **Vanilla TS**, and **Rust**.
 
@@ -15,7 +15,7 @@ A modern, universal archive extraction and compression utility built on **Tauri*
 - **Extended Sidecar Support**: Handles RAR, ALZ, EGG, ISO, CAB, and LZH smoothly using an embedded `7zz` sidecar.
 - **Korean Filename Auto-Detection (CP949/EUC-KR)**: Automatically detects and safely decodes non-UTF-8 filenames to prevent text corruption in old ZIP files.
 - **Volume Split Compression**: Compress large folders into split volumes (10MB, 100MB, 700MB, 4GB).
-- **macOS Quick Actions**: Integrates with "Unzipper로 압축 해제" workflow for simple right-click context menu extraction.
+- **macOS Quick Actions**: Integrates with "ZipLens로 압축 해제" workflow for simple right-click context menu extraction.
 
 ## Installation & Build
 

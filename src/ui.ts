@@ -33,9 +33,37 @@ export const elements = {
   get extFilterContainer() { return document.getElementById("ext-filter-container"); },
   get searchInput() { return document.getElementById("preview-search") as HTMLInputElement; },
   get searchMatchesText() { return document.getElementById("search-matches-text"); },
+  get selectAllBtn() { return document.getElementById("select-all") as HTMLButtonElement; },
+  get deselectAllBtn() { return document.getElementById("deselect-all") as HTMLButtonElement; },
   get toggleAllBtn() { return document.getElementById("toggle-all") as HTMLButtonElement; },
-  get btnReveal() { return document.getElementById("btn-reveal") as HTMLButtonElement; }
+  get btnReveal() { return document.getElementById("btn-reveal") as HTMLButtonElement; },
+  get conflictModal() { return document.getElementById("conflict-modal") as HTMLDivElement; },
+  get conflictMsg() { return document.getElementById("conflict-msg") as HTMLParagraphElement; },
+  get conflictOverwrite() { return document.getElementById("conflict-overwrite") as HTMLButtonElement; },
+  get conflictKeep() { return document.getElementById("conflict-keep") as HTMLButtonElement; },
+  get conflictCancel() { return document.getElementById("conflict-cancel") as HTMLButtonElement; },
+
+  get extractErrorModal() { return document.getElementById("extract-error-modal") as HTMLDivElement; },
+  get extractErrorPath() { return document.getElementById("extract-error-path") as HTMLParagraphElement; },
+  get extractErrorMsg() { return document.getElementById("extract-error-msg") as HTMLParagraphElement; },
+  get extractErrIgnoreAll() { return document.getElementById("extract-err-ignore-all") as HTMLButtonElement; },
+  get extractErrIgnore() { return document.getElementById("extract-err-ignore") as HTMLButtonElement; },
+  get extractErrCancel() { return document.getElementById("extract-err-cancel") as HTMLButtonElement; },
+
+  get reportModal() { return document.getElementById("report-modal") as HTMLDivElement; },
+  get reportIcon() { return document.getElementById("report-icon") as HTMLDivElement; },
+  get reportTitle() { return document.getElementById("report-title") as HTMLHeadingElement; },
+  get reportDesc() { return document.getElementById("report-desc") as HTMLParagraphElement; },
+  get reportFailedSection() { return document.getElementById("report-failed-section") as HTMLDivElement; },
+  get reportFailedList() { return document.getElementById("report-failed-list") as HTMLUListElement; },
+  get reportSuccessSection() { return document.getElementById("report-success-section") as HTMLDivElement; },
+  get reportSuccessList() { return document.getElementById("report-success-list") as HTMLUListElement; },
+  get reportClose() { return document.getElementById("report-close") as HTMLButtonElement; },
+  get reportExportTxt() { return document.getElementById("report-export-txt") as HTMLButtonElement; },
+  get reportExportCsv() { return document.getElementById("report-export-csv") as HTMLButtonElement; },
+  get breadcrumbContainer() { return document.getElementById("breadcrumb-container") as HTMLDivElement; }
 };
+
 
 /**
  * Updates UI processing state
