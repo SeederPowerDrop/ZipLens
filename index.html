@@ -17,6 +17,17 @@
     <!-- Titlebar configured to drag window in Tauri -->
     <div data-tauri-drag-region class="titlebar">
       <div class="titlebar-title">ZipLens</div>
+      <div class="titlebar-controls" style="margin-left: auto; z-index: 10;">
+        <select id="lang-select" class="custom-select" style="height: 24px; padding: 0 24px 0 8px; font-size: 11px; margin-right: 12px; width: auto; background-color: rgba(255,255,255,0.05); border: none;">
+          <option value="en">English</option>
+          <option value="ko">한국어</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
     </div>
 
     <main class="main-content">
@@ -225,8 +236,8 @@
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
-      <h3>Password Required</h3>
-      <p>This file is encrypted.<br>Please enter the password to open it.</p>
+      <h3 id="password-modal-title">Password Required</h3>
+      <p id="password-modal-desc">This file is encrypted.<br>Please enter the password to open it.</p>
       
       <div id="modal-error-msg" class="modal-error-msg" style="display: none; color: #ef4444; font-size: 13px; margin-bottom: 12px; animation: shake 0.4s ease;">
         Incorrect password. Please try again.
@@ -259,13 +270,13 @@
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
       </div>
-      <h3>File Conflict</h3>
+      <h3 id="conflict-modal-title">File Conflict</h3>
       <p id="conflict-msg">The destination already contains files with the same name. What would you like to do?</p>
       
       <div class="modal-actions flex-col" style="margin-top: 20px; gap: 8px;">
-        <button id="conflict-overwrite" class="modern-btn primary w-full">Overwrite (덮어쓰기)</button>
-        <button id="conflict-keep" class="modern-btn secondary w-full">Append Suffix (접미사 붙이기)</button>
-        <button id="conflict-cancel" class="modern-btn secondary w-full" style="opacity: 0.8;">Cancel (취소)</button>
+        <button id="conflict-overwrite" class="modern-btn primary w-full">Overwrite</button>
+        <button id="conflict-keep" class="modern-btn secondary w-full">Append Suffix</button>
+        <button id="conflict-cancel" class="modern-btn secondary w-full" style="opacity: 0.8;">Cancel</button>
       </div>
     </div>
   </div>
@@ -280,14 +291,14 @@
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
       </div>
-      <h3>Corrupted File (손상된 파일)</h3>
+      <h3 id="extract-error-title">Corrupted File</h3>
       <p id="extract-error-path" style="font-weight: 500; word-break: break-all; margin-bottom: 4px;"></p>
       <p id="extract-error-msg" style="color: #ef4444; font-size: 11px;"></p>
       
       <div class="modal-actions" style="margin-top: 20px; gap: 8px;">
-        <button id="extract-err-ignore-all" class="modern-btn secondary" style="flex: 1; padding: 8px 0; font-size: 13px;">모두 무시</button>
-        <button id="extract-err-ignore" class="modern-btn secondary" style="flex: 1; padding: 8px 0; font-size: 13px;">무시</button>
-        <button id="extract-err-cancel" class="modern-btn primary" style="flex: 1; padding: 8px 0; font-size: 13px; background: var(--bg-surface);">중단</button>
+        <button id="extract-err-ignore-all" class="modern-btn secondary" style="flex: 1; padding: 8px 0; font-size: 13px;">Ignore All</button>
+        <button id="extract-err-ignore" class="modern-btn secondary" style="flex: 1; padding: 8px 0; font-size: 13px;">Ignore</button>
+        <button id="extract-err-cancel" class="modern-btn primary" style="flex: 1; padding: 8px 0; font-size: 13px; background: var(--bg-surface);">Abort</button>
       </div>
     </div>
   </div>
@@ -301,11 +312,11 @@
       
       <div class="report-content-box" style="background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--border-color); padding: 12px; max-height: 250px; overflow-y: auto; text-align: left; margin-bottom: 20px;">
         <div id="report-failed-section" style="display: none; margin-bottom: 12px;">
-          <h4 style="color: #ef4444; font-size: 13px; margin: 0 0 8px 0;">Failed Files (실패)</h4>
+          <h4 id="report-failed-title" style="color: #ef4444; font-size: 13px; margin: 0 0 8px 0;">Failed Files</h4>
           <ul id="report-failed-list" style="margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-color);"></ul>
         </div>
         <div id="report-success-section" style="display: none;">
-          <h4 style="color: #10b981; font-size: 13px; margin: 0 0 8px 0;">Success Files (성공)</h4>
+          <h4 id="report-success-title" style="color: #10b981; font-size: 13px; margin: 0 0 8px 0;">Success Files</h4>
           <ul id="report-success-list" style="margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-color);"></ul>
         </div>
       </div>

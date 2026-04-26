@@ -5,6 +5,7 @@ import { getCurrentWindow, LogicalSize, currentMonitor } from "@tauri-apps/api/w
 import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
 import { formatBytes, formatTime, escapeHTML } from "./utils";
 import { elements, updateButtonState } from "./ui";
+import { setLanguage, getTranslation } from "./i18n";
 
 // --- State Variables ---
 let lastResultPath: string | null = null;
@@ -55,6 +56,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 elements.compressPasswordGroup.style.display = elements.enablePasswordCb.checked ? "block" : "none";
             }
         });
+    }
+
+    // Language Selector
+    const langSelect = document.getElementById("lang-select") as HTMLSelectElement;
+    if (langSelect) {
+        langSelect.addEventListener("change", (e) => {
+            const target = e.target as HTMLSelectElement;
+            setLanguage(target.value as any);
+        });
+        setLanguage("en"); // default
     }
 
     // Button Listeners
@@ -156,7 +167,7 @@ listen<StartupAction>("startup_action", async (event) => {
 // --- Core Functions ---
 
 async function loadArchivePreview(path: string, pwAttempt: string | null = null) {
-    setProcessing(true, "Loading preview...");
+    setProcessing(true, getTranslation("loadingPreview"));
     let files: ArchiveFileInfo[] = [];
 
     const attemptLoad = async (pw: string | null) => {
@@ -184,7 +195,7 @@ async function loadArchivePreview(path: string, pwAttempt: string | null = null)
                     return;
                 }
             } else if (err === "CORRUPTED_ARCHIVE") {
-                await message("이 파일은 손상된 압축 파일이거나 지원하지 않는 형식입니다.", { title: "손상된 파일", kind: "error" });
+                await message(getTranslation("corruptedArchiveMsg"), { title: getTranslation("corruptedArchiveTitle"), kind: "error" });
                 setProcessing(false);
                 return;
             } else {
@@ -207,14 +218,14 @@ async function loadArchivePreview(path: string, pwAttempt: string | null = null)
         // Show warning if some entries have errors
         const errorFiles = files.filter(f => f.error);
         if (errorFiles.length > 0) {
-            await message(
-                `${errorFiles.length} / ${files.length} file(s) in this archive have errors and may not extract correctly.\n\nCorrupted entries are marked with ⚠️ in the file list.`,
-                { title: "Archive Warning", kind: "warning" }
-            );
+            const warnMsg = getTranslation("archiveWarningDesc")
+                .replace("{errCount}", errorFiles.length.toString())
+                .replace("{totalCount}", files.length.toString());
+            await message(warnMsg, { title: getTranslation("archiveWarningTitle"), kind: "warning" });
         }
 
         if (elements.btnExtract) {
-            elements.btnExtract.innerText = "Extract Loaded Archive";
+            elements.btnExtract.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M12 2C16 8 16 16 12 22C8 16 8 8 12 2Z" fill="currentColor" fill-opacity="0.2"/><path d="M3 12H9M15 9L21 4M15 12H21M15 15L21 20" stroke-linecap="round"/></svg> ` + getTranslation("btnExtract");
             (elements.btnExtract as HTMLButtonElement).disabled = false;
         }
         const dropTextNode = document.querySelector(".drop-text");
@@ -249,8 +260,8 @@ function renderFileList() {
     });
 
     if (elements.previewStatsMain && elements.previewStatsSub) {
-        elements.previewStatsMain.innerText = `${selCount} / ${totalCount} files selected`;
-        elements.previewStatsSub.innerText = `(Extracted Size: ${formatBytes(selSize)} / Total: ${formatBytes(totalSize)})`;
+        elements.previewStatsMain.innerText = `${selCount} / ${totalCount} ${getTranslation("filesSelected")}`;
+        elements.previewStatsSub.innerText = `(${getTranslation("extractedSize")}: ${formatBytes(selSize)} / ${getTranslation("total")}: ${formatBytes(totalSize)})`;
     }
 
     // 2. Render Breadcrumbs
@@ -336,7 +347,7 @@ function renderFileList() {
         const upItem = document.createElement("div");
         upItem.className = "log-item";
         upItem.style.cursor = "pointer";
-        upItem.innerHTML = `<span class="file-name" style="padding-left:24px;">📁 .. (Up to Parent)</span>`;
+        upItem.innerHTML = `<span class="file-name" style="padding-left:24px;">📁 .. (${getTranslation("upToParent")})</span>`;
         upItem.onclick = () => {
             const parts = normCurDir.split('/').filter(p => p);
             parts.pop();
@@ -382,7 +393,7 @@ function renderFileList() {
             const errBadge = errorCount > 0 ? `<span style="color:#ef4444;margin-left:6px;font-size:11px;" title="${errorCount} file(s) with errors">⚠️ ${errorCount}</span>` : '';
             info.innerHTML = `<span class="file-name" style="cursor:pointer; color:var(--accent-color);"><span style="margin-right:6px;">📁</span>${item.name}${errBadge}</span>
                              <div class="flex-col" style="align-items:flex-end;width:180px;flex-shrink:0;">
-                                 <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">SIZE</span> ${formatBytes(item.size)}</div>
+                                 <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">${getTranslation("size")}</span> ${formatBytes(item.size)}</div>
                              </div>`;
             info.querySelector('.file-name')?.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -398,7 +409,7 @@ function renderFileList() {
             const errStyle = hasError ? 'opacity:0.6;' : '';
             info.innerHTML = `<span class="file-name" style="${errStyle}">${errIcon}${lock}<span class="ext-badge" style="${hasError ? 'background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3);' : ''}">${badge}</span>${item.name}</span>
                              <div class="flex-col" style="align-items:flex-end;width:180px;flex-shrink:0;">
-                                 <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">SIZE</span> ${formatBytes(fileObj.size)}</div>
+                                 <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">${getTranslation("size")}</span> ${formatBytes(fileObj.size)}</div>
                                  ${hasError ? `<div style="font-size:10px;color:#ef4444;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${hasError}">Error: ${hasError}</div>` : ''}
                              </div>`;
         }
@@ -436,7 +447,7 @@ async function extractArchive() {
 
         const selectedFiles = globalArchiveFiles.filter(f => f.selected).map(f => f.path);
         if (globalArchiveFiles.length && !selectedFiles.length) {
-            await message("No files selected.", { title: "Error", kind: "error" });
+            await message(getTranslation("noFilesSelected"), { title: getTranslation("error"), kind: "error" });
             return;
         }
 
@@ -456,7 +467,7 @@ async function extractArchive() {
             conflictResolution = result;
         }
 
-        setProcessing(true, "Extracting...");
+        setProcessing(true, getTranslation("extracting"));
         const unlistenProgress = await listen<number>("extract_progress", (e) => {
             currentProgress = e.payload;
             if (elements.progressFill) elements.progressFill.style.width = `${e.payload}%`;
@@ -504,7 +515,7 @@ async function extractArchive() {
             setProcessing(false);
         }
     } catch (err: any) {
-        await message(`Extraction failed: ${err}`, "Error");
+        await message(`${getTranslation("error")}: ${err}`, getTranslation("error"));
         setProcessing(false);
     }
 }
@@ -516,7 +527,7 @@ async function handleDirectCompression(paths: string[]) {
     if (!destPath) return;
 
     lastResultPath = destPath;
-    setProcessing(true, "Compressing...");
+    setProcessing(true, getTranslation("compressing"));
     const unlistenFilename = await listen<string>("extract_filename", (e) => {
         handleFilenameEvent(e.payload);
     });
@@ -533,9 +544,9 @@ async function handleDirectCompression(paths: string[]) {
         password,
         encryptLevel
       });
-      await message("Compression complete!", "Success");
+      await message(getTranslation("compressionComplete"), getTranslation("success"));
     } catch (err: any) {
-      await message(`Compression failed: ${err}`, "Error");
+      await message(`${getTranslation("error")}: ${err}`, getTranslation("error"));
     } finally {
         unlistenFilename();
         setProcessing(false);
@@ -688,7 +699,7 @@ function showExtractionReport(report: any) {
         el.reportIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
         el.reportIcon.style.color = "#f59e0b";
         el.reportIcon.style.background = "rgba(245, 158, 11, 0.1)";
-        el.reportTitle.innerText = "Partial Extraction Complete";
+        el.reportTitle.innerText = getTranslation("extractionReport");
         el.reportDesc.innerText = `Successfully extracted ${report.success_files.length} files, but ${report.failed_files.length} files encountered errors.`;
         
         report.failed_files.forEach(([path, err]: [string, string]) => {
@@ -706,7 +717,7 @@ function showExtractionReport(report: any) {
         el.reportIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
         el.reportIcon.style.color = "#10b981";
         el.reportIcon.style.background = "rgba(16, 185, 129, 0.1)";
-        el.reportTitle.innerText = "Extraction Complete";
+        el.reportTitle.innerText = getTranslation("extractionReport");
         el.reportDesc.innerText = `Successfully extracted ${report.success_files.length} files.`;
     }
     
@@ -777,9 +788,9 @@ function showExtractionReport(report: any) {
         if (filePath) {
             try {
                 await invoke("save_report_file", { filePath, content });
-                await message("Report saved successfully!", "Success");
+                await message(getTranslation("success") + "!", getTranslation("success"));
             } catch (err: any) {
-                await message(`Failed to save report: ${err}`, { title: "Error", kind: "error" });
+                await message(`${getTranslation("error")}: ${err}`, { title: getTranslation("error"), kind: "error" });
             }
         }
     };
@@ -808,9 +819,9 @@ function showExtractionReport(report: any) {
         if (filePath) {
             try {
                 await invoke("save_report_file", { filePath, content });
-                await message("Report saved successfully!", "Success");
+                await message(getTranslation("success") + "!", getTranslation("success"));
             } catch (err: any) {
-                await message(`Failed to save report: ${err}`, { title: "Error", kind: "error" });
+                await message(`${getTranslation("error")}: ${err}`, { title: getTranslation("error"), kind: "error" });
             }
         }
     };
