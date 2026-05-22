@@ -37,6 +37,14 @@
     ],
     "externalBin": [
       "binaries/7zz"
+    ],
+    "fileAssociations": [
+      {
+        "name": "Archive",
+        "ext": ["zip", "7z", "rar", "tar", "gz", "tgz", "bz2", "xz"],
+        "description": "Compressed Archive File",
+        "role": "Viewer"
+      }
     ]
   }
 }
