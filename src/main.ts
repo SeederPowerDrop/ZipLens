@@ -17,6 +17,8 @@ let timerInterval: number | null = null;
 let currentProgress = 0;
 let globalArchiveFiles: ArchiveFileInfo[] = [];
 let currentDirectory: string = "";
+let currentSort: { col: "name" | "size" | "compressed" | "ext", asc: boolean } = { col: "name", asc: true };
+
 interface StartupAction {
   action: "extract" | "compress" | "";
   paths: string[];
@@ -115,6 +117,32 @@ document.addEventListener("DOMContentLoaded", () => {
             // For now, let's keep it simple: if searching, we render flat list.
         });
     }
+
+    document.querySelectorAll(".sort-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const target = e.currentTarget as HTMLButtonElement;
+            const sortCol = target.getAttribute("data-sort") as "name" | "size" | "compressed" | "ext";
+            
+            if (currentSort.col === sortCol) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.col = sortCol;
+                currentSort.asc = true;
+            }
+
+            // Update UI
+            document.querySelectorAll(".sort-btn").forEach(b => {
+                b.classList.remove("active");
+                const arrow = b.querySelector(".sort-arrow");
+                if (arrow) arrow.textContent = "";
+            });
+            target.classList.add("active");
+            const arrow = target.querySelector(".sort-arrow");
+            if (arrow) arrow.textContent = currentSort.asc ? "▲" : "▼";
+
+            renderFileList();
+        });
+    });
 
     elements.btnReveal?.addEventListener("click", async () => {
         if (lastResultPath) {
@@ -374,7 +402,22 @@ function renderFileList() {
     const sortedItems = Array.from(itemsMap.values()).sort((a, b) => {
         if (a.isDir && !b.isDir) return -1;
         if (!a.isDir && b.isDir) return 1;
-        return a.name.localeCompare(b.name);
+        
+        let result = 0;
+        if (currentSort.col === "name") {
+            result = a.name.localeCompare(b.name);
+        } else if (currentSort.col === "size") {
+            result = a.size - b.size;
+        } else if (currentSort.col === "compressed") {
+            const compA = a.files.reduce((acc: number, f: any) => acc + (f.compressed_size || 0), 0);
+            const compB = b.files.reduce((acc: number, f: any) => acc + (f.compressed_size || 0), 0);
+            result = compA - compB;
+        } else if (currentSort.col === "ext") {
+            const extA = a.isDir ? "" : (a.name.split('.').pop() || "");
+            const extB = b.isDir ? "" : (b.name.split('.').pop() || "");
+            result = extA.localeCompare(extB);
+        }
+        return currentSort.asc ? result : -result;
     });
 
     sortedItems.forEach(item => {
