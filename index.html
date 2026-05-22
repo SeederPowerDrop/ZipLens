@@ -17,8 +17,8 @@
     <!-- Titlebar configured to drag window in Tauri -->
     <div data-tauri-drag-region class="titlebar">
       <div class="titlebar-title">ZipLens</div>
-      <div class="titlebar-controls" style="margin-left: auto; z-index: 10;">
-        <select id="lang-select" class="custom-select" style="height: 24px; padding: 0 24px 0 8px; font-size: 11px; margin-right: 12px; width: auto; background-color: rgba(255,255,255,0.05); border: none;">
+      <div class="titlebar-controls" style="margin-left: auto; z-index: 10; display: flex; align-items: center;">
+        <select id="lang-select" class="custom-select" style="height: 24px; padding: 0 24px 0 8px; font-size: 11px; margin-right: 8px; width: auto; background-color: rgba(255,255,255,0.05); border: none;">
           <option value="en">English</option>
           <option value="ko">한국어</option>
           <option value="ja">日本語</option>
@@ -27,6 +27,13 @@
           <option value="es">Español</option>
           <option value="ar">العربية</option>
         </select>
+        <button id="btn-about" title="프로그램 정보" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 8px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -325,6 +332,35 @@
         <button id="report-export-txt" class="modern-btn secondary" style="min-width: 100px; padding: 8px 12px; font-size: 13px;">Export TXT</button>
         <button id="report-export-csv" class="modern-btn secondary" style="min-width: 100px; padding: 8px 12px; font-size: 13px;">Export CSV</button>
         <button id="report-close" class="modern-btn primary" style="min-width: 100px; padding: 8px 12px; font-size: 13px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal Overlay (2000s Style) -->
+  <div id="about-modal" class="modal-overlay" style="display: none;">
+    <div class="modal about-modal-2000s" style="width: 440px; background: #ece9d8; border: 2px solid #fff; border-right-color: #848284; border-bottom-color: #848284; padding: 2px; color: #000; font-family: 'Tahoma', 'Gulim', sans-serif;">
+      <!-- Titlebar 2000s -->
+      <div style="background: linear-gradient(90deg, #0a246a, #a6caf0); padding: 3px 5px; color: white; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span>ZipLens 정보</span>
+        <button id="about-close-x" style="background: #ece9d8; border: 1px solid #fff; border-right-color: #848284; border-bottom-color: #848284; padding: 0 4px; font-weight: bold; font-size: 10px; cursor: pointer; color: #000;">X</button>
+      </div>
+      
+      <!-- Content -->
+      <div style="padding: 16px; display: flex; gap: 16px; align-items: flex-start; text-align: left;">
+        <img src="/about-image.jpg" alt="About" style="width: 80px; height: 80px; border: 2px solid #848284; border-right-color: #fff; border-bottom-color: #fff; object-fit: contain; background: white;" />
+        <div style="font-size: 12px; line-height: 1.5;">
+          <p style="margin: 0 0 10px 0;">안녕하세요, SeederPowerDrop입니다.</p>
+          <p style="margin: 0 0 10px 0;">macOS에 쓰이는 압축 프로그램이 불편한 와중에 바이브코딩을 알게 되어서 직접 만들어 봤습니다.<br>그래서 직접 만들어본 ZipLens입니다.<br>다른 Mac용 압축 프로그램과 달리 불편하지 않으면서 비용도 들지 않게 만들어 봤습니다.</p>
+          <p style="margin: 0 0 10px 0;">ZipLens라는 이름은 Lens는 빛을 압축시키기도(Convergence) 발산시키기도(Divergence) 합니다.<br>그래서 Lens를 압축 프로그램에 빗대어 만들어 봤습니다.</p>
+          <p style="margin: 0 0 10px 0;">모두 다 잘 사용했으면 합니다.</p>
+          <p style="margin: 0 0 10px 0;">그리고 ERW FWS WRG</p>
+          <p style="margin: 0;">감사합니다.<br><a href="https://github.com/SeederPowerDrop" target="_blank" style="color: #0000ff; text-decoration: underline;">(https://github.com/SeederPowerDrop)</a></p>
+        </div>
+      </div>
+      
+      <!-- Buttons -->
+      <div style="display: flex; justify-content: flex-end; padding: 8px 12px 12px;">
+        <button id="about-close" style="background: #ece9d8; border: 2px solid #fff; border-right-color: #848284; border-bottom-color: #848284; padding: 4px 20px; font-family: 'Tahoma', 'Gulim'; font-size: 12px; cursor: pointer; color: #000;">확인</button>
       </div>
     </div>
   </div>

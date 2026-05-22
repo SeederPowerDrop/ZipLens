@@ -61,7 +61,12 @@ export const elements = {
   get reportClose() { return document.getElementById("report-close") as HTMLButtonElement; },
   get reportExportTxt() { return document.getElementById("report-export-txt") as HTMLButtonElement; },
   get reportExportCsv() { return document.getElementById("report-export-csv") as HTMLButtonElement; },
-  get breadcrumbContainer() { return document.getElementById("breadcrumb-container") as HTMLDivElement; }
+  get breadcrumbContainer() { return document.getElementById("breadcrumb-container") as HTMLDivElement; },
+  
+  get btnAbout() { return document.getElementById("btn-about") as HTMLButtonElement; },
+  get aboutModal() { return document.getElementById("about-modal") as HTMLDivElement; },
+  get aboutClose() { return document.getElementById("about-close") as HTMLButtonElement; },
+  get aboutCloseX() { return document.getElementById("about-close-x") as HTMLButtonElement; }
 };
 
 

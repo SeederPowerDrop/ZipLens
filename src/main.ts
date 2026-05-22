@@ -72,6 +72,16 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.btnExtract?.addEventListener("click", () => extractArchive());
     elements.btnCompressFile?.addEventListener("click", () => compressSelected());
     elements.btnCompress?.addEventListener("click", () => compressFolder()); // Added folder compression handler
+
+    // About Modal Listeners
+    if (elements.btnAbout && elements.aboutModal) {
+        elements.btnAbout.addEventListener("click", () => {
+            elements.aboutModal.style.display = "flex";
+        });
+    }
+    const closeAbout = () => { if (elements.aboutModal) elements.aboutModal.style.display = "none"; };
+    if (elements.aboutClose) elements.aboutClose.addEventListener("click", closeAbout);
+    if (elements.aboutCloseX) elements.aboutCloseX.addEventListener("click", closeAbout);
     
     if (elements.selectAllBtn) {
         elements.selectAllBtn.addEventListener("click", () => {

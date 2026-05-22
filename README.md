@@ -38,3 +38,21 @@ Ensure you have Rust and Node.js installed for your local environment.
 - macOS environment (configured for Apple Silicon / Intel)
 - Node.js & npm
 - Rust & Cargo
+
+## About
+
+안녕하세요, SeederPowerDrop입니다.
+
+macOS에 쓰이는 압축 프로그램이 불편한 와중에 바이브코딩을 알게 되어서 직접 만들어 봤습니다.
+그래서 직접 만들어본 ZipLens입니다.
+다른 Mac용 압축 프로그램과 달리 불편하지 않으면서 비용도 들지 않게 만들어 봤습니다.
+
+ZipLens라는 이름은 Lens는 빛을 압축시키기도(Convergence) 발산시키기도(Divergence) 합니다.
+그래서 Lens를 압축 프로그램에 빗대어 만들어 봤습니다.
+
+모두 다 잘 사용했으면 합니다.
+
+그리고 ERW FWS WRG
+
+감사합니다.
+(https://github.com/SeederPowerDrop)
