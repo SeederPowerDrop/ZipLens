@@ -62,7 +62,8 @@ pub fn run() {
         .setup(move |app| {
             #[cfg(target_os = "macos")]
             {
-                use tauri::Manager;
+                use tauri::{Manager, Emitter};
+                use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
                 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
                 let window = app.get_webview_window("main").unwrap();
                 apply_vibrancy(
@@ -72,6 +73,61 @@ pub fn run() {
                     None,
                 )
                 .unwrap_or_else(|_| println!("Apply vibrancy failed"));
+
+                let app_submenu = Submenu::with_id_and_items(
+                    app,
+                    "app_submenu",
+                    "ZipLens",
+                    true,
+                    &[
+                        &MenuItem::with_id(app, "custom_about", "About ZipLens", true, None::<&str>).unwrap(),
+                        &PredefinedMenuItem::separator(app).unwrap(),
+                        &PredefinedMenuItem::services(app, None).unwrap(),
+                        &PredefinedMenuItem::separator(app).unwrap(),
+                        &PredefinedMenuItem::hide(app, None).unwrap(),
+                        &PredefinedMenuItem::hide_others(app, None).unwrap(),
+                        &PredefinedMenuItem::show_all(app, None).unwrap(),
+                        &PredefinedMenuItem::separator(app).unwrap(),
+                        &PredefinedMenuItem::quit(app, None).unwrap(),
+                    ],
+                ).unwrap();
+
+                let file_submenu = Submenu::with_id_and_items(
+                    app,
+                    "file_submenu",
+                    "File",
+                    true,
+                    &[
+                        &PredefinedMenuItem::close_window(app, None).unwrap(),
+                    ],
+                ).unwrap();
+
+                let edit_submenu = Submenu::with_id_and_items(
+                    app,
+                    "edit_submenu",
+                    "Edit",
+                    true,
+                    &[
+                        &PredefinedMenuItem::undo(app, None).unwrap(),
+                        &PredefinedMenuItem::redo(app, None).unwrap(),
+                        &PredefinedMenuItem::separator(app).unwrap(),
+                        &PredefinedMenuItem::cut(app, None).unwrap(),
+                        &PredefinedMenuItem::copy(app, None).unwrap(),
+                        &PredefinedMenuItem::paste(app, None).unwrap(),
+                        &PredefinedMenuItem::select_all(app, None).unwrap(),
+                    ],
+                ).unwrap();
+
+                let menu = Menu::with_items(app, &[&app_submenu, &file_submenu, &edit_submenu]).unwrap();
+                app.set_menu(menu).unwrap();
+
+                app.on_menu_event(move |app, event| {
+                    if event.id() == "custom_about" {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.emit("open_about", ());
+                        }
+                    }
+                });
             }
 
             // startup_action을 webview가 준비된 뒤 emit

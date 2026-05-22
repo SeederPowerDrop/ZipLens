@@ -53,10 +53,10 @@ body {
   background: transparent;
   user-select: none;
   display: flex;
-  justify-content: center;
   align-items: center;
   -webkit-app-region: drag;
   border-bottom: 1px solid var(--border-color);
+  position: relative;
 }
 
 .titlebar-title {
@@ -65,6 +65,9 @@ body {
   color: var(--text-muted);
   letter-spacing: 0.5px;
   pointer-events: none;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* Main Content Area */

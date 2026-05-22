@@ -147,6 +147,10 @@ listen("tauri://drag-leave", () => {
     elements.dropZone?.classList.remove("active");
 });
 
+listen("open_about", () => {
+    if (elements.aboutModal) elements.aboutModal.style.display = "flex";
+});
+
 listen<{ paths: string[] }>("tauri://drag-drop", async (event) => {
     elements.dropZone?.classList.remove("active");
     if (isProcessing) return;
