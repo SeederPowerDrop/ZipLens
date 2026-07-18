@@ -1,12 +1,14 @@
-# ZipLens v1.1.0
+# ZipLens v1.3.0
 
 A modern, universal archive extraction and compression utility built on **Tauri**, **Vanilla TS**, and **Rust**.
 
-## What's New in v1.1
+## What's New in v1.3.0
+- **Lightning-Fast Single File Extraction**: Massively optimized speed when extracting a single file from large archives.
+- **Double-click Flat Extraction**: Double-click any file in the preview to instantly extract it directly to the archive's folder and automatically open it.
+- **Smart Auto-Renaming**: Prevents accidental overwrites by automatically renaming extracted files (e.g., `file (1).txt`) if a conflict exists.
+- **Improved UI & Notifications**: New extraction report dialog with shortcuts to open files/folders, and sleek Toast notifications.
 - **Advanced Archive Preview**: View the complete list of files inside an archive *before* extracting them.
-- **Detailed File Metadata**: Displays the original size and compression efficiency ratio for all files inside the archive.
 - **Partial Extraction**: Selectively check/uncheck files from the preview list. Extract only what you want!
-- **Shift+Click Multi-select**: Native OS-like behavior for quickly selecting a continuous range of files in the preview list.
 - **Dynamic Capacity Tracker**: See the exact storage footprint of your selected files in real time before extraction.
 
 ## Core Features
