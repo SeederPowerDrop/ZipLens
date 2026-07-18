@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open, message, save } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow, LogicalSize, currentMonitor } from "@tauri-apps/api/window";
+import { tempDir, join, dirname } from "@tauri-apps/api/path";
 import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
 import { formatBytes, formatTime, escapeHTML } from "./utils";
 import { elements, updateButtonState } from "./ui";
@@ -53,73 +54,75 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPwdToggle(elements.unlockPwdToggle, elements.unlockPasswordInput);
 
     if (elements.enablePasswordCb) {
-        elements.enablePasswordCb.addEventListener("change", () => {
-            if (elements.compressPasswordGroup) {
-                elements.compressPasswordGroup.style.display = elements.enablePasswordCb.checked ? "block" : "none";
+        elements.enablePasswordCb.onchange = (e) => {
+        const checked = (e.target as HTMLInputElement).checked;
+        if (elements.compressPasswordGroup) {
+            if (checked) {
+                elements.compressPasswordGroup.classList.add("expanded");
+                elements.compressPasswordInput?.focus();
+            } else {
+                elements.compressPasswordGroup.classList.remove("expanded");
+                if (elements.compressPasswordInput) elements.compressPasswordInput.value = "";
             }
-        });
+        }
+    };
     }
 
     // Language Selector
     const langSelect = document.getElementById("lang-select") as HTMLSelectElement;
     if (langSelect) {
-        langSelect.addEventListener("change", (e) => {
+        langSelect.onchange = (e) => {
             const target = e.target as HTMLSelectElement;
             setLanguage(target.value as any);
-        });
+        };
         setLanguage("en"); // default
     }
 
     // Button Listeners
-    elements.btnExtract?.addEventListener("click", () => extractArchive());
-    elements.btnCompressFile?.addEventListener("click", () => compressSelected());
-    elements.btnCompress?.addEventListener("click", () => compressFolder()); // Added folder compression handler
+    elements.btnExtract!.onclick = () => extractArchive();
+    elements.btnCompressFile!.onclick = () => compressSelected();
+    elements.btnCompress!.onclick = () => compressFolder();
 
     // About Modal Listeners
     if (elements.btnAbout && elements.aboutModal) {
-        elements.btnAbout.addEventListener("click", () => {
-            elements.aboutModal.style.display = "flex";
-        });
+        elements.btnAbout.onclick = () => {
+            elements.aboutModal!.style.display = "flex";
+        };
     }
     const closeAbout = () => { if (elements.aboutModal) elements.aboutModal.style.display = "none"; };
-    if (elements.aboutClose) elements.aboutClose.addEventListener("click", closeAbout);
-    if (elements.aboutCloseX) elements.aboutCloseX.addEventListener("click", closeAbout);
+    if (elements.aboutClose) elements.aboutClose.onclick = closeAbout;
+    if (elements.aboutCloseX) elements.aboutCloseX.onclick = closeAbout;
     
     if (elements.selectAllBtn) {
-        elements.selectAllBtn.addEventListener("click", () => {
+        elements.selectAllBtn.onclick = () => {
             // Select all files
             globalArchiveFiles.forEach(f => f.selected = true);
             renderFileList();
-        });
+        };
     }
 
     if (elements.deselectAllBtn) {
-        elements.deselectAllBtn.addEventListener("click", () => {
+        elements.deselectAllBtn.onclick = () => {
             // Deselect all files
             globalArchiveFiles.forEach(f => f.selected = false);
             renderFileList();
-        });
+        };
     }
 
     if (elements.toggleAllBtn) {
-        elements.toggleAllBtn.addEventListener("click", () => {
+        elements.toggleAllBtn.onclick = () => {
             // Invert selection for all files
             globalArchiveFiles.forEach(f => f.selected = !f.selected);
             renderFileList();
-        });
+        };
     }
 
     if (elements.searchInput) {
-        elements.searchInput.addEventListener("input", () => {
-            // If we have search logic, we would filter globalArchiveFiles here
-            // But since Tree View makes it tricky, we can just expand all paths that match, 
-            // or we could show a flat list when searching.
-            // For now, let's keep it simple: if searching, we render flat list.
-        });
+        elements.searchInput.style.display = "none";
     }
 
     document.querySelectorAll(".sort-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
+        (btn as HTMLButtonElement).onclick = (e) => {
             const target = e.currentTarget as HTMLButtonElement;
             const sortCol = target.getAttribute("data-sort") as "name" | "size" | "compressed" | "ext";
             
@@ -141,10 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (arrow) arrow.textContent = currentSort.asc ? "▲" : "▼";
 
             renderFileList();
-        });
+        };
     });
 
-    elements.btnReveal?.addEventListener("click", async () => {
+    elements.btnReveal!.onclick = async () => {
         if (lastResultPath) {
             try {
                 await revealItemInDir(lastResultPath);
@@ -152,9 +155,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 await openPath(lastResultPath).catch(() => {});
             }
         }
-    });
+    };
 
-    elements.dropZone?.addEventListener("click", async () => {
+    elements.dropZone!.onclick = async () => {
         if (isProcessing) return;
         const selected = await open({
             multiple: false,
@@ -162,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
             title: "Select Archive to Preview"
         });
         if (selected !== null) await loadArchivePreview(selected);
-    });
+    };
 });
 
 // Setup Native Drag & Drop
@@ -256,6 +259,18 @@ async function loadArchivePreview(path: string, pwAttempt: string | null = null)
         
         renderFileList();
         await autoResizeWindow(files.length);
+
+        // Force a layout recalculation for WebKit flexbox bug
+        // When the window isn't resized, flex: 1 elements sometimes fail to expand dynamically.
+        setTimeout(() => {
+            const mainContent = document.querySelector('.main-content') as HTMLElement;
+            if (mainContent) {
+                const oldDisplay = mainContent.style.display;
+                mainContent.style.display = 'none';
+                void mainContent.offsetHeight; // force reflow
+                mainContent.style.display = oldDisplay || 'flex';
+            }
+        }, 10);
 
         // Show warning if some entries have errors
         const errorFiles = files.filter(f => f.error);
@@ -479,10 +494,49 @@ function renderFileList() {
                 item.files.forEach((f: ArchiveFileInfo) => f.selected = checkbox.checked);
                 renderFileList();
             } else if (e.target !== checkbox && item.isDir) {
-                // If they click the row of a dir (not the name/link), we optionally navigate or toggle.
-                // Let's navigate to be consistent with Finder.
                 currentDirectory = item.fullPath;
                 renderFileList();
+            }
+        });
+        
+        domItem.addEventListener("dblclick", async (e) => {
+            if (item.isDir) return;
+            e.stopPropagation();
+            if (isProcessing || !loadedArchive) return;
+            const fileObj = item.files[0];
+            try {
+                setProcessing(true, `Extracting ${item.name}...`);
+                const tmp = await tempDir();
+                const report = await invoke<any>("extract_archive", { 
+                    archivePath: loadedArchive, 
+                    destPath: tmp, 
+                    password: currentArchivePassword, 
+                    targetFiles: [fileObj.path],
+                    conflictResolution: "overwrite",
+                    rootItems: [fileObj.path.split(/[/\\]/)[0]]
+                });
+                if (report && report.success_files && report.success_files.length > 0) {
+                    const extractedPath = await join(tmp, report.success_files[0]);
+                    
+                    const archiveDir = await dirname(loadedArchive);
+                    const flatDestPath = await join(archiveDir, item.name);
+                    
+                    try {
+                        const finalPath = await invoke<string>("copy_file_unique", { src: extractedPath, dest: flatDestPath });
+                        await openPath(finalPath);
+                        const finalName = finalPath.split(/[/\\]/).pop() || item.name;
+                        showToast(`${finalName} extracted & opened!`, "success");
+                    } catch(e) {
+                        console.warn("Failed to copy flat file", e);
+                        await openPath(extractedPath);
+                        showToast(`${item.name} extracted & opened!`, "success");
+                    }
+                }
+            } catch (err: any) {
+                console.error("Double click extract error", err);
+                showToast(`Failed to extract: ${err}`, "error");
+            } finally {
+                setProcessing(false);
             }
         });
 
@@ -555,16 +609,42 @@ async function extractArchive() {
             await invoke("resolve_extract_error", { choice: resolution });
         });
 
-        try {
-            const report = await invoke<any>("extract_archive", { 
+        const attemptExtract = async (pw: string | null) => {
+            return await invoke<any>("extract_archive", { 
                 archivePath: loadedArchive, 
                 destPath: destDir, 
-                password: currentArchivePassword, 
+                password: pw, 
                 targetFiles,
                 conflictResolution,
                 rootItems
             });
-            showExtractionReport(report);
+        };
+
+        try {
+            try {
+                const report = await attemptExtract(currentArchivePassword);
+                showExtractionReport(report);
+            } catch (err: any) {
+                if (err === "PASSWORD_REQUIRED") {
+                    const validator = async (testPw: string) => {
+                        try {
+                            const report = await attemptExtract(testPw);
+                            currentArchivePassword = testPw;
+                            showExtractionReport(report);
+                            return true;
+                        } catch (e: any) {
+                            return false;
+                        }
+                    };
+                    const pw = await requestPassword(validator, currentArchivePassword !== null);
+                    if (!pw) {
+                        setProcessing(false);
+                        return;
+                    }
+                } else {
+                    throw err;
+                }
+            }
         } finally {
             unlistenProgress();
             unlistenFilename();
@@ -580,7 +660,16 @@ async function extractArchive() {
 async function handleDirectCompression(paths: string[]) {
     const format = elements.formatSelect?.value || "zip";
     const ext = format.startsWith("tar") ? format : (format === "7z" ? "7z" : "zip");
-    const destPath = await save({ filters: [{ name: "Archive", extensions: [ext] }], title: "Save Archive" });
+    
+    let defaultPath = "";
+    if (paths.length > 0) {
+        const baseName = paths.length === 1 
+            ? paths[0].replace(/[/\\]+$/, '').split(/[/\\]/).pop() || "Archive"
+            : "Archive";
+        defaultPath = await join(await dirname(paths[0]), baseName + "." + ext);
+    }
+
+    const destPath = await save({ filters: [{ name: "Archive", extensions: [ext] }], title: "Save Archive", defaultPath });
     if (!destPath) return;
 
     lastResultPath = destPath;
@@ -636,8 +725,8 @@ function requestPassword(validator: PasswordValidator, isRetry = false): Promise
 
         const cleanup = () => {
             passwordModal.style.display = "none";
-            passwordSubmit.removeEventListener("click", onSubmit);
-            passwordCancel.removeEventListener("click", onCancel);
+            passwordSubmit.onclick = null;
+            passwordCancel.onclick = null;
         };
 
         const onSubmit = async () => {
@@ -646,8 +735,13 @@ function requestPassword(validator: PasswordValidator, isRetry = false): Promise
         };
         const onCancel = () => { cleanup(); resolve(null); };
 
-        passwordSubmit.addEventListener("click", onSubmit);
-        passwordCancel.addEventListener("click", onCancel);
+        passwordSubmit.onclick = onSubmit;
+        passwordCancel.onclick = onCancel;
+        
+        unlockPasswordInput.onkeydown = (e) => {
+            if (e.key === "Enter") onSubmit();
+            if (e.key === "Escape") onCancel();
+        };
     });
 }
 
@@ -666,18 +760,18 @@ function requestConflictResolution(conflicts: string[]): Promise<string | null> 
 
         const cleanup = () => {
             conflictModal.style.display = "none";
-            conflictOverwrite.removeEventListener("click", onOverwrite);
-            conflictKeep.removeEventListener("click", onKeep);
-            conflictCancel.removeEventListener("click", onCancel);
+            conflictOverwrite.onclick = null;
+            conflictKeep.onclick = null;
+            conflictCancel.onclick = null;
         };
 
         const onOverwrite = () => { cleanup(); resolve("overwrite"); };
         const onKeep = () => { cleanup(); resolve("keep_both"); };
         const onCancel = () => { cleanup(); resolve("cancel"); };
 
-        conflictOverwrite.addEventListener("click", onOverwrite);
-        conflictKeep.addEventListener("click", onKeep);
-        conflictCancel.addEventListener("click", onCancel);
+        conflictOverwrite.onclick = onOverwrite;
+        conflictKeep.onclick = onKeep;
+        conflictCancel.onclick = onCancel;
     });
 }
 
@@ -731,11 +825,20 @@ function setProcessing(processing: boolean, statusLine: string = "") {
 async function autoResizeWindow(fileCount: number) {
     try {
         const win = getCurrentWindow();
+        const currentSize = await win.innerSize();
         const mon = await currentMonitor();
         if (mon) {
-            const screenHeight = mon.size.height / mon.scaleFactor;
+            const scale = mon.scaleFactor;
+            const currentWidth = currentSize.width / scale;
+            const currentHeight = currentSize.height / scale;
+            
+            const screenHeight = mon.size.height / scale;
             const targetHeight = Math.max(600, Math.min(460 + (fileCount * 48), screenHeight * 0.5));
-            await win.setSize(new LogicalSize(800, targetHeight));
+            
+            // Only resize if the window is currently smaller than the target height or default width
+            if (currentHeight < targetHeight || currentWidth < 800) {
+                await win.setSize(new LogicalSize(Math.max(800, currentWidth), Math.max(currentHeight, targetHeight)));
+            }
         }
     } catch (e) {}
 }
@@ -803,6 +906,45 @@ function showExtractionReport(report: any) {
     el.reportClose.onclick = () => {
         el.reportModal.style.display = "none";
     };
+
+    const btnOpenFile = document.getElementById("report-open-file") as HTMLButtonElement;
+    const btnOpenFolder = document.getElementById("report-open-folder") as HTMLButtonElement;
+    const btnViewDetails = document.getElementById("report-view-details") as HTMLButtonElement;
+    const boxDetails = document.getElementById("report-details-box") as HTMLDivElement;
+
+    if (boxDetails) boxDetails.style.display = "none";
+    
+    if (btnViewDetails && boxDetails) {
+        btnViewDetails.onclick = () => {
+            boxDetails.style.display = boxDetails.style.display === "none" ? "block" : "none";
+        };
+    }
+
+    if (btnOpenFile) {
+        if (report.success_files.length === 1 && report.failed_files.length === 0) {
+            btnOpenFile.style.display = "block";
+            btnOpenFile.onclick = async () => {
+                if (lastResultPath) {
+                    const target = await join(lastResultPath, report.success_files[0]);
+                    await openPath(target).catch(() => {});
+                }
+            };
+        } else {
+            btnOpenFile.style.display = "none";
+        }
+    }
+
+    if (btnOpenFolder) {
+        btnOpenFolder.onclick = async () => {
+            if (lastResultPath) {
+                try {
+                    await revealItemInDir(lastResultPath);
+                } catch (e) {
+                    await openPath(lastResultPath).catch(() => {});
+                }
+            }
+        };
+    }
 
     const generateTxt = async () => {
         const findSize = (p: string): string => {
@@ -886,3 +1028,49 @@ function showExtractionReport(report: any) {
     el.reportExportTxt.onclick = generateTxt;
     el.reportExportCsv.onclick = generateCsv;
 }
+
+// --- Toast Notification Utility ---
+function showToast(message: string, type: "success" | "error" = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.style.background = type === "success" ? "rgba(16, 185, 129, 0.9)" : "rgba(239, 68, 68, 0.9)";
+    toast.style.color = "white";
+    toast.style.padding = "10px 18px";
+    toast.style.borderRadius = "8px";
+    toast.style.fontSize = "13px";
+    toast.style.fontWeight = "500";
+    toast.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(10px)";
+    toast.style.transition = "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+    toast.style.backdropFilter = "blur(8px)";
+    toast.style.display = "flex";
+    toast.style.alignItems = "center";
+    toast.style.gap = "8px";
+    
+    const icon = type === "success" ? "✅" : "❌";
+    const iconSpan = document.createElement("span");
+    iconSpan.textContent = icon;
+    const msgSpan = document.createElement("span");
+    msgSpan.textContent = message;
+    toast.appendChild(iconSpan);
+    toast.appendChild(msgSpan);
+
+    container.appendChild(toast);
+
+    // Fade in
+    requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+        toast.style.transform = "translateY(0)";
+    });
+
+    // Fade out and remove after 4.6s
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(10px)";
+        setTimeout(() => toast.remove(), 300);
+    }, 4600);
+}
+

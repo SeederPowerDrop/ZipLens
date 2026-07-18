@@ -8,6 +8,10 @@
   "permissions": [
     "core:default",
     "opener:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [{ "path": "**" }]
+    },
     "dialog:default",
     {
       "identifier": "dialog:allow-open",
@@ -35,17 +39,6 @@
     "core:window:allow-current-monitor",
     "core:window:allow-set-min-size",
     "core:window:allow-start-dragging",
-    "core:app:default",
-    {
-      "identifier": "core:default",
-      "allow": [
-        {
-          "cmd": "extract_archive"
-        },
-        {
-          "cmd": "compress_archive"
-        }
-      ]
-    }
+    "core:app:default"
   ]
 }

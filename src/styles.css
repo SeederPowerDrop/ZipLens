@@ -647,8 +647,20 @@ button.primary:hover {
 /* Password & Encryption Config */
 .password-group {
   display: flex;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 0;
   gap: 8px;
   width: 100%;
+}
+
+.password-group.expanded {
+  height: 38px;
+  opacity: 1;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 .custom-input {

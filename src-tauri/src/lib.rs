@@ -155,7 +155,7 @@ pub fn run() {
             archive::preview_archive,
             archive::check_conflicts,
             archive::save_report_file,
-            archive::resolve_extract_error
+            archive::copy_file_unique
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
