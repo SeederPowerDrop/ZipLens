@@ -12,7 +12,7 @@
   "archive": "ZipLens_Astra/release_build/ZipLens_2.0.0_arm64.zip",
   "version_metadata_verified": true,
   "ui_name_and_about_version_verified": true,
-  "regression_test_provenance": "8 frontend tests rerun and passed during completion dialog changes; final keyboard handling also passed type/Vite/Tauri build and native UI verification. 25 Rust engine tests passed previously on unchanged engine code. ZIP compression, AES ZIP extraction and plain ZIP extraction were verified with a 40-byte Korean-named file; prior 512 MiB optical UI checks remain historical evidence.",
+  "regression_test_provenance": "8 frontend tests passed again in the clean publication checkout after connecting the existing TypeScript installation. Final bilingual introduction passed TypeScript/Vite/Tauri build and native Korean/English visual checks. 25 Rust engine tests and 512 MiB optical UI checks remain prior evidence on unchanged engine code; ZIP compression and plain/AES ZIP extraction were additionally verified with a 40-byte Korean-named file during completion-dialog work.",
   "build_command": "npm run tauri build -- --bundles app --config '{\"build\":{\"beforeBuildCommand\":\"python3 scripts/prepare-sidecar.py && npm run build -- --configLoader native\"}}' -- --offline --locked",
   "lens_icon": {
     "source_jpeg_sha256": "5f4e3f86a2eca070365854901fc2c5fbf30169c31741a336b9b46a9d3fdd5798",

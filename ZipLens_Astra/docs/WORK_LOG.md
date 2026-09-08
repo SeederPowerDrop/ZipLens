@@ -91,3 +91,9 @@
 실제 앱의 한국어·영어 소개 화면을 확인했다. 영어 병기로 본문이 길어져도 창 높이를 제한하고 본문을 스크롤하도록 했다. 소개창을 다시 열 때 보이지 않는 현상이 관찰되어 진입 애니메이션·블러에 의존하지 않는 표면으로 수정했다. 아랍어 방향·문단 시작 정렬과 7개 언어의 누락 여부는 별도 코드 검토를 거쳤다. 타입/Vite/Tauri release 빌드를 통과했다.
 
 GitHub 게시 범위는 `ZipLens_Astra`의 코드·문서·필수 리소스로 한정한다. 새 `codex/ziplens-2.0` 브랜치를 만들었으며 원본 파일과 기존 staged/unstaged 변경을 해시로 기록해 보존을 확인한다. 원본에서 복사된 개인 경로가 있는 일회성 검사 파일은 로컬에 남기고 Git에서 제외했다. 기존 기록의 검증 완료 상태와 새 clone에서 사용할 빌드 안내를 정리했다. 앱·ZIP은 로컬 산출물로 유지하며 소스 PR과 구분한다.
+
+### GitHub 게시 결과
+
+[PR #1: ZipLens 2.0](https://github.com/SeederPowerDrop/ZipLens/pull/1)을 만들고 `codex/ziplens-2.0` 브랜치를 게시했다. 대상은 `SeederPowerDrop/ZipLens`, 기준 브랜치는 `main`이다. 소스 게시 커밋은 `e5c72fb6908b8ba62068c40778037f8894e6f56f`이며 이 링크/검증 기록은 후속 문서 커밋으로 남긴다. 기본 브랜치 병합과 바이너리 Release는 수행하지 않았다.
+
+Google Drive 안 Git 객체의 mmap 읽기가 timeout을 일으켜 임시 체크아웃에서 게시했다. 검토한 113개 파일을 Git blob 해시와 대조해 복사했고, 그 복사본에서 7-Zip 복구와 프런트엔드 8개 테스트를 통과했다. 테스트용 TypeScript는 기존 설치를 연결해 사용했다. 원본 작업 폴더는 기존 `feature/bandizip-overhaul` 브랜치와 최초 staged/unstaged 상태로 돌려놓았으며, 작업 파일은 삭제하거나 되돌리지 않았다.
