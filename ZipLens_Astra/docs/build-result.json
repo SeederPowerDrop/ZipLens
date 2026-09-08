@@ -1,0 +1,80 @@
+{
+  "version": "2.0.0",
+  "identifier": "com.ziplens.astra",
+  "architecture": "arm64",
+  "bundle": "ZipLens_Astra/release_build/ZipLens 2.0.app",
+  "binary_sha256": "cbb09cdcbfc6bc7f90317c1d2a08fa6783f534578aa88d03226e0b64f784dd71",
+  "archive_sha256": "2cdc77296fa650d116173043ea16e8eea5c7a235caf29e9211e3ee57453d13cb",
+  "core_tests_passed": 25,
+  "ui_model_tests_passed": 8,
+  "notarized": false,
+  "product_name": "ZipLens 2.0",
+  "archive": "ZipLens_Astra/release_build/ZipLens_2.0.0_arm64.zip",
+  "version_metadata_verified": true,
+  "ui_name_and_about_version_verified": true,
+  "regression_test_provenance": "8 frontend tests rerun and passed during completion dialog changes; final keyboard handling also passed type/Vite/Tauri build and native UI verification. 25 Rust engine tests passed previously on unchanged engine code. ZIP compression, AES ZIP extraction and plain ZIP extraction were verified with a 40-byte Korean-named file; prior 512 MiB optical UI checks remain historical evidence.",
+  "build_command": "npm run tauri build -- --bundles app --config '{\"build\":{\"beforeBuildCommand\":\"python3 scripts/prepare-sidecar.py && npm run build -- --configLoader native\"}}' -- --offline --locked",
+  "lens_icon": {
+    "source_jpeg_sha256": "5f4e3f86a2eca070365854901fc2c5fbf30169c31741a336b9b46a9d3fdd5798",
+    "webview_png_sha256": "fb8d14486410fe5f0ca17e6deea618db6c013487450a46514b4e0fa89a2131dc",
+    "macos_icns_sha256": "bc60d7cdf40bd267b3ef8615a72128f462801ad9a2e9e23dcd3e2e7f1caaabbf",
+    "use": "Original raster retained for macOS app icon and favicon; in-app identity is now SVG optical scenes."
+  },
+  "optical_ui": {
+    "verified_date": "2026-09-08",
+    "extract": "concave lens, diverging rays",
+    "compress": "convex lens, converging rays",
+    "mode_selection": "explicit operation type, independent of translation",
+    "native_ui_language": "ko",
+    "native_compression_input_bytes": 536870912,
+    "native_extraction_file_count": 512,
+    "native_extraction_bytes": 536870912,
+    "native_outputs_byte_verified": true,
+    "reduced_motion": "CSS implemented and reviewed; no OS setting changed",
+    "manual_cancel_and_password_ui_tested": false
+  },
+  "smart_extract_icon": {
+    "design": "folder with a four-point sparkle",
+    "native_enabled_and_disabled_ui_verified": true,
+    "verified_date": "2026-09-08"
+  },
+  "completion_dialog": {
+    "verified_date": "2026-09-08",
+    "shared_dialog": true,
+    "compress": "static convex lens with converging rays",
+    "extract": "static concave lens with diverging rays",
+    "native_language": "ko",
+    "native_compression_and_encrypted_extraction_sequence_verified": true,
+    "native_plain_extraction_verified": true,
+    "native_details_and_keyboard_escape_verified": true,
+    "native_tab_wrap_verified": true,
+    "native_outputs_byte_verified": true,
+    "test_file_bytes": 40,
+    "native_error_cancel_and_queued_finder_scenarios_tested": false,
+    "warning_and_queue_handling": "code reviewed",
+    "finished_timer_stopped": true,
+    "notarization_changed": false
+  },
+  "about_introduction": {
+    "verified_date": "2026-09-08",
+    "korean_original_always_present": true,
+    "translated_languages": [
+      "en",
+      "ja",
+      "zh",
+      "fr",
+      "es",
+      "ar"
+    ],
+    "native_visual_languages": [
+      "ko",
+      "en"
+    ],
+    "all_language_copy_and_arabic_direction_code_reviewed": true,
+    "dedication": "ERW FWS WRG",
+    "dedication_translated": false,
+    "dedication_occurrences": 1,
+    "type_vite_tauri_build": "passed",
+    "engine_unchanged": true
+  }
+}

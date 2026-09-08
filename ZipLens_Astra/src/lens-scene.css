@@ -1,0 +1,114 @@
+/* A single optical language for the home, compression and live progress views. */
+.optics-scene {
+  --optics-energy: 0.65;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.optics-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 218px;
+  overflow: visible;
+  background: radial-gradient(ellipse at 47% 50%, #749dff14, transparent 58%);
+}
+
+.optics-axis { stroke: #9fb9e31a; stroke-width: 1; stroke-dasharray: 2 9; }
+.optics-envelope { stroke: none; opacity: 0.055; }
+.optics-ray { fill: none; stroke-width: 1.5; stroke-linecap: round; opacity: 0.75; }
+.optics-glass { stroke: #ccedffc4; stroke-width: 1.25; }
+.optics-edge { stroke: #edf7ffb3; stroke-width: 1; fill: none; }
+.optics-output { stroke: #e8d9ff; stroke-width: 2.5; stroke-linecap: round; }
+.optics-focus { opacity: var(--optics-energy); transition: opacity 0.3s ease; }
+.optics-caption { color: #b9c9e2; font-size: 11px; letter-spacing: 0.08em; text-align: center; margin-top: 2px; }
+
+.optics-scene[data-mode="extract"] .optics-compress,
+.optics-scene[data-mode="compress"] .optics-extract,
+.optics-scene[data-mode="preview"] { display: none; }
+
+.optics-photon {
+  fill: none;
+  stroke: #edfbff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 3 97;
+  opacity: 0;
+}
+
+/* CSS animates five small paths only while a real job is active. No frame loop. */
+.optics-scene[data-running="true"] .optics-photon {
+  opacity: 0.95;
+  animation: optics-travel 1.9s linear infinite;
+  animation-delay: var(--ray-delay);
+}
+.optics-scene[data-running="true"] .optics-envelope { opacity: 0.09; }
+@keyframes optics-travel { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+
+#home-lens-scene { max-width: 470px; margin-bottom: 20px; }
+#home-lens-scene .optics-caption { display: none; }
+.drop-zone:not(.loaded) { padding: 24px 20px 36px; }
+.drop-zone.loaded #home-lens-scene { width: 104px; min-width: 104px; margin: 0; }
+#compression-lens-scene { max-width: 360px; margin-bottom: 20px; }
+#compression-lens-scene .optics-svg { max-height: 124px; }
+
+/* Completion uses the same still optics for both operations, in one dialog. */
+#report-icon.completion-lens-icon {
+  width: 256px;
+  max-width: 100%;
+  height: auto;
+  padding: 12px 8px;
+  flex-direction: column;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #63c9ff0d, #a88cff17);
+  border-color: #a0b7ff36;
+  box-shadow: 0 8px 28px #7c86f015;
+}
+#report-icon.completion-lens-icon .optics-svg { width: 100%; height: auto; max-height: 112px; }
+#report-icon.completion-lens-icon .optics-caption { font-size: 10px; letter-spacing: 0.04em; }
+/* A still completion surface also avoids layered animation/blur compositing. */
+#report-modal, #report-modal .modern-modal {
+  animation: none;
+  opacity: 1;
+  transform: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#report-modal .modern-modal {
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: #16161af5;
+}
+#report-modal .modern-btn:focus-visible { outline: 2px solid #b8ccff; outline-offset: 3px; }
+
+/* Keep live optics/progress in the first viewport instead of below a long list. */
+#app[data-composing="true"] #drop-zone,
+#app[data-processing="true"] #drop-zone,
+#app[data-processing="true"] #compression-options,
+#app[data-processing="true"] #preview-header,
+#app[data-processing="true"] #preview-cols-header,
+#app[data-processing="true"] #log-container { display: none !important; }
+
+#app[data-processing="true"] .main-content { overflow-y: auto; }
+#progress-container { position: relative; margin-top: 0; flex-shrink: 0; gap: 14px; }
+#progress-lens-scene { padding-top: 20px; }
+#progress-container #btn-cancel-operation { position: absolute; inset-inline-end: 16px; top: 12px; margin: 0; z-index: 1; font-size: 11px; padding: 5px 10px; }
+#progress-container .progress-stats { flex-wrap: wrap; gap: 10px; }
+#progress-container .progress-filename { min-width: 160px; }
+#progress-container .progress-fill { animation: none; }
+#progress-container .progress-fill.indeterminate { animation: astra-progress 1.5s ease-in-out infinite; }
+
+/* Preserve the lens shapes and direction while honoring macOS Reduce Motion. */
+@media (prefers-reduced-motion: reduce) {
+  .optics-scene[data-running="true"] .optics-photon { animation: none; opacity: 0; }
+  .optics-focus { transition: none; }
+  #progress-container .progress-fill,
+  #progress-container .progress-fill.indeterminate { transition: none; animation: none; }
+  .orb, #app .animated { animation: none; }
+  .drop-zone { transition: none; }
+  .drop-zone:hover, .drop-zone.active { transform: none; }
+  #report-modal, #report-modal .modern-modal { animation: none; }
+}
