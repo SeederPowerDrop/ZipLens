@@ -101,3 +101,5 @@
 ## 알아서 풀기 버튼 아이콘
 
 2026-09-08 달러 기호로 오인되던 SVG를 폴더+반짝임으로 교체했다. `index.html`의 `btn-smart-extract` 안에 있는 24×24 viewBox의 벡터이며 기존 툴바 색상을 상속한다. 장식 SVG는 `aria-hidden="true"`, `focusable="false"`로 두고 실제 버튼 이름은 텍스트가 제공한다.
+
+문구는 `src/i18n.ts`의 `btnSmartExtract`와 `updateDOM()`으로 갱신한다. HTML의 초기 한국어 문구만 바꾸면 언어 전환에 연결되지 않는다. SVG를 보존하는 기존 `el()` 헬퍼로 직접 자식 span만 수정하여 아이콘·클릭 핸들러·disabled 상태를 유지한다.

@@ -97,3 +97,9 @@ GitHub 게시 범위는 `ZipLens_Astra`의 코드·문서·필수 리소스로 �
 [PR #1: ZipLens 2.0](https://github.com/SeederPowerDrop/ZipLens/pull/1)을 만들고 `codex/ziplens-2.0` 브랜치를 게시했다. 대상은 `SeederPowerDrop/ZipLens`, 기준 브랜치는 `main`이다. 소스 게시 커밋은 `e5c72fb6908b8ba62068c40778037f8894e6f56f`이며 이 링크/검증 기록은 후속 문서 커밋으로 남긴다. 기본 브랜치 병합과 바이너리 Release는 수행하지 않았다.
 
 Google Drive 안 Git 객체의 mmap 읽기가 timeout을 일으켜 임시 체크아웃에서 게시했다. 검토한 113개 파일을 Git blob 해시와 대조해 복사했고, 그 복사본에서 7-Zip 복구와 프런트엔드 8개 테스트를 통과했다. 테스트용 TypeScript는 기존 설치를 연결해 사용했다. 원본 작업 폴더는 기존 `feature/bandizip-overhaul` 브랜치와 최초 staged/unstaged 상태로 돌려놓았으며, 작업 파일은 삭제하거나 되돌리지 않았다.
+
+## 13. 알아서 풀기 번역 누락 수정 — 2026-09-08
+
+사용자가 다른 언어를 선택해도 알아서 풀기가 한국어로 남는다고 알려 주었다. 이 버튼은 HTML에 문구만 있고 번역 키와 언어 변경 시 DOM 갱신이 빠져 있었다. 7개 언어의 `btnSmartExtract`를 추가하고 기존 아이콘 보존 헬퍼에 연결했다. 소개글 및 개인 메시지에는 손대지 않았다.
+
+타입/Vite/Tauri 빌드를 통과했으며 최신 앱에서 영어 Smart Extract, 스페인어 Extracción automática, 한국어 복원을 확인했다. 800×600 창에서 긴 스페인어 버튼 문구도 한 줄로 표시된다. 코드 검토에서 다른 문구 덮어쓰기가 없고 SVG·클릭 처리·disabled 상태가 유지됨을 확인했다. 로컬 앱/ZIP과 검증 해시를 갱신하고 같은 PR #1에 후속 수정으로 기록한다.

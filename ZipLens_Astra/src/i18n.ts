@@ -15,6 +15,7 @@ export const translations = {
     dropText: "Drop archive to extract",
     dropSubtext: "or click to browse files",
     btnExtract: "Extract Archive",
+    btnSmartExtract: "Smart Extract",
     btnCompressFile: "Compress File",
     btnCompressFolder: "Create Archive",
     splitPlaceholder: "Split Archive (e.g. 10m, 2g)",
@@ -78,6 +79,7 @@ export const translations = {
     dropText: "압축을 풀려면 파일을 드롭하세요",
     dropSubtext: "또는 클릭하여 파일 찾아보기",
     btnExtract: "압축 해제",
+    btnSmartExtract: "알아서 풀기",
     btnCompressFile: "파일 압축",
     btnCompressFolder: "새로 압축",
     splitPlaceholder: "분할 압축 (예: 10m, 2g)",
@@ -141,6 +143,7 @@ export const translations = {
     dropText: "展開するファイルをドロップ",
     dropSubtext: "またはクリックしてファイルを参照",
     btnExtract: "展開",
+    btnSmartExtract: "おまかせ展開",
     btnCompressFile: "ファイルを圧縮",
     btnCompressFolder: "フォルダーを圧縮",
     splitPlaceholder: "分割圧縮 (例: 10m, 2g)",
@@ -204,6 +207,7 @@ export const translations = {
     dropText: "拖放压缩包以解压",
     dropSubtext: "或点击浏览文件",
     btnExtract: "解压文件",
+    btnSmartExtract: "智能解压",
     btnCompressFile: "压缩文件",
     btnCompressFolder: "压缩文件夹",
     splitPlaceholder: "分卷压缩 (例如: 10m, 2g)",
@@ -267,6 +271,7 @@ export const translations = {
     dropText: "Déposer l'archive pour extraire",
     dropSubtext: "ou cliquer pour parcourir",
     btnExtract: "Extraire l'archive",
+    btnSmartExtract: "Extraction auto",
     btnCompressFile: "Compresser le fichier",
     btnCompressFolder: "Compresser le dossier",
     splitPlaceholder: "Diviser l'archive (ex: 10m, 2g)",
@@ -330,6 +335,7 @@ export const translations = {
     dropText: "Soltar archivo para extraer",
     dropSubtext: "o hacer clic para examinar",
     btnExtract: "Extraer Archivo",
+    btnSmartExtract: "Extracción automática",
     btnCompressFile: "Comprimir Archivo",
     btnCompressFolder: "Comprimir Carpeta",
     splitPlaceholder: "Dividir Archivo (ej. 10m, 2g)",
@@ -393,6 +399,7 @@ export const translations = {
     dropText: "أفلت الأرشيف للاستخراج",
     dropSubtext: "أو انقر لتصفح الملفات",
     btnExtract: "استخراج الأرشيف",
+    btnSmartExtract: "استخراج تلقائي",
     btnCompressFile: "ضغط ملف",
     btnCompressFolder: "ضغط مجلد",
     splitPlaceholder: "تقسيم الأرشيف (مثال: 10m, 2g)",
@@ -506,6 +513,8 @@ function updateDOM() {
     elClassText('drop-subtext', getTranslation('dropSubtext'));
     
     el('btn-extract', getTranslation('btnExtract'));
+    // Update the label through the SVG-preserving helper on every language change.
+    el('btn-smart-extract', getTranslation('btnSmartExtract'));
     el('btn-compress-file', getTranslation('btnCompressFile'));
     el('btn-compress', getTranslation('btnCompressFolder'));
     

@@ -3,8 +3,8 @@
   "identifier": "com.ziplens.astra",
   "architecture": "arm64",
   "bundle": "ZipLens_Astra/release_build/ZipLens 2.0.app",
-  "binary_sha256": "cbb09cdcbfc6bc7f90317c1d2a08fa6783f534578aa88d03226e0b64f784dd71",
-  "archive_sha256": "2cdc77296fa650d116173043ea16e8eea5c7a235caf29e9211e3ee57453d13cb",
+  "binary_sha256": "ee65b90f53095e0a9397d25d77ccb8abf5ca61d7ff5c990c3dd1bd4173d8828b",
+  "archive_sha256": "5ee296ccf10ca4842e94d05dfe84429bbadd9fef17fb46dd2e4dfe53796726e5",
   "core_tests_passed": 25,
   "ui_model_tests_passed": 8,
   "notarized": false,
@@ -75,6 +75,27 @@
     "dedication_translated": false,
     "dedication_occurrences": 1,
     "type_vite_tauri_build": "passed",
+    "engine_unchanged": true
+  },
+  "smart_extract_translation": {
+    "verified_date": "2026-09-08",
+    "translated_languages": [
+      "ko",
+      "en",
+      "ja",
+      "zh",
+      "fr",
+      "es",
+      "ar"
+    ],
+    "native_visual_languages": [
+      "en",
+      "es",
+      "ko"
+    ],
+    "type_vite_tauri_build": "passed",
+    "icon_and_handler_preserved": true,
+    "spanish_fits_default_800x600_window": true,
     "engine_unchanged": true
   }
 }
