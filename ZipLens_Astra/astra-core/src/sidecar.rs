@@ -9,7 +9,7 @@ use std::{
 };
 
 const LOG_LIMIT: usize = 32 * 1024 * 1024;
-fn collect(mut reader: impl Read) -> std::io::Result<(Vec<u8>, bool)> {
+pub(crate) fn collect(mut reader: impl Read) -> std::io::Result<(Vec<u8>, bool)> {
     let mut bytes = Vec::new();
     let mut chunk = [0; 8192];
     let mut truncated = false;

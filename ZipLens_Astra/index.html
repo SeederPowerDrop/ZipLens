@@ -47,6 +47,9 @@
           <option value="es">Español</option>
           <option value="ar">العربية</option>
         </select>
+        <button id="btn-file-associations" class="file-associations-trigger" type="button" title="기본 압축 앱 설정" aria-label="기본 압축 앱 설정">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="9" cy="18" r="2" fill="currentColor"/></svg>
+        </button>
         <button id="btn-about" title="프로그램 정보" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 8px; opacity: 0.7; transition: opacity 0.2s;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -344,7 +347,9 @@
       </div>
       
       <!-- Buttons -->
-      <div style="display: flex; justify-content: flex-end; padding: 8px 12px 12px;">
+      <div class="about-actions">
+        <button id="about-licenses" type="button" aria-describedby="about-licenses-hint">오픈소스 라이선스</button>
+        <span id="about-licenses-hint" class="visually-hidden">라이선스와 소스 코드 안내가 담긴 폴더를 Finder에서 엽니다.</span>
         <button id="about-close" style="background: #ece9d8; border: 2px solid #fff; border-right-color: #848284; border-bottom-color: #848284; padding: 4px 20px; font-family: 'Tahoma', 'Gulim'; font-size: 12px; cursor: pointer; color: #000;">확인</button>
       </div>
     </div>

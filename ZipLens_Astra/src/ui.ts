@@ -76,6 +76,7 @@ export const elements = {
   get btnAbout() { return document.getElementById("btn-about") as HTMLButtonElement; },
   get aboutModal() { return document.getElementById("about-modal") as HTMLDivElement; },
   get aboutClose() { return document.getElementById("about-close") as HTMLButtonElement; },
+  get aboutLicenses() { return document.getElementById("about-licenses") as HTMLButtonElement; },
   get aboutCloseX() { return document.getElementById("about-close-x") as HTMLButtonElement; }
 };
 
@@ -84,8 +85,18 @@ export const elements = {
  * Updates UI processing state
  */
 export function updateButtonState(processing: boolean) {
+  const associationButton = document.getElementById("btn-file-associations") as HTMLButtonElement | null;
+  if (associationButton) associationButton.disabled = processing;
   if (elements.btnOpenArchive) (elements.btnOpenArchive as HTMLButtonElement).disabled = processing;
   if (elements.btnExtract) (elements.btnExtract as HTMLButtonElement).disabled = processing || !document.getElementById("drop-zone")?.classList.contains("loaded");
   if (elements.btnSmartExtract) (elements.btnSmartExtract as HTMLButtonElement).disabled = processing || !document.getElementById("drop-zone")?.classList.contains("loaded");
   if (elements.btnCompress) (elements.btnCompress as HTMLButtonElement).disabled = processing;
+  if (elements.btnConfirmCompress) (elements.btnConfirmCompress as HTMLButtonElement).disabled = processing;
+  if (elements.btnCancelCompress) (elements.btnCancelCompress as HTMLButtonElement).disabled = processing;
+  for (const button of [elements.selectAllBtn, elements.deselectAllBtn, elements.toggleAllBtn]) {
+    if (button) button.disabled = processing;
+  }
+  document.querySelectorAll<HTMLInputElement>(".file-checkbox").forEach(control => { control.disabled = processing; });
+  document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("#compression-options input, #compression-options select")
+    .forEach(control => { control.disabled = processing; });
 }

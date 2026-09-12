@@ -66,7 +66,10 @@ impl Engine {
             ctx.check()?;
             let source =
                 fs::canonicalize(input).map_err(|e| format!("{}: {e}", input.display()))?;
-            if dest == source || (source.is_dir() && dest.starts_with(&source)) {
+            if dest == source
+                || paths::same_file(&dest, &source).map_err(|e| e.to_string())?
+                || (source.is_dir() && dest.starts_with(&source))
+            {
                 return Err("Save the archive outside the selected source folder (and never over a source file)".into());
             }
             absolute_sources.push(source.clone());
@@ -321,12 +324,25 @@ struct Cancellable<'a> {
     file: File,
     ctx: &'a Context,
     name: &'a str,
+    remaining: u64,
 }
 impl Read for Cancellable<'_> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         // Interrupted is retried by io::copy; cancellation must be a terminal error.
         self.ctx.check().map_err(std::io::Error::other)?;
+        if buf.is_empty() {
+            return Ok(0);
+        }
         let n = self.file.read(buf)?;
+        // tar::Builder copies until EOF without comparing data length to the header.
+        // Abort the staged archive if a live source shrinks or grows while we read it.
+        if n as u64 > self.remaining || (n == 0 && self.remaining != 0) {
+            return Err(std::io::Error::other(format!(
+                "{} changed while compressing",
+                self.name
+            )));
+        }
+        self.remaining -= n as u64;
         self.ctx.advance(n as u64, self.name);
         Ok(n)
     }
@@ -348,6 +364,7 @@ fn compress_tar<W: Write>(
                 file: File::open(&source.path).map_err(|e| e.to_string())?,
                 ctx,
                 name: &source.name,
+                remaining: source.meta.len(),
             };
             let result = builder
                 .append_data(&mut header, &source.name, &mut file)

@@ -5,12 +5,14 @@ fn greet(name: &str) -> String {
 }
 
 mod archive;
+mod file_associations;
+mod licenses;
 
 use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize)]
 struct StartupAction {
-    action: String, // "extract" | "compress" | ""
+    action: String, // "extract" | "compress" | "settings" | ""
     paths: Vec<String>,
 }
 
@@ -47,17 +49,7 @@ fn parse_startup_args() -> StartupAction {
             // 플래그 없이 경로가 주어진 경우: 압축 파일이면 해제, 아니면 압축
             let paths: Vec<String> = args.clone();
             let first = std::path::Path::new(&args[0]);
-            let ext = first
-                .extension()
-                .and_then(|e| e.to_str())
-                .unwrap_or("")
-                .to_lowercase();
-
-            let archive_exts = [
-                "zip", "zipx", "cbz", "7z", "rar", "tar", "gz", "tgz", "zst", "tzst", "cab", "iso",
-                "lzh", "bz2", "xz", "001",
-            ];
-            if archive_exts.contains(&ext.as_str()) {
+            if file_associations::is_archive_path(first) {
                 StartupAction {
                     action: "extract".into(),
                     paths,
@@ -77,6 +69,37 @@ struct StartupQueue(std::sync::Mutex<Vec<StartupAction>>);
 #[tauri::command]
 fn take_startup_actions(queue: tauri::State<'_, StartupQueue>) -> Vec<StartupAction> {
     std::mem::take(&mut *queue.0.lock().unwrap())
+}
+
+// Finder may send an Opened event while the window is minimized or closed.
+// New webviews drain StartupQueue after installing their event listener.
+#[cfg(target_os = "macos")]
+fn show_main_window(app: &tauri::AppHandle) {
+    use tauri::Manager;
+    let window = app.get_webview_window("main").or_else(|| {
+        let config = app
+            .config()
+            .app
+            .windows
+            .iter()
+            .find(|window| window.label == "main")?;
+        let window = tauri::WebviewWindowBuilder::from_config(app, config)
+            .ok()?
+            .build()
+            .ok()?;
+        let _ = window_vibrancy::apply_vibrancy(
+            &window,
+            window_vibrancy::NSVisualEffectMaterial::UnderWindowBackground,
+            None,
+            None,
+        );
+        Some(window)
+    });
+    if let Some(window) = window {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -122,6 +145,15 @@ pub fn run() {
                         )
                         .unwrap(),
                         &PredefinedMenuItem::separator(app).unwrap(),
+                        &MenuItem::with_id(
+                            app,
+                            "file_associations",
+                            "Default Archive App…",
+                            true,
+                            Some("CmdOrCtrl+,"),
+                        )
+                        .unwrap(),
+                        &PredefinedMenuItem::separator(app).unwrap(),
                         &PredefinedMenuItem::services(app, None).unwrap(),
                         &PredefinedMenuItem::separator(app).unwrap(),
                         &PredefinedMenuItem::hide(app, None).unwrap(),
@@ -164,6 +196,18 @@ pub fn run() {
                 app.set_menu(menu).unwrap();
 
                 app.on_menu_event(move |app, event| {
+                    if event.id() == "file_associations" {
+                        app.state::<StartupQueue>()
+                            .0
+                            .lock()
+                            .unwrap()
+                            .push(StartupAction {
+                                action: "settings".into(),
+                                paths: vec![],
+                            });
+                        show_main_window(app);
+                        let _ = app.emit("startup_actions_available", ());
+                    }
                     if event.id() == "custom_about" {
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.emit("open_about", ());
@@ -176,6 +220,17 @@ pub fn run() {
         })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .on_window_event(|window, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "main" {
+                    // Keep the webview and its in-flight dialogs/jobs alive for Dock/Finder reopen.
+                    // Cmd+Q still terminates the app through the application menu.
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             greet,
             archive::extract_archive,
@@ -186,6 +241,9 @@ pub fn run() {
             archive::cancel_operation,
             archive::prepare_external_preview,
             take_startup_actions,
+            licenses::open_license_folder,
+            file_associations::get_file_associations,
+            file_associations::set_default_file_associations,
             archive::extract_file_memory
         ])
         .build(tauri::generate_context!())
@@ -199,6 +257,14 @@ pub fn run() {
                     .lock()
                     .unwrap()
                     .clear();
+            }
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen {
+                has_visible_windows: false,
+                ..
+            } = &event
+            {
+                show_main_window(app);
             }
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = event {
@@ -217,6 +283,7 @@ pub fn run() {
                             action: "extract".into(),
                             paths,
                         });
+                    show_main_window(app);
                     let _ = app.emit("startup_actions_available", ());
                 }
             }

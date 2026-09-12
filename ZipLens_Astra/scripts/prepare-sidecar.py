@@ -14,6 +14,14 @@ if hashlib.sha256(archive.read_bytes()).hexdigest() != provenance['sha256_downlo
     raise SystemExit('Bundled 7-Zip archive checksum mismatch')
 destination = root / 'src-tauri/binaries'
 destination.mkdir(exist_ok=True)
+# Source and full license accompany every redistributed executable. A missing
+# or substituted source archive must stop packaging rather than silently omit it.
+for record in [provenance['source'], provenance['license_text']]:
+    path = root / record['file']
+    if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != record['sha256']:
+        raise SystemExit(f'Missing or changed distribution resource: {record["file"]}')
+legal = root / 'legal/7zip'
+legal.mkdir(parents=True, exist_ok=True)
 with tarfile.open(archive) as source:
     for name in ['7zz', 'License.txt', 'History.txt', 'readme.txt']:
         member = source.getmember(name)
@@ -32,4 +40,8 @@ with tarfile.open(archive) as source:
                 temp_path = Path(temp.name)
             temp_path.chmod(0o755 if name == '7zz' else 0o644)
             os.replace(temp_path, target)
+        if name in ['License.txt', 'readme.txt']:
+            target = legal / name
+            if not target.is_file() or target.read_bytes() != data:
+                target.write_bytes(data)
 print('7-Zip ' + provenance['version'] + ' verified (arm64 + x86_64)')

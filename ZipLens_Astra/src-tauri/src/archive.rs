@@ -151,6 +151,7 @@ pub async fn preview_archive(
     .map_err(|e| e.to_string())?
 }
 #[tauri::command]
+#[allow(clippy::too_many_arguments)] // Keep named IPC fields compatible with the frontend.
 pub async fn compress_archive(
     app: AppHandle,
     source_paths: Vec<String>,

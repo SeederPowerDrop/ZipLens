@@ -477,3 +477,74 @@ fn tar_compression_cancellation_is_not_retried_forever() {
         b"preserve previous archive"
     );
 }
+
+#[test]
+fn tar_source_size_changes_preserve_the_previous_archive() {
+    for format in ["tar", "tar.gz", "tar.zst"] {
+        for (before, after) in [(1024, 1), (1, 1024)] {
+            let root = tempfile::tempdir().unwrap();
+            let source = root.path().join("changing.txt");
+            fs::write(&source, vec![b'a'; before]).unwrap();
+            let mut request = compression(&root, format);
+            request.sources = vec![source.clone()];
+            fs::write(&request.destination, b"preserve previous archive").unwrap();
+            let changed = Arc::new(AtomicBool::new(false));
+            let trigger = changed.clone();
+            let ctx = Context::new(Arc::new(AtomicBool::new(false)), move |p| {
+                // The first TAR progress event occurs after source metadata is captured.
+                if p.filename == "changing.txt"
+                    && !trigger.swap(true, std::sync::atomic::Ordering::Relaxed)
+                {
+                    fs::write(&source, vec![b'b'; after]).unwrap();
+                }
+            });
+            let result = engine().compress(&request, &ctx);
+            assert!(changed.load(std::sync::atomic::Ordering::Relaxed));
+            assert!(result.is_err(), "{format}: {before} -> {after}: {result:?}");
+            assert_eq!(
+                fs::read(&request.destination).unwrap(),
+                b"preserve previous archive"
+            );
+            assert_eq!(fs::read_dir(root.path()).unwrap().count(), 2);
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn compression_does_not_overwrite_a_source_through_a_case_alias() {
+    use std::os::unix::fs::MetadataExt;
+    let root = tempfile::tempdir().unwrap();
+    let source = root.path().join("original.zip");
+    let alias = root.path().join("ORIGINAL.ZIP");
+    fs::write(&source, b"preserve source bytes").unwrap();
+    // This scenario requires a case-insensitive volume, as used by default on macOS.
+    if !alias.exists() {
+        return;
+    }
+    assert_eq!(
+        fs::metadata(&source).unwrap().ino(),
+        fs::metadata(&alias).unwrap().ino()
+    );
+    let mut request = compression(&root, "zip");
+    request.sources = vec![source.clone()];
+    request.destination = alias;
+    assert!(engine().compress(&request, &Context::default()).is_err());
+    assert_eq!(fs::read(source).unwrap(), b"preserve source bytes");
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn compression_rejects_output_inside_a_case_aliased_source_folder() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir(root.path().join("source")).unwrap();
+    fs::write(root.path().join("source/file"), b"keep").unwrap();
+    let alias = root.path().join("SOURCE");
+    if !alias.is_dir() {
+        return;
+    }
+    let mut request = compression(&root, "zip");
+    request.destination = alias.join("out.zip");
+    assert!(engine().compress(&request, &Context::default()).is_err());
+    assert!(!request.destination.exists());
+}

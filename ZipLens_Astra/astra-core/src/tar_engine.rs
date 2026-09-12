@@ -8,20 +8,30 @@ use std::{
 
 pub fn supports(path: &Path) -> bool {
     let name = path.to_string_lossy().to_ascii_lowercase();
-    [".tar", ".tar.gz", ".tgz", ".tar.zst", ".tzst"]
-        .iter()
-        .any(|s| name.ends_with(s))
+    [
+        ".tar",
+        ".cbt",
+        ".tar.gz",
+        ".tar.gzip",
+        ".tgz",
+        ".tar.zst",
+        ".tar.zstd",
+        ".tzst",
+    ]
+    .iter()
+    .any(|s| name.ends_with(s))
 }
 fn reader(path: &Path, ctx: &Context) -> Result<Box<dyn Read>, String> {
     let file = BufReader::with_capacity(256 * 1024, File::open(path).map_err(|e| e.to_string())?);
     let name = path.to_string_lossy().to_ascii_lowercase();
-    let inner: Box<dyn Read> = if name.ends_with(".gz") || name.ends_with(".tgz") {
-        Box::new(flate2::read::MultiGzDecoder::new(file))
-    } else if name.ends_with(".zst") || name.ends_with(".tzst") {
-        Box::new(zstd::stream::Decoder::new(file).map_err(|e| e.to_string())?)
-    } else {
-        Box::new(file)
-    };
+    let inner: Box<dyn Read> =
+        if name.ends_with(".gz") || name.ends_with(".gzip") || name.ends_with(".tgz") {
+            Box::new(flate2::read::MultiGzDecoder::new(file))
+        } else if name.ends_with(".zst") || name.ends_with(".zstd") || name.ends_with(".tzst") {
+            Box::new(zstd::stream::Decoder::new(file).map_err(|e| e.to_string())?)
+        } else {
+            Box::new(file)
+        };
     Ok(Box::new(CheckedReader {
         inner,
         ctx: ctx.clone(),

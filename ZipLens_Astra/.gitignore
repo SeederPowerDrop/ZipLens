@@ -43,3 +43,7 @@ release_build/
 /src-tauri/src/bin_test.rs
 /test_menu.rs
 /test_7z_recovery.py
+
+# Python runtime caches
+__pycache__/
+*.py[cod]

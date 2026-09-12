@@ -866,6 +866,22 @@ button.primary:hover {
 .about-paragraph-pair { margin-bottom: 14px; }
 .about-paragraph-pair p { white-space: pre-line; }
 .about-translation { margin-top: 5px; color: #39445a; text-align: start; }
+.about-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 8px 12px 12px; }
+#about-licenses {
+  background: #ece9d8;
+  border: 2px solid #fff;
+  border-right-color: #848284;
+  border-bottom-color: #848284;
+  padding: 4px 12px;
+  font-family: 'Tahoma', 'Gulim', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  color: #000;
+  text-align: start;
+}
+#about-licenses:disabled { opacity: 0.55; cursor: progress; }
+.about-modal-2000s button:focus-visible, .about-modal-2000s a:focus-visible { outline: 2px solid #0058e6; outline-offset: 3px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
 .modal-overlay {
   position: fixed;

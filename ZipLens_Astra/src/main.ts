@@ -6,9 +6,15 @@ import { join, dirname } from "@tauri-apps/api/path";
 import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
 import { formatBytes, formatTime, escapeHTML } from "./utils";
 import { elements, updateButtonState } from "./ui";
-import { archiveStem, archiveRoots, csvCell } from "./archive-model";
+import { archiveStem, csvCell, isArchivePath, snapshotExtraction, type ExtractionSnapshot } from "./archive-model";
+import { ArchiveActionGate } from "./action-session";
+import { showPasswordDialog } from "./password-dialog";
 import { LensScene, type ProcessingOperation } from "./lens-scene";
 import { setLanguage, getTranslation, getCurrentLang } from "./i18n";
+import { getAboutLicenseError } from "./about";
+
+import { initFileAssociations, isFileAssociationsOpen, openFileAssociations } from "./file-associations";
+import "./file-associations.css";
 
 // --- State Variables ---
 let lastResultPath: string | null = null;
@@ -38,6 +44,25 @@ const PAGE_SIZE = 300;
 let progressUnlisten: (() => void) | null = null;
 let previewBlobUrl: string | null = null;
 const pendingStartupActions: StartupAction[] = [];
+let drainingStartupAction = false;
+const archiveActions = new ArchiveActionGate(busy => {
+    const app = document.getElementById("app");
+    if (app) app.dataset.actionBusy = String(busy);
+    updateButtonState(busy || isProcessing);
+    if (!busy) queueMicrotask(() => void handleNextStartupAction());
+});
+
+async function runArchiveAction(action: () => Promise<void>): Promise<void> {
+    if (isFileAssociationsOpen()) return;
+    await archiveActions.run(async () => {
+        try { await action(); }
+        catch (error) {
+            if (String(error) !== "CANCELLED") {
+                await message(`${getTranslation("error")}: ${error}`, { title: getTranslation("error"), kind: "error" });
+            }
+        }
+    });
+}
 
 interface ExtractionReport {
     success_files: string[];
@@ -50,7 +75,7 @@ interface ArchiveProgress { percent: number | null; processed_bytes: number; tot
 let currentSort: { col: "name" | "size" | "compressed" | "ext", asc: boolean } = { col: "name", asc: true };
 
 interface StartupAction {
-  action: "extract" | "compress" | "";
+  action: "extract" | "compress" | "settings" | "";
   paths: string[];
 }
 
@@ -118,6 +143,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateLensLabels();
     }
 
+    initFileAssociations({ onClose: () => { void handleNextStartupAction(); } });
+
     const cancelButton = document.getElementById("btn-cancel-operation") as HTMLButtonElement;
     cancelButton.onclick = async () => {
         cancelButton.disabled = true;
@@ -152,15 +179,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Button Listeners
     if (elements.btnOpenArchive) {
-        elements.btnOpenArchive.onclick = async () => {
-            if (isProcessing) return;
-            const selected = await open({
-                multiple: false,
-                directory: false,
-                title: "Select Archive to Preview"
-            });
-            if (selected !== null) await loadArchivePreview(selected);
-        };
+        elements.btnOpenArchive.onclick = chooseArchive;
     }
     
     if (elements.btnExtract) elements.btnExtract.onclick = () => extractArchive();
@@ -184,6 +203,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     if (elements.btnConfirmCompress) {
         elements.btnConfirmCompress.onclick = async () => {
+            if (archiveActions.busy) return;
             if (elements.compressionOptions) elements.compressionOptions.style.display = "none";
             document.getElementById("app")!.dataset.composing = "false";
             if ((document.getElementById("compression-source") as HTMLSelectElement).value === "files") await compressSelected();
@@ -200,6 +220,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closeAbout = () => { if (elements.aboutModal) elements.aboutModal.style.display = "none"; };
     if (elements.aboutClose) elements.aboutClose.onclick = closeAbout;
     if (elements.aboutCloseX) elements.aboutCloseX.onclick = closeAbout;
+    if (elements.aboutLicenses) {
+        elements.aboutLicenses.onclick = async () => {
+            const button = elements.aboutLicenses;
+            button.disabled = true;
+            button.setAttribute("aria-busy", "true");
+            try {
+                await invoke("open_license_folder");
+            } catch (error) {
+                console.error("Could not open bundled licenses", error);
+                await message(getAboutLicenseError(getCurrentLang()), { title: getTranslation("error"), kind: "error" });
+            } finally {
+                button.disabled = false;
+                button.removeAttribute("aria-busy");
+            }
+        };
+    }
     
     if (elements.selectAllBtn) {
         elements.selectAllBtn.onclick = () => {
@@ -267,20 +303,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 
-    elements.dropZone!.onclick = async () => {
-        if (isProcessing) return;
-        const selected = await open({
-            multiple: false,
-            directory: false,
-            title: "Select Archive to Preview"
-        });
-        if (selected !== null) await loadArchivePreview(selected);
-    };
+    elements.dropZone!.onclick = chooseArchive;
 });
 
 // Setup Native Drag & Drop
 listen<{ paths: string[] }>("tauri://drag-enter", () => {
-    if (isProcessing) return;
+    if (archiveActions.busy || isProcessing || isFileAssociationsOpen()) return;
     elements.dropZone?.classList.add("active");
 });
 
@@ -294,13 +322,12 @@ listen("open_about", () => {
 
 listen<{ paths: string[] }>("tauri://drag-drop", async (event) => {
     elements.dropZone?.classList.remove("active");
-    if (isProcessing) return;
+    if (archiveActions.busy || isProcessing || isFileAssociationsOpen()) return;
 
     const droppedPaths = event.payload.paths;
     if (!droppedPaths || droppedPaths.length === 0) return;
 
-    const extMatch = droppedPaths[0].match(/\.(zip|zipx|cbz|tar|gz|tgz|zst|tzst|7z|rar|lzh|cab|iso|bz2|xz|001)$/i);
-    if (droppedPaths.length === 1 && extMatch) {
+    if (droppedPaths.length === 1 && isArchivePath(droppedPaths[0])) {
         await loadArchivePreview(droppedPaths[0]);
     } else {
         await handleDirectCompression(droppedPaths);
@@ -308,22 +335,45 @@ listen<{ paths: string[] }>("tauri://drag-drop", async (event) => {
 });
 
 async function handleNextStartupAction() {
-    if (isProcessing || !pendingStartupActions.length) return;
-    const next = pendingStartupActions.shift()!;
-    if (!next.paths.length) return;
-    if (next.action === "compress") await handleDirectCompression(next.paths);
-    else {
-        await loadArchivePreview(next.paths[0]);
-        if (next.paths.length > 1) showToast("여러 압축 파일 중 첫 번째 파일을 열었습니다. / Opened the first archive.");
+    if (drainingStartupAction || archiveActions.busy || isProcessing || isFileAssociationsOpen() || !pendingStartupActions.length) return;
+    drainingStartupAction = true;
+    try {
+        const next = pendingStartupActions.shift()!;
+        if (next.action === "settings") { openFileAssociations(); return; }
+        if (!next.paths.length) return;
+        if (next.action === "compress") await handleDirectCompression(next.paths);
+        else {
+            await loadArchivePreview(next.paths[0]);
+            if (next.paths.length > 1) showToast("여러 압축 파일 중 첫 번째 파일을 열었습니다. / Opened the first archive.");
+        }
+    } finally {
+        drainingStartupAction = false;
+        // Save-dialog cancellation does not call setProcessing(false). Always resume here too.
+        if (pendingStartupActions.length && !archiveActions.busy && !isProcessing && !isFileAssociationsOpen()) {
+            queueMicrotask(() => void handleNextStartupAction());
+        }
     }
 }
 
 // --- Core Functions ---
 
+async function chooseArchive() {
+    await runArchiveAction(async () => {
+        // macOS type filters can hide valid ALZ/EGG files before UTI registration.
+        const selected = await open({ multiple: false, directory: false, title: "Select Archive to Preview" });
+        if (selected !== null) await loadArchivePreviewInner(selected);
+    });
+}
+
 async function loadArchivePreview(path: string, pwAttempt: string | null = null) {
+    await runArchiveAction(() => loadArchivePreviewInner(path, pwAttempt));
+}
+
+async function loadArchivePreviewInner(path: string, pwAttempt: string | null = null) {
     if (isProcessing) return;
     setProcessing(true, "preview");
     let files: ArchiveFileInfo[] = [];
+    let acceptedPassword = pwAttempt;
 
     const attemptLoad = async (pw: string | null) => {
         return await invoke<ArchiveFileInfo[]>("preview_archive", { archivePath: path, password: pw });
@@ -332,13 +382,12 @@ async function loadArchivePreview(path: string, pwAttempt: string | null = null)
     try {
         try {
             files = await attemptLoad(pwAttempt);
-            currentArchivePassword = pwAttempt; 
         } catch (err: any) {
             if (err === "PASSWORD_REQUIRED") {
                 const validator = async (testPw: string) => {
                     try {
                         files = await attemptLoad(testPw);
-                        currentArchivePassword = testPw;
+                        acceptedPassword = testPw;
                         return true;
                     } catch (e: any) {
                         if (String(e) === "PASSWORD_REQUIRED") return false;
@@ -346,7 +395,7 @@ async function loadArchivePreview(path: string, pwAttempt: string | null = null)
                     }
                 };
                 const pw = await requestPassword(validator, pwAttempt !== null);
-                if (!pw) {
+                if (pw === null) {
                     setProcessing(false);
                     return;
                 }
@@ -360,6 +409,7 @@ async function loadArchivePreview(path: string, pwAttempt: string | null = null)
         }
         
         loadedArchive = path;
+        currentArchivePassword = acceptedPassword;
         if (elements.dropZone) elements.dropZone.classList.add("loaded");
         if (elements.previewHeader) elements.previewHeader.style.display = "flex";
         if (elements.previewColsHeader) elements.previewColsHeader.style.display = "flex";
@@ -561,6 +611,7 @@ function renderFileList(resetPage = true) {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.className = "file-checkbox";
+        checkbox.disabled = archiveActions.busy;
         
         if (item.totalFileCount > 0) {
             checkbox.checked = item.selectedFileCount === item.totalFileCount;
@@ -610,9 +661,11 @@ function renderFileList(resetPage = true) {
         let singleClickTimer = 0;
         domItem.tabIndex = 0;
         domItem.addEventListener("click", (e) => {
+            if (archiveActions.busy) return;
             if (e.target !== checkbox && !item.isDir) {
                 clearTimeout(singleClickTimer);
                 singleClickTimer = window.setTimeout(() => {
+                    if (archiveActions.busy) return;
                     checkbox.checked = !checkbox.checked;
                     item.files.forEach((f: ArchiveFileInfo) => f.selected = !f.error && checkbox.checked);
                     renderFileList(false);
@@ -627,77 +680,94 @@ function renderFileList(resetPage = true) {
             clearTimeout(singleClickTimer);
             if (item.isDir) return;
             e.stopPropagation();
-            if (isProcessing || !loadedArchive) return;
+            if (archiveActions.busy || isProcessing || !loadedArchive) return;
+            const archivePath = loadedArchive;
             const fileObj = item.files[0];
             if (fileObj.error || fileObj.is_link) return;
             const ext = item.name.split('.').pop()?.toLowerCase() || '';
             const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
             const isText = ['txt', 'md', 'json', 'js', 'ts', 'html', 'css', 'rs', 'log', 'csv', 'xml', 'yaml', 'yml', 'ini', 'toml'].includes(ext);
 
-            try {
-                setProcessing(true, "preview", `Reading ${item.name}...`);
-                if ((isImage || isText) && fileObj.size < 20 * 1024 * 1024) {
-                    try {
-                        const bytes = await withArchivePassword<number[]>(password => invoke("extract_file_memory", {
-                            archivePath: loadedArchive, targetFile: fileObj.path, password
-                        }));
-                        if (!bytes) return;
+            await runArchiveAction(async () => {
+                try {
+                    setProcessing(true, "preview", `Reading ${item.name}...`);
+                    if ((isImage || isText) && fileObj.size < 20 * 1024 * 1024) {
+                        try {
+                            const bytes = await withArchivePassword<number[]>(password => invoke("extract_file_memory", {
+                                archivePath, targetFile: fileObj.path, password
+                            }));
+                            if (!bytes) return;
                         
-                        const uint8Arr = new Uint8Array(bytes);
+                            const uint8Arr = new Uint8Array(bytes);
                         
-                        if (elements.viewerModal && elements.viewerTitle && elements.viewerImg && elements.viewerText) {
-                            elements.viewerTitle.innerText = item.name;
-                            elements.viewerImg.style.display = 'none';
-                            elements.viewerText.style.display = 'none';
+                            if (elements.viewerModal && elements.viewerTitle && elements.viewerImg && elements.viewerText) {
+                                elements.viewerTitle.innerText = item.name;
+                                elements.viewerImg.style.display = 'none';
+                                elements.viewerText.style.display = 'none';
                             
-                            if (isImage) {
-                                const blob = new Blob([uint8Arr]);
-                                if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-                                const url = URL.createObjectURL(blob);
-                                previewBlobUrl = url;
-                                elements.viewerImg.src = url;
-                                elements.viewerImg.style.display = 'block';
-
-                            } else {
-                                const text = new TextDecoder('utf-8').decode(uint8Arr);
-                                elements.viewerText.textContent = text;
-                                elements.viewerText.style.display = 'block';
-                            }
-                            
-                            elements.viewerModal.style.display = 'flex';
-                            
-                            if (elements.viewerClose) {
-                                elements.viewerClose.onclick = () => {
-                                    if (elements.viewerModal) elements.viewerModal.style.display = 'none';
+                                if (isImage) {
+                                    const blob = new Blob([uint8Arr]);
                                     if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
-                                    previewBlobUrl = null;
-                                    elements.viewerImg.removeAttribute("src");
-                                };
-                            }
-                            setProcessing(false);
-                            return;
-                        }
-                    } catch (memErr) {
-                        // A decoding error is not permission to auto-open an extracted file.
-                        throw memErr;
-                    }
-                }
+                                    const url = URL.createObjectURL(blob);
+                                    previewBlobUrl = url;
+                                    elements.viewerImg.src = url;
+                                    elements.viewerImg.style.display = 'block';
 
-                // Fallback to disk extraction
-                setProcessing(true, "extract", `Extracting ${item.name}...`);
-                const extractedPath = await withArchivePassword<string>(password => invoke("prepare_external_preview", {
-                    archivePath: loadedArchive, targetFile: fileObj.path, password
-                }));
-                if (extractedPath) {
-                    await openPath(extractedPath);
-                    showToast(`${item.name} opened!`, "success");
+                                } else {
+                                    const text = new TextDecoder('utf-8').decode(uint8Arr);
+                                    elements.viewerText.textContent = text;
+                                    elements.viewerText.style.display = 'block';
+                                }
+                            
+                                elements.viewerModal.style.display = 'flex';
+                            
+                                const closed = new Promise<void>(resolve => {
+                                    const app = document.getElementById("app")!;
+                                    app.inert = true;
+                                    const close = () => {
+                                        if (elements.viewerModal) elements.viewerModal.style.display = 'none';
+                                        if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
+                                        previewBlobUrl = null;
+                                        elements.viewerImg.removeAttribute("src");
+                                        elements.viewerClose.onclick = null;
+                                        document.removeEventListener("keydown", onKeyDown);
+                                        app.inert = false;
+                                        resolve();
+                                    };
+                                    const onKeyDown = (event: KeyboardEvent) => {
+                                        if (event.key === "Escape") { event.preventDefault(); close(); }
+                                        if (event.key === "Tab") { event.preventDefault(); elements.viewerClose.focus(); }
+                                    };
+                                    elements.viewerClose.onclick = close;
+                                    document.addEventListener("keydown", onKeyDown);
+                                    elements.viewerClose.focus();
+                                });
+                                setProcessing(false);
+                                await closed;
+                                return;
+                            }
+                        } catch (memErr) {
+                            // A decoding error is not permission to auto-open an extracted file.
+                            throw memErr;
+                        }
+                    }
+
+                    // Fallback to disk extraction
+                    setProcessing(true, "extract", `Extracting ${item.name}...`);
+                    const extractedPath = await withArchivePassword<string>(password => invoke("prepare_external_preview", {
+                        archivePath, targetFile: fileObj.path, password
+                    }));
+                    if (extractedPath) {
+                        await openPath(extractedPath);
+                        showToast(`${item.name} opened!`, "success");
+                    }
+                } catch (err: any) {
+                    console.error("Double click extract error", err);
+                    if (String(err) !== "CANCELLED") showToast(`Failed to open: ${err}`, "error");
+                } finally {
+                    setProcessing(false);
                 }
-            } catch (err: any) {
-                console.error("Double click extract error", err);
-                if (String(err) !== "CANCELLED") showToast(`Failed to open: ${err}`, "error");
-            } finally {
-                setProcessing(false);
-            }
+            });
         });
 
         domItem.addEventListener("keydown", e => {
@@ -724,64 +794,46 @@ function renderFileList(resetPage = true) {
 }
 
 async function smartExtractArchive() {
-    if (isProcessing || !loadedArchive) return;
-    try {
-        const rootItems = archiveRoots(globalArchiveFiles.filter(f => f.selected).map(f => f.path));
-
-        let destDir = await dirname(loadedArchive);
-        if (rootItems.length > 1) {
-            const archiveName = loadedArchive.replace(/\\/g, '/').split('/').pop() || "Archive";
+    await runArchiveAction(async () => {
+        if (!loadedArchive) return;
+        const snapshot = snapshotExtraction(loadedArchive, currentArchivePassword, globalArchiveFiles);
+        if (snapshot.emptySelection) {
+            await message(getTranslation("noFilesSelected"), { title: getTranslation("error"), kind: "error" });
+            return;
+        }
+        let destDir = await dirname(snapshot.archivePath);
+        if (snapshot.rootItems.length > 1) {
+            const archiveName = snapshot.archivePath.replace(/\\/g, '/').split('/').pop() || "Archive";
             const archiveBase = archiveStem(archiveName);
             destDir = await join(destDir, archiveBase);
         }
-
-        const selectedFiles = globalArchiveFiles.filter(f => f.selected).map(f => f.path);
-        if (globalArchiveFiles.length && !selectedFiles.length) {
-            await message(getTranslation("noFilesSelected"), { title: getTranslation("error"), kind: "error" });
-            return;
-        }
-
-        const targetFiles = selectedFiles.length < globalArchiveFiles.length ? selectedFiles : null;
-        await executeExtraction(destDir, targetFiles, rootItems);
-    } catch (err: any) {
-        await message(`${getTranslation("error")}: ${err}`, getTranslation("error"));
-        setProcessing(false);
-    }
+        await executeExtraction(snapshot, destDir);
+    });
 }
 
 async function extractArchive() {
-    if (isProcessing) return;
-    try {
+    await runArchiveAction(async () => {
         if (!loadedArchive) {
             const selected = await open({ multiple: false, title: "Select Archive" });
-            if (selected) await loadArchivePreview(selected);
+            if (selected) await loadArchivePreviewInner(selected);
             return;
         }
-
-        const destDir = await open({ directory: true, title: "Extract To..." });
-        if (!destDir) return;
-
-        const selectedFiles = globalArchiveFiles.filter(f => f.selected).map(f => f.path);
-        if (globalArchiveFiles.length && !selectedFiles.length) {
+        const snapshot = snapshotExtraction(loadedArchive, currentArchivePassword, globalArchiveFiles);
+        if (snapshot.emptySelection) {
             await message(getTranslation("noFilesSelected"), { title: getTranslation("error"), kind: "error" });
             return;
         }
-
-        const targetFiles = selectedFiles.length < globalArchiveFiles.length ? selectedFiles : null;
-        const rootItems = archiveRoots(selectedFiles);
-
-        await executeExtraction(destDir, targetFiles, rootItems);
-    } catch (err: any) {
-        await message(`${getTranslation("error")}: ${err}`, getTranslation("error"));
-        setProcessing(false);
-    }
+        const destDir = await open({ directory: true, title: "Extract To..." });
+        if (!destDir) return;
+        await executeExtraction(snapshot, destDir);
+    });
 }
 
-async function executeExtraction(destDir: string, targetFiles: string[] | null, rootItems: string[]) {
+async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) {
     try {
         lastResultPath = destDir;
         lastResultOperation = "extract";
-        const conflicts = await invoke<string[]>("check_conflicts", { destPath: destDir, rootItems });
+        const conflicts = await invoke<string[]>("check_conflicts", { destPath: destDir, rootItems: snapshot.rootItems });
         let conflictResolution = "overwrite";
 
         if (conflicts.length > 0) {
@@ -793,10 +845,10 @@ async function executeExtraction(destDir: string, targetFiles: string[] | null, 
         setProcessing(true, "extract");
         const attemptExtract = async (pw: string | null) => {
             return await invoke<ExtractionReport>("extract_archive", { 
-                archivePath: loadedArchive, 
+                archivePath: snapshot.archivePath,
                 destPath: destDir, 
                 password: pw, 
-                targetFiles,
+                targetFiles: snapshot.targetFiles,
                 conflictResolution
             });
         };
@@ -804,20 +856,24 @@ async function executeExtraction(destDir: string, targetFiles: string[] | null, 
         try {
             let report: ExtractionReport | null = null;
             try {
-                report = await attemptExtract(currentArchivePassword);
+                report = await attemptExtract(snapshot.password);
             } catch (err: any) {
                 if (err === "PASSWORD_REQUIRED") {
                     const validator = async (testPw: string) => {
                         try {
                             report = await attemptExtract(testPw);
-                            currentArchivePassword = testPw;
+                            if (loadedArchive === snapshot.archivePath) currentArchivePassword = testPw;
                             return true;
                         } catch (e: any) {
                             if (String(e) === "PASSWORD_REQUIRED") return false;
                             throw e;
                         }
                     };
-                    if (await requestPassword(validator, currentArchivePassword !== null) === null) return;
+                    if (await requestPassword(validator, snapshot.password !== null) === null) {
+                        // Cancellation during password submission may have saved some files.
+                        if (report) await showArchiveReport(report, "extract");
+                        return;
+                    }
                 } else {
                     throw err;
                 }
@@ -834,8 +890,23 @@ async function executeExtraction(destDir: string, targetFiles: string[] | null, 
 }
 
 async function handleDirectCompression(paths: string[]) {
-    if (isProcessing) return;
-    const format = elements.formatSelect?.value || "zip";
+    await runArchiveAction(() => handleDirectCompressionInner([...paths], compressionOptions()));
+}
+
+function compressionOptions() {
+    const password = elements.enablePasswordCb?.checked ? elements.compressPasswordInput?.value || null : null;
+    if (elements.enablePasswordCb?.checked && !password) throw new Error("비밀번호를 입력하세요. / Enter a password.");
+    return {
+        format: elements.formatSelect?.value || "zip",
+        password,
+        encryptLevel: (document.getElementById("encrypt-level") as HTMLSelectElement)?.value || null,
+        splitSize: elements.splitSelect?.value || "0",
+        compressionLevel: Number((document.getElementById("compression-level") as HTMLSelectElement).value)
+    };
+}
+
+async function handleDirectCompressionInner(paths: string[], options: ReturnType<typeof compressionOptions>) {
+    const { format, password, encryptLevel, splitSize, compressionLevel } = options;
     const ext = format;
     
     let defaultPath = "";
@@ -851,19 +922,14 @@ async function handleDirectCompression(paths: string[]) {
 
     lastResultPath = null;
     setProcessing(true, "compress");
-    const password = elements.enablePasswordCb?.checked
-      ? (elements.compressPasswordInput?.value || null)
-      : null;
-    const encryptLevel = (document.getElementById("encrypt-level") as HTMLSelectElement)?.value || null;
 
     try {
-      if (elements.enablePasswordCb?.checked && !password) throw new Error("비밀번호를 입력하세요. / Enter a password.");
       const outputs = await invoke<string[]>("compress_archive", { 
         sourcePaths: paths, destPath, format, 
-        splitSize: elements.splitSelect?.value || "0",
+        splitSize,
         password,
         encryptLevel,
-        compressionLevel: Number((document.getElementById("compression-level") as HTMLSelectElement).value)
+        compressionLevel
       });
       lastResultPath = outputs[0] ?? null;
       lastResultOperation = "compress";
@@ -879,13 +945,19 @@ async function handleDirectCompression(paths: string[]) {
 }
 
 async function compressSelected() {
-    const selected = await open({ multiple: true, title: "Select items to compress" });
-    if (selected) await handleDirectCompression(selected);
+    await runArchiveAction(async () => {
+        const options = compressionOptions();
+        const selected = await open({ multiple: true, title: "Select items to compress" });
+        if (selected) await handleDirectCompressionInner([...selected], options);
+    });
 }
 
 async function compressFolder() {
-    const selected = await open({ directory: true, title: "Select folder to compress" });
-    if (selected) await handleDirectCompression([selected]);
+    await runArchiveAction(async () => {
+        const options = compressionOptions();
+        const selected = await open({ directory: true, title: "Select folder to compress" });
+        if (selected) await handleDirectCompressionInner([selected], options);
+    });
 }
 
 async function withArchivePassword<T>(read: (password: string | null) => Promise<T>): Promise<T | null> {
@@ -900,54 +972,14 @@ async function withArchivePassword<T>(read: (password: string | null) => Promise
 }
 
 function requestPassword(validator: PasswordValidator, isRetry = false): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-        const { passwordModal, unlockPasswordInput, passwordSubmit, passwordCancel, modalErrorMsg } = elements;
-        if (!passwordModal || !unlockPasswordInput) return resolve(null);
-
-        if (modalErrorMsg) {
-            modalErrorMsg.style.display = isRetry ? "block" : "none";
-            modalErrorMsg.innerText = "Incorrect password. Please try again.";
-        }
-
-        progressLens?.setRunning(false); // Waiting for a password is not archive processing.
-        passwordModal.style.display = "flex";
-        unlockPasswordInput.value = "";
-        unlockPasswordInput.focus();
-
-        const cleanup = () => {
-            passwordModal.style.display = "none";
-            passwordSubmit.onclick = null;
-            passwordCancel.onclick = null;
-            unlockPasswordInput.onkeydown = null;
-            unlockPasswordInput.value = "";
-        };
-
-        let submitting = false;
-        const onSubmit = async () => {
-            if (submitting) return;
-            submitting = true;
-            progressLens?.setRunning(isProcessing);
-            passwordSubmit.disabled = passwordCancel.disabled = true;
-            const password = unlockPasswordInput.value;
-            try {
-                if (await validator(password)) { cleanup(); resolve(password); }
-                else if (modalErrorMsg) modalErrorMsg.style.display = "block";
-            } catch (error) { cleanup(); reject(error); } finally {
-                progressLens?.setRunning(false);
-                submitting = false;
-                passwordSubmit.disabled = passwordCancel.disabled = false;
-            }
-        };
-        const onCancel = () => { if (!submitting) { cleanup(); resolve(null); } };
-
-        passwordSubmit.onclick = onSubmit;
-        passwordCancel.onclick = onCancel;
-        
-        unlockPasswordInput.onkeydown = (e) => {
-            if (e.key === "Enter") onSubmit();
-            if (e.key === "Escape") onCancel();
-        };
-    });
+    const { passwordModal, unlockPasswordInput, passwordSubmit, passwordCancel, modalErrorMsg } = elements;
+    if (!passwordModal || !unlockPasswordInput || !passwordSubmit || !passwordCancel) return Promise.resolve(null);
+    if (modalErrorMsg) modalErrorMsg.textContent = getTranslation("passwordIncorrect");
+    return showPasswordDialog({ modal: passwordModal, input: unlockPasswordInput, submit: passwordSubmit, cancel: passwordCancel, error: modalErrorMsg }, validator, {
+        cancelWork: () => invoke("cancel_operation"),
+        running: running => progressLens?.setRunning(running && isProcessing),
+        cancelFailed: error => showToast(String(error), "error")
+    }, isRetry);
 }
 
 function requestConflictResolution(conflicts: string[]): Promise<string | null> {
@@ -990,7 +1022,7 @@ function setProcessing(processing: boolean, operation: ProcessingOperation = "pr
     progressLens?.setRunning(processing);
     progressLens?.setProgress(null);
     isProcessing = processing;
-    updateButtonState(processing);
+    updateButtonState(processing || archiveActions.busy);
     const cancelButton = document.getElementById("btn-cancel-operation") as HTMLButtonElement | null;
     if (cancelButton) cancelButton.disabled = !processing;
     if (!processing) queueMicrotask(() => void handleNextStartupAction());

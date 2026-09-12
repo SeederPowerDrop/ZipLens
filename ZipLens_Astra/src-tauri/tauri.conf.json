@@ -4,9 +4,9 @@
   "version": "2.0.0",
   "identifier": "com.ziplens.astra",
   "build": {
-    "beforeDevCommand": "python3 scripts/prepare-sidecar.py && npm run dev",
+    "beforeDevCommand": "python3 scripts/prepare-distribution.py && npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "python3 scripts/prepare-sidecar.py && npm run build",
+    "beforeBuildCommand": "python3 scripts/prepare-distribution.py && npm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -37,24 +37,57 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      "binaries/7zz"
+      "binaries/7zz",
+      "binaries/ziplens-legacy"
     ],
     "fileAssociations": [
       {
         "name": "Archive",
         "ext": [
           "zip",
+          "zipx",
           "7z",
           "rar",
+          "alz",
+          "egg",
           "tar",
           "gz",
+          "gzip",
           "tgz",
           "bz2",
-          "xz"
+          "bzip2",
+          "tbz",
+          "tbz2",
+          "xz",
+          "txz",
+          "zst",
+          "zstd",
+          "tzst",
+          "lzma",
+          "z",
+          "cab",
+          "lzh",
+          "lha",
+          "arj",
+          "cpio",
+          "ar",
+          "xar",
+          "wim",
+          "cbz",
+          "cbr",
+          "cb7",
+          "cbt",
+          "iso",
+          "dmg",
+          "001"
         ],
         "description": "Compressed Archive File",
-        "role": "Viewer"
+        "role": "Viewer",
+        "rank": "Alternate"
       }
-    ]
+    ],
+    "resources": {
+      "../legal/": "legal/"
+    }
   }
 }

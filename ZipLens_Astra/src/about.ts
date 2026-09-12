@@ -4,6 +4,9 @@ interface AboutCopy {
     title: string;
     close: string;
     support: string;
+    licenses: string;
+    licensesHint: string;
+    licensesError: string;
     paragraphs: readonly [string, string, string, string, string];
 }
 
@@ -11,6 +14,7 @@ interface AboutCopy {
 const aboutCopy: Record<LanguageCode, AboutCopy> = {
     ko: {
         title: "ZipLens 2.0 정보", close: "확인", support: "후원하기",
+        licenses: "오픈소스 라이선스", licensesHint: "라이선스와 소스 코드 안내가 담긴 폴더를 Finder에서 엽니다.", licensesError: "오픈소스 라이선스 폴더를 열지 못했습니다.",
         paragraphs: [
             "안녕하세요, SeederPowerDrop입니다.",
             "macOS에 쓰이는 압축 프로그램이 불편한 와중에 바이브코딩을 알게 되어서 직접 만들어 봤습니다.\n그래서 직접 만들어본 ZipLens입니다.\n다른 Mac용 압축 프로그램과 달리 불편하지 않으면서 비용도 들지 않게 만들어 봤습니다.",
@@ -21,6 +25,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     en: {
         title: "About ZipLens 2.0", close: "OK", support: "Support the project",
+        licenses: "Open-source licenses", licensesHint: "Open the folder containing licenses and source-code information in Finder.", licensesError: "Could not open the open-source licenses folder.",
         paragraphs: [
             "Hello, I'm SeederPowerDrop.",
             "I found the archive apps available for macOS inconvenient. When I discovered vibe coding, I decided to make one myself.\nThe result is ZipLens.\nI wanted to make a Mac archive app that is easy to use and free of charge.",
@@ -31,6 +36,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     ja: {
         title: "ZipLens 2.0 について", close: "確認", support: "開発を支援する",
+        licenses: "オープンソースライセンス", licensesHint: "ライセンスとソースコードの案内が入ったフォルダをFinderで開きます。", licensesError: "オープンソースライセンスのフォルダを開けませんでした。",
         paragraphs: [
             "こんにちは、SeederPowerDropです。",
             "macOSの圧縮ソフトに使いにくさを感じていたところ、バイブコーディングを知り、自分で作ってみることにしました。\nそうしてできたのがZipLensです。\nMacで使いやすく、無料で利用できる圧縮ソフトを目指して作りました。",
@@ -41,6 +47,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     zh: {
         title: "关于 ZipLens 2.0", close: "确定", support: "支持开发",
+        licenses: "开源许可证", licensesHint: "在 Finder 中打开包含许可证和源代码说明的文件夹。", licensesError: "无法打开开源许可证文件夹。",
         paragraphs: [
             "大家好，我是 SeederPowerDrop。",
             "我觉得 macOS 上的压缩软件用起来不太方便。接触到氛围编程（vibe coding）后，我决定自己做一个。\n于是就有了 ZipLens。\n我希望做出一款在 Mac 上既好用又免费的压缩软件。",
@@ -51,6 +58,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     fr: {
         title: "À propos de ZipLens 2.0", close: "OK", support: "Soutenir le projet",
+        licenses: "Licences open source", licensesHint: "Ouvrir dans le Finder le dossier des licences et des informations sur le code source.", licensesError: "Impossible d’ouvrir le dossier des licences open source.",
         paragraphs: [
             "Bonjour, je suis SeederPowerDrop.",
             "Je trouvais les logiciels de compression pour macOS peu pratiques. En découvrant le vibe coding, j'ai décidé d'en créer un moi-même.\nC'est ainsi qu'est né ZipLens.\nJe voulais proposer un logiciel de compression pour Mac facile à utiliser et gratuit.",
@@ -61,6 +69,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     es: {
         title: "Acerca de ZipLens 2.0", close: "Aceptar", support: "Apoyar el proyecto",
+        licenses: "Licencias de código abierto", licensesHint: "Abrir en Finder la carpeta con las licencias y la información del código fuente.", licensesError: "No se pudo abrir la carpeta de licencias de código abierto.",
         paragraphs: [
             "Hola, soy SeederPowerDrop.",
             "Los programas de compresión para macOS me resultaban poco prácticos. Cuando descubrí el vibe coding, decidí crear uno por mi cuenta.\nAsí nació ZipLens.\nQuería ofrecer un programa de compresión para Mac fácil de usar y gratuito.",
@@ -71,6 +80,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     ar: {
         title: "حول ZipLens 2.0", close: "موافق", support: "دعم المشروع",
+        licenses: "تراخيص المصادر المفتوحة", licensesHint: "فتح المجلد الذي يحتوي على التراخيص ومعلومات الشفرة المصدرية في Finder.", licensesError: "تعذر فتح مجلد تراخيص المصادر المفتوحة.",
         paragraphs: [
             "مرحبًا، أنا SeederPowerDrop.",
             "وجدت أن برامج ضغط الملفات على macOS غير مريحة في الاستخدام. وعندما تعرّفت على البرمجة بمساعدة الذكاء الاصطناعي (vibe coding)، قررت إنشاء برنامج بنفسي.\nوهكذا ظهر ZipLens.\nأردت إنشاء برنامج لضغط الملفات على Mac يكون سهل الاستخدام ومجانيًا.",
@@ -111,5 +121,17 @@ export function updateAboutIntroduction(lang: LanguageCode) {
     if (close) close.textContent = bilingual(aboutCopy.ko.close, copy.close);
     const support = document.getElementById("about-support-label");
     if (support) support.textContent = `☕ ${bilingual(aboutCopy.ko.support, copy.support)} (Buy Me A Coffee)`;
+    const licenses = document.getElementById("about-licenses");
+    if (licenses) {
+        licenses.textContent = bilingual(aboutCopy.ko.licenses, copy.licenses);
+        licenses.title = copy.licensesHint;
+    }
+    const licensesHint = document.getElementById("about-licenses-hint");
+    if (licensesHint) licensesHint.textContent = copy.licensesHint;
+    document.getElementById("about-close-x")?.setAttribute("aria-label", copy.close);
     // The personal dedication lives outside this translated content, untouched.
+}
+
+export function getAboutLicenseError(lang: LanguageCode): string {
+    return aboutCopy[lang].licensesError;
 }

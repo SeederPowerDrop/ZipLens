@@ -2,8 +2,11 @@
 //! Only completed data is published. Existing destination folders are never deleted.
 mod compress;
 pub mod context;
+mod legacy;
+mod legacy_worker;
 pub mod paths;
 mod sidecar;
+mod stream;
 mod tar_engine;
 pub mod zip_engine;
 pub use compress::CompressionRequest;
@@ -14,7 +17,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Entry {
     pub path: String,
     pub size: u64,
@@ -65,7 +68,25 @@ impl Engine {
         ctx: &Context,
     ) -> Result<Vec<Entry>, String> {
         ctx.check()?;
-        let entries = if is_zip(path) {
+        let prepared = self.prepare_stream(path, ctx)?;
+        self.preview_prepared(path, prepared.as_ref(), password, ctx)
+    }
+
+    fn preview_prepared(
+        &self,
+        archive: &Path,
+        prepared: Option<&stream::PreparedStream>,
+        password: Option<&str>,
+        ctx: &Context,
+    ) -> Result<Vec<Entry>, String> {
+        let path = prepared.map_or(archive, |p| p.file.path());
+        if let Some(entry) = prepared.and_then(|p| p.entry.as_ref()) {
+            paths::validate_entries(std::slice::from_ref(entry))?;
+            return Ok(vec![entry.clone()]);
+        }
+        let entries = if legacy::supports(path) {
+            self.legacy_preview(path, password, ctx)?
+        } else if is_zip(path) {
             zip_engine::preview(path, ctx)?
         } else if tar_engine::supports(path) {
             tar_engine::preview(path, ctx)?
@@ -92,7 +113,13 @@ impl Engine {
 
     fn extract_inner(&self, r: &ExtractRequest, ctx: &Context) -> Result<ExtractReport, String> {
         let archive = fs::canonicalize(&r.archive).map_err(|e| e.to_string())?;
-        let entries = self.preview(&archive, r.password.as_deref(), ctx)?;
+        let mut inputs = paths::ProtectedInputs::new(&archive)?;
+        let prepared = self.prepare_stream(&archive, ctx)?;
+        let input = prepared
+            .as_ref()
+            .map_or(archive.as_path(), |p| p.file.path());
+        let entries =
+            self.preview_prepared(&archive, prepared.as_ref(), r.password.as_deref(), ctx)?;
         let targets = r
             .targets
             .as_ref()
@@ -122,22 +149,32 @@ impl Engine {
             .map_err(|e| e.to_string())?;
         ctx.set_total(selected.iter().map(|e| e.size).sum());
         let names: HashSet<_> = selected.iter().map(|e| e.path.clone()).collect();
-        if is_zip(&archive) && zip_engine::native_supported(&archive)? {
-            zip_engine::extract(&archive, stage.path(), &names, r.password.as_deref(), ctx)?;
-        } else if tar_engine::supports(&archive) {
-            tar_engine::extract(&archive, stage.path(), &names, ctx)?;
+        if let Some(entry) = prepared.as_ref().and_then(|p| p.entry.as_ref()) {
+            let mut source = fs::File::open(input).map_err(|e| e.to_string())?;
+            let mut output = fs::File::options()
+                .write(true)
+                .create_new(true)
+                .open(stage.path().join(paths::relative(&entry.path)?))
+                .map_err(|e| e.to_string())?;
+            if ctx.copy(&mut source, &mut output, &entry.path, entry.size)? != entry.size {
+                return Err("Truncated decoded stream".into());
+            }
+        } else if legacy::supports(input) {
+            for source in
+                self.legacy_extract(input, stage.path(), &selected, r.password.as_deref(), ctx)?
+            {
+                inputs.add(&source)?;
+            }
+        } else if is_zip(input) && zip_engine::native_supported(input)? {
+            zip_engine::extract(input, stage.path(), &names, r.password.as_deref(), ctx)?;
+        } else if tar_engine::supports(input) {
+            tar_engine::extract(input, stage.path(), &names, ctx)?;
         } else {
             // Reject links before launching an external extractor. Its parser is not a sandbox.
             if entries.iter().any(|e| e.is_link) {
                 return Err("Links in sidecar archives are not supported safely yet".into());
             }
-            self.sidecar_extract(
-                &archive,
-                stage.path(),
-                &selected,
-                r.password.as_deref(),
-                ctx,
-            )?;
+            self.sidecar_extract(input, stage.path(), &selected, r.password.as_deref(), ctx)?;
         }
         ctx.check()?;
         audit_stage(stage.path())?;
@@ -157,7 +194,7 @@ impl Engine {
                 return Err("Extractor produced an unselected file".into());
             }
         }
-        let report = publish(stage.path(), &dest, &archive, &selected, r.keep_both, ctx)?;
+        let report = publish(stage.path(), &dest, &inputs, &selected, r.keep_both, ctx)?;
         ctx.progress("", true);
         Ok(report)
     }
@@ -208,6 +245,12 @@ impl Engine {
     }
 }
 
+/// Entry point for the bundled ALZ/EGG worker. Applications use `Engine` instead.
+#[doc(hidden)]
+pub fn legacy_worker_main() -> i32 {
+    legacy_worker::main()
+}
+
 fn audit_stage(stage: &Path) -> Result<(), String> {
     for entry in walkdir::WalkDir::new(stage)
         .follow_links(false)
@@ -233,7 +276,7 @@ fn audit_stage(stage: &Path) -> Result<(), String> {
 fn publish(
     stage: &Path,
     dest: &Path,
-    archive: &Path,
+    inputs: &paths::ProtectedInputs,
     entries: &[Entry],
     keep: bool,
     ctx: &Context,
@@ -325,39 +368,118 @@ fn publish(
             .collect::<Result<_, _>>()
             .map_err(|e| e.to_string())?;
         nodes.sort_by_key(|e| (e.file_type().is_symlink(), e.depth()));
-        for node in nodes {
+        // Resolve links while their targets still exist in the complete stage. Publication
+        // can fail per file; a link must never fall back to a pre-existing, different target.
+        let mut links = Vec::new();
+        for node in nodes.iter().filter(|e| e.file_type().is_symlink()) {
+            let resolved = fs::canonicalize(node.path()).map_err(|e| e.to_string())?;
+            let relative = resolved
+                .strip_prefix(stage)
+                .map_err(|_| "External symbolic link")?
+                .to_owned();
+            links.push((node.clone(), relative, String::new()));
+        }
+        let mut published = HashSet::from([PathBuf::new()]); // the destination root already exists
+        for node in nodes.iter().filter(|e| !e.file_type().is_symlink()) {
             if ctx.check().is_err() {
                 report.cancelled = true;
                 break;
             }
             let relative = node.path().strip_prefix(stage).unwrap();
             let target = dest.join(relative);
-            let result = (|| {
-                if target == archive {
-                    return Err("Refusing to replace the source archive".into());
-                }
-                if node.file_type().is_dir() {
-                    return paths::ensure_under(dest, &target);
-                }
-                paths::ensure_under(dest, target.parent().ok_or("Missing output parent")?)?;
-                if let Ok(m) = fs::symlink_metadata(&target) {
-                    if m.is_symlink() || m.is_dir() {
-                        return Err("Destination is a link or folder; use Keep Both".into());
-                    }
-                }
-                fs::rename(node.path(), &target).map_err(|e| e.to_string())
-            })();
+            let result = publish_node(node, &target, dest, inputs);
             match result {
                 Ok(()) if !node.file_type().is_dir() => {
+                    published.insert(relative.to_owned());
                     report.success_files.push(relative.to_string_lossy().into());
                     report.output_paths.push(target.to_string_lossy().into());
                 }
-                Ok(()) => (),
+                Ok(()) => {
+                    published.insert(relative.to_owned());
+                }
                 Err(e) => report
                     .failed_files
                     .push((relative.to_string_lossy().into(), e)),
             }
         }
+        // Retry unresolved link chains after their inner links have been published.
+        // The earlier canonicalization already rejects cyclic/excessively deep chains.
+        while !links.is_empty() && !report.cancelled {
+            let mut remaining = Vec::new();
+            let mut progress = false;
+            for (node, resolved_relative, _) in links {
+                if ctx.check().is_err() {
+                    report.cancelled = true;
+                    break;
+                }
+                let relative = node.path().strip_prefix(stage).unwrap();
+                let target = dest.join(relative);
+                let result = (|| {
+                    if !published.contains(&resolved_relative) {
+                        return Err("Symbolic link target was not published".into());
+                    }
+                    let raw = fs::read_link(node.path()).map_err(|e| e.to_string())?;
+                    let resolved =
+                        fs::canonicalize(target.parent().ok_or("Missing output parent")?.join(raw))
+                            .map_err(|e| format!("Symbolic link target is unavailable: {e}"))?;
+                    if !resolved.starts_with(dest)
+                        || !paths::same_file(&resolved, &dest.join(&resolved_relative))
+                            .map_err(|e| e.to_string())?
+                    {
+                        return Err("Symbolic link target changed during publication".into());
+                    }
+                    publish_node(&node, &target, dest, inputs)
+                })();
+                match result {
+                    Ok(()) => {
+                        progress = true;
+                        report.success_files.push(relative.to_string_lossy().into());
+                        report.output_paths.push(target.to_string_lossy().into());
+                    }
+                    Err(error) => remaining.push((node, resolved_relative, error)),
+                }
+            }
+            if report.cancelled {
+                break;
+            }
+            if !progress {
+                report
+                    .failed_files
+                    .extend(remaining.into_iter().map(|(node, _, error)| {
+                        (
+                            node.path()
+                                .strip_prefix(stage)
+                                .unwrap()
+                                .to_string_lossy()
+                                .into(),
+                            error,
+                        )
+                    }));
+                break;
+            }
+            links = remaining;
+        }
     }
     Ok(report)
+}
+
+fn publish_node(
+    node: &walkdir::DirEntry,
+    target: &Path,
+    dest: &Path,
+    inputs: &paths::ProtectedInputs,
+) -> Result<(), String> {
+    if inputs.contains(target)? {
+        return Err("Refusing to replace a source archive or split volume".into());
+    }
+    if node.file_type().is_dir() {
+        return paths::ensure_under(dest, target);
+    }
+    paths::ensure_under(dest, target.parent().ok_or("Missing output parent")?)?;
+    if let Ok(metadata) = fs::symlink_metadata(target) {
+        if metadata.is_symlink() || metadata.is_dir() {
+            return Err("Destination is a link or folder; use Keep Both".into());
+        }
+    }
+    fs::rename(node.path(), target).map_err(|e| e.to_string())
 }
