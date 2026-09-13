@@ -1,0 +1,146 @@
+{
+  "cases": [
+    {
+      "compression_seconds": {
+        "astra_level6_median": 0.077565459,
+        "astra_level6_samples": [
+          0.14885425,
+          0.056913292,
+          0.077565459
+        ],
+        "astra_level9_median": 0.076988333,
+        "astra_level9_samples": [
+          0.124322792,
+          0.067644583,
+          0.076988333
+        ],
+        "baseline_level9_median": 0.067222667,
+        "baseline_level9_samples": [
+          0.067222667,
+          0.06790475,
+          0.059203041
+        ]
+      },
+      "extraction_seconds": {
+        "astra_median": 0.293229833,
+        "astra_samples": [
+          0.294752125,
+          0.226145292,
+          0.293229833
+        ],
+        "baseline_median": 14.5890065,
+        "baseline_samples": [
+          14.5890065,
+          14.643293666,
+          14.36909075
+        ],
+        "speedup": 49.7528043130591
+      },
+      "input_bytes": 8192000,
+      "scenario": "many-small-2000x4KiB",
+      "zip_bytes": {
+        "astra_level6": 384112,
+        "astra_level9": 357492,
+        "baseline_level9": 357492
+      }
+    },
+    {
+      "compression_seconds": {
+        "astra_level6_median": 0.011091,
+        "astra_level6_samples": [
+          0.010841958,
+          0.011117084,
+          0.011091
+        ],
+        "astra_level9_median": 0.030501834,
+        "astra_level9_samples": [
+          0.029780584,
+          0.030501834,
+          0.03066225
+        ],
+        "baseline_level9_median": 0.033000625,
+        "baseline_level9_samples": [
+          0.033000625,
+          0.032853125,
+          0.033611542
+        ]
+      },
+      "extraction_seconds": {
+        "astra_median": 0.012755375,
+        "astra_samples": [
+          0.058533334,
+          0.012323666,
+          0.012755375
+        ],
+        "baseline_median": 0.057817417,
+        "baseline_samples": [
+          0.057817417,
+          0.027208875,
+          0.062057792
+        ],
+        "speedup": 4.532788491126291
+      },
+      "input_bytes": 33554432,
+      "scenario": "single-compressible-32MiB",
+      "zip_bytes": {
+        "astra_level6": 195452,
+        "astra_level9": 97905,
+        "baseline_level9": 97905
+      }
+    },
+    {
+      "compression_seconds": {
+        "astra_level6_median": 0.192781334,
+        "astra_level6_samples": [
+          0.2319905,
+          0.192597375,
+          0.192781334
+        ],
+        "astra_level9_median": 0.320046458,
+        "astra_level9_samples": [
+          0.320046458,
+          0.369662125,
+          0.276171875
+        ],
+        "baseline_level9_median": 0.27765975,
+        "baseline_level9_samples": [
+          0.318918916,
+          0.277131042,
+          0.27765975
+        ]
+      },
+      "extraction_seconds": {
+        "astra_median": 0.065352666,
+        "astra_samples": [
+          0.065352666,
+          0.060228458,
+          0.085160083
+        ],
+        "baseline_median": 0.08321575,
+        "baseline_samples": [
+          0.10465175,
+          0.073722458,
+          0.08321575
+        ],
+        "speedup": 1.2733336693563504
+      },
+      "input_bytes": 33554432,
+      "scenario": "single-mixed-32MiB",
+      "zip_bytes": {
+        "astra_level6": 17023251,
+        "astra_level9": 16975235,
+        "baseline_level9": 16975235
+      }
+    }
+  ],
+  "method": "Original-loop adapters and Astra core; identical codec dependencies; no Tauri/UI; warm cache; 1 warm-up + 3 interleaved repetitions; median; byte-for-byte verification outside timing; /private/tmp",
+  "workers": 8,
+  "hardware": {
+    "cpu": "Apple M3",
+    "memory_GiB": 24,
+    "logical_cpus": 8,
+    "macOS": "15.7.5 (24G624)",
+    "measured": "2026-09-05"
+  },
+  "scope": "Engine-only baseline adapters; not the previous .app, Finder or Bandizip. Standalone astra-core/Cargo.lock; the Tauri app has a separate lockfile."
+}

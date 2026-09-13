@@ -1,0 +1,20 @@
+{
+  "version": "26.03",
+  "downloaded": "2026-09-05",
+  "url": "https://github.com/ip7z/7zip/releases/download/26.03/7z2603-mac.tar.xz",
+  "sha256_download": "5ca87677072c59f5602e5c49baa27d4694bacd2259b4e507f0094249d4281480",
+  "sha256_binary": "74b0910e50ea44d9760a57fada2192cfd530ba8bffbe7b47c412a464b796cabf",
+  "source": {
+    "url": "https://github.com/ip7z/7zip/releases/download/26.03/7z2603-src.tar.xz",
+    "file": "legal/7zip/7z2603-src.tar.xz",
+    "sha256": "9cbde5099c6deb73691b0579063da5827522ccbbcba3f0020fd04e8c8c16c0d4",
+    "modified": false,
+    "verified_against": "GitHub release asset SHA-256 digest",
+    "verified_date": "2026-09-12"
+  },
+  "license_text": {
+    "url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+    "file": "legal/7zip/LGPL-2.1.txt",
+    "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+  }
+}

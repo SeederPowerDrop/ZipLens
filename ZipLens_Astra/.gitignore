@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Tauri
+/src-tauri/target
+/src-tauri/gen
+/src-tauri/binaries
+/src-tauri/target-release
+/src-tauri/target-debug
+
+# Rust
+target/
+**/*.rs.bk
+cargo-lock.json
+
+# Builds
+release_build/
+
+# Copied one-off local probes; not part of the maintained application or tests.
+/src-tauri/test_zip.rs
+/src-tauri/src/bin_test.rs
+/test_menu.rs
+/test_7z_recovery.py
+
+# Python runtime caches
+__pycache__/
+*.py[cod]
