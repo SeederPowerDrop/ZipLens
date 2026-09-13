@@ -71,35 +71,26 @@ fn take_startup_actions(queue: tauri::State<'_, StartupQueue>) -> Vec<StartupAct
     std::mem::take(&mut *queue.0.lock().unwrap())
 }
 
-// Finder may send an Opened event while the window is minimized or closed.
-// New webviews drain StartupQueue after installing their event listener.
+// Finder can send Opened/Reopen before Tauri's Ready event creates the main
+// window. Creating it here would make Tauri's setup fail with a duplicate label
+// and abort inside applicationDidFinishLaunching. Early actions stay queued for
+// the frontend handshake; after setup, CloseRequested keeps this window alive.
 #[cfg(target_os = "macos")]
-fn show_main_window(app: &tauri::AppHandle) {
+fn show_main_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
     use tauri::Manager;
-    let window = app.get_webview_window("main").or_else(|| {
-        let config = app
-            .config()
-            .app
-            .windows
-            .iter()
-            .find(|window| window.label == "main")?;
-        let window = tauri::WebviewWindowBuilder::from_config(app, config)
-            .ok()?
-            .build()
-            .ok()?;
-        let _ = window_vibrancy::apply_vibrancy(
-            &window,
-            window_vibrancy::NSVisualEffectMaterial::UnderWindowBackground,
-            None,
-            None,
-        );
-        Some(window)
-    });
-    if let Some(window) = window {
+    if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
         let _ = window.unminimize();
         let _ = window.set_focus();
     }
+}
+
+#[cfg(target_os = "macos")]
+fn queue_startup_action<R: tauri::Runtime>(app: &tauri::AppHandle<R>, action: StartupAction) {
+    use tauri::{Emitter, Manager};
+    app.state::<StartupQueue>().0.lock().unwrap().push(action);
+    show_main_window(app);
+    let _ = app.emit("startup_actions_available", ());
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -197,16 +188,13 @@ pub fn run() {
 
                 app.on_menu_event(move |app, event| {
                     if event.id() == "file_associations" {
-                        app.state::<StartupQueue>()
-                            .0
-                            .lock()
-                            .unwrap()
-                            .push(StartupAction {
+                        queue_startup_action(
+                            app,
+                            StartupAction {
                                 action: "settings".into(),
                                 paths: vec![],
-                            });
-                        show_main_window(app);
-                        let _ = app.emit("startup_actions_available", ());
+                            },
+                        );
                     }
                     if event.id() == "custom_about" {
                         if let Some(window) = app.get_webview_window("main") {
@@ -268,24 +256,65 @@ pub fn run() {
             }
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Opened { urls } = event {
-                use tauri::{Emitter, Manager};
                 let paths: Vec<String> = urls
                     .into_iter()
                     .filter_map(|url| url.to_file_path().ok())
                     .map(|p| p.to_string_lossy().into_owned())
                     .collect();
                 if !paths.is_empty() {
-                    app.state::<StartupQueue>()
-                        .0
-                        .lock()
-                        .unwrap()
-                        .push(StartupAction {
+                    queue_startup_action(
+                        app,
+                        StartupAction {
                             action: "extract".into(),
                             paths,
-                        });
-                    show_main_window(app);
-                    let _ = app.emit("startup_actions_available", ());
+                        },
+                    );
                 }
             }
         });
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
+    use tauri::Manager;
+
+    #[test]
+    fn finder_open_before_ready_preserves_actions_without_creating_a_duplicate_window() {
+        let mut context = tauri::test::mock_context(tauri::test::noop_assets());
+        context.config_mut().app.windows.push(Default::default());
+        let mut app = tauri::test::mock_builder()
+            .manage(StartupQueue(std::sync::Mutex::new(vec![])))
+            .build(context)
+            .unwrap();
+
+        // macOS delivers an archive-open event before applicationDidFinishLaunching.
+        queue_startup_action(
+            app.handle(),
+            StartupAction {
+                action: "extract".into(),
+                paths: vec!["/tmp/압축 파일.zip".into()],
+            },
+        );
+        // An early Dock reopen must not create the configured window either.
+        show_main_window(app.handle());
+        assert!(app.webview_windows().is_empty());
+
+        // Run Tauri's real setup path, which owns configured-window creation.
+        #[allow(deprecated)]
+        app.run_iteration(|_, _| {});
+        assert_eq!(app.webview_windows().len(), 1);
+        assert!(app.get_webview_window("main").is_some());
+
+        // The frontend subscribes after setup and drains the pending input once.
+        let actions = take_startup_actions(app.state());
+        assert_eq!(actions.len(), 1);
+        assert_eq!(actions[0].action, "extract");
+        assert_eq!(actions[0].paths, ["/tmp/압축 파일.zip"]);
+        assert!(take_startup_actions(app.state()).is_empty());
+
+        // A later reopen restores the same window and cannot duplicate it.
+        show_main_window(app.handle());
+        assert_eq!(app.webview_windows().len(), 1);
+    }
 }

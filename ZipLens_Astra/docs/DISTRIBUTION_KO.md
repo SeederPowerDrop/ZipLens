@@ -38,14 +38,15 @@ RAR·ALZ·EGG 파일 **생성**은 구현하지 않는다. 특히 unRAR 유래 �
 python3 scripts/generate-third-party-notices.py
 python3 scripts/generate-third-party-notices.py --check
 python3 scripts/prepare-distribution.py
-# Tauri release 빌드 후 로컬 배포 ZIP 생성
-python3 scripts/package-macos.py
+# Tauri release 빌드 후 로컬 프리뷰 ZIP 생성
+python3 scripts/package-macos.py --preview
 ```
 
 생성기가 보고하는 누락·미확인 항목을 해결하고, 새 라이선스·출처·copyleft 의무를 검토한 뒤 배포한다. `prepare-distribution.py`는 공식 배포 자료의 해시 및 고지 검증을 통과해야 보조 프로그램을 빌드한다. Tauri 빌드에도 연결되어 있어 자료 누락을 조용히 무시하지 않는다.
 
 ## 공개 배포 전 남은 일
 
+- 2.0.1부터 기본 패키징은 Developer ID 인증서와 기존 notarytool 프로필을 요구한다. 공증 승인·티켓 첨부 후 실제 ZIP에서 추출한 앱의 Gatekeeper 검사까지 통과해야 정식 산출물을 생성한다. `--preview`는 별도 `release_build/preview` 폴더에만 저장한다. [실행 문제 진단과 명령](MACOS_LAUNCH_KO.md)
 - 현재 로컬 결과물은 Apple Silicon용이며 Apple Developer ID 서명·공증을 완료하지 않았다. 일반 사용자의 실행 편의를 위해 서명·공증 후 최종 배포 ZIP을 검사한다. 현재 Mac의 읽기 전용 인증서 조회에서 Developer ID Application 인증서가 0개였다. Apple 계정·인증서 설정은 이번 작업에서 변경하지 않았다.
 - Intel Mac 배포를 약속하기 전에 해당 아키텍처로 앱과 보조 프로그램을 빌드하고 실제 동작을 검사한다.
 - 모든 ALZ·EGG·RAR 변종의 호환성을 보증하지 않는다. 안전 한도·지원 방식 및 실행한 검사는 `VALIDATION.md`에 구분해 남긴다.

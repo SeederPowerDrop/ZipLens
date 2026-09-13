@@ -4,9 +4,9 @@
   "scope": "This inventory covers the aarch64-apple-darwin native application and legacy helper's target-filtered normal and build Rust dependency graphs (including proc macros/build tools, conservatively), plus frontend production npm packages. Development-only Rust dependencies and frontend build tools are excluded. A dependency's inclusion does not imply that every source file or optional native backend is compiled. License documents nested in published source crates are retained, including bundled native-library notices. The linked Rust standard library's upstream copyright notice is also included. 7-Zip is documented separately in ../7zip. These notices license their respective third-party components, not the ZipLens application as a whole.",
   "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)\nbinary: rustc\ncommit-hash: 4a4ef493e3a1488c6e321570238084b38948f6db\ncommit-date: 2026-03-02\nhost: aarch64-apple-darwin\nrelease: 1.94.0\nLLVM version: 21.1.8",
   "inputs": {
-    "src-tauri/Cargo.lock": "fff49cf4074188315233b44d551527e08e01b85ac6f080a2afc973f0b4f5c971",
+    "src-tauri/Cargo.lock": "54710f9aac7e7dc18b9f77babd6ebe711babfa62cd5edba2e18a31f5a4f90b9e",
     "astra-core/Cargo.lock": "b8a116c5b835aa048285f964ab8132a538000656b26a7a9e6129833d254c056e",
-    "package-lock.json": "382950753a9187bf8b41397c63399e2ae9021221d3267b87c1579501ee3508a5"
+    "package-lock.json": "3199bcd399f7d4e5bc9f9496150445437d9ee9ec5904acfc5a7200a173cb4b94"
   },
   "components": [
     {

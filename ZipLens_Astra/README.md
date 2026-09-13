@@ -1,10 +1,28 @@
 # ZipLens 2.0
 
-첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 기존 프로젝트의 미커밋 변경까지 복사한 뒤, **이 폴더 안에서만** 수정했습니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens 2.0`, 버전은 `2.0.0`입니다.
+첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens 2.0`, 현재 프리뷰 버전은 `2.0.1`입니다.
+
+## 앱 화면
+
+**메인 화면**
+
+<img src="docs/screenshots/home.jpg" alt="ZipLens 2.0 메인 화면과 압축 작업 버튼" width="800">
+
+**압축 파일 미리보기와 선택 해제**
+
+<img src="docs/screenshots/archive-preview.jpg" alt="한글 샘플 ZIP의 폴더, 파일, 해제 용량을 확인하고 선택하는 화면" width="800">
+
+실제 macOS 앱 화면이며 공개용 샘플 자료를 사용했습니다.
+
+## 2.0.1 실행 오류 수정
+
+앱이 꺼진 상태에서 Finder로 압축 파일을 열 때 창을 중복 생성해 종료되던 문제를 수정했습니다. 초기 파일 요청은 창 준비가 끝날 때까지 보관합니다. 배포 검사도 실제 ZIP 압축 해제 후 서명 확인까지 수행하며, 정식 배포는 Developer ID 서명·Apple 공증·Gatekeeper 허용이 모두 필요합니다. [진단 결과와 배포 방법](docs/MACOS_LAUNCH_KO.md)
 
 ## 먼저 보기
 
-- [2.0.0 프리뷰 다운로드·고객 안내](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.0) — Apple Silicon용, Apple 공증 미완료
+- [2.0.1 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.1) — Finder 시작 오류 수정. Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
+
+- [기존 2.0.0 프리뷰·고객 안내](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.0) — Apple Silicon용, 시작 오류 및 Apple 공증 미완료
 - [이전 게시본 대비 변경점](docs/RELEASE_2.0.0_KO.md)
 
 - [코드 검토·반디집 비교·남은 개선 과제](docs/REVIEW_KO.md)
@@ -67,23 +85,35 @@ cargo fetch --manifest-path src-tauri/Cargo.toml --locked
 npm run tauri dev
 ```
 
-배포용 최적화 앱 만들기:
+로컬에서 실행할 최적화 프리뷰 만들기:
 
 ```sh
 npm run tauri build -- --bundles app
-python3 scripts/package-macos.py
+python3 scripts/package-macos.py --preview
 ```
 
-로컬 작업 폴더에서 바로 실행할 앱: `release_build/ZipLens 2.0.app`.
+로컬 작업 폴더에서 바로 실행할 앱: `release_build/preview/ZipLens 2.0.app`.
 직접 다시 빌드하면 `src-tauri/target/release/bundle/macos/ZipLens 2.0.app`에 생성됩니다.
 `release_build`와 빌드 산출물은 Git에 포함되지 않으므로 새로 clone한 환경에서는 위 명령으로 빌드해야 합니다.
-배포 스크립트는 앱과 보조 프로그램에 로컬 ad-hoc 서명을 추가하고 ZIP의 파일 내용·실행 권한과 묶음 무결성을 검사합니다. 현재 결과물은 Apple Silicon용 로컬 개발 빌드입니다. Apple 공증을 받은 공개 배포판은 아닙니다. 원본 `/Applications/ZipLens.app`을 교체하거나 시스템 기본 연결을 변경하지 않았습니다.
+`--preview`는 앱과 보조 프로그램에 로컬 ad-hoc 서명을 추가하고, ZIP을 실제로 풀어 파일 내용·실행 권한·서명을 검사합니다. 프리뷰는 Apple 공증을 받은 공개 배포판이 아니며 다운로드 후 실행이 차단될 수 있습니다. 정식 결과물과 섞이지 않도록 `release_build/preview`에 저장합니다.
+
+정식 배포는 기존 키체인의 **Developer ID Application 인증서와 개인 키**, **notarytool 프로필**을 준비한 뒤 실행합니다. 인증서와 프로필 이름은 실제 설정으로 바꾸세요.
+
+```sh
+python3 scripts/package-macos.py \
+  --signing-identity "Developer ID Application: YOUR NAME (TEAMID)" \
+  --notary-profile "YOUR_NOTARY_PROFILE"
+```
+
+인증서 검증, 보조 프로그램·앱 서명, Apple 공증 승인, 공증 티켓 첨부, 최종 ZIP 압축 해제 후 Gatekeeper 검사를 모두 통과해야 `release_build`에 정식 파일을 생성합니다. 인증서가 없거나 검증이 실패하면 중단하며 임시 서명으로 대신 배포하지 않습니다. `SHA256SUMS.txt`와 `packaging-result.json`도 함께 생성합니다.
 
 ## 검증 명령
 
 ```sh
 npm test
+python3 scripts/test-package-macos.py
 npm run build
+cargo test --manifest-path src-tauri/Cargo.toml --lib --locked
 cargo test --manifest-path astra-core/Cargo.toml --locked
 cargo clippy --manifest-path astra-core/Cargo.toml --all-targets --locked -- -D warnings
 ```
@@ -98,4 +128,4 @@ cargo run --manifest-path astra-core/Cargo.toml --example benchmark --release --
 
 빌드 전에 `scripts/prepare-distribution.py`가 동봉된 공식 7-Zip 배포 파일·소스의 해시와 라이선스 자료를 확인하고, ALZ·EGG 해제 보조 프로그램을 빌드합니다. 라이선스 자료가 누락되거나 의존성 변경 후 갱신되지 않았으면 빌드를 중단합니다. 원본 프로젝트의 의존성이나 빌드 폴더를 공유하지 않습니다. 두 Rust lockfile은 각 명령의 재현성을 위해 유지합니다.
 
-로컬 배포용 ZIP은 `release_build/ZipLens_2.0.0_arm64.zip`입니다. 공개 다운로드는 [GitHub의 2.0.0 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.0)를 이용하세요. 같은 로컬 폴더의 이전 버전 파일은 개발판 백업입니다.
+로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.0.1_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.0.1_arm64.zip`입니다. 공개 다운로드는 [2.0.1 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.1)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.

@@ -1,6 +1,6 @@
 [package]
 name = "ziplens"
-version = "2.0.0"
+version = "2.0.1"
 description = "ZipLens 2.0 — macOS archive utility"
 authors = ["you"]
 edition = "2021"
@@ -26,3 +26,6 @@ window-vibrancy = "0.7.1"
 ziplens-astra-core = { path = "../astra-core" }
 tauri-plugin-dialog = "2.6.0"
 tempfile = "3.26"
+
+[dev-dependencies]
+tauri = { version = "2", features = ["test"] }
