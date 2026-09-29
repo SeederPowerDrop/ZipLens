@@ -1,0 +1,9 @@
+{
+  "original_source_files_checked": 23,
+  "changed": [],
+  "earlier_full_verification": {
+    "files": 158,
+    "changed": []
+  },
+  "final_full_recheck": "102 files matched, then Google Drive read of src-tauri/binaries/MANUAL/general/license.htm did not complete within 20 seconds. Source code was checked separately."
+}

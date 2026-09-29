@@ -1,0 +1,38 @@
+7-Zip 26.03 — source and redistribution information
+
+ZipLens runs the official 7zz executable as a separate process.
+Packaging adds a local ad-hoc code signature for macOS bundle integrity.
+No 7-Zip source or executable program code is changed. Signing changes the
+executable file bytes; the input hashes below identify the official download.
+The signed executable hash is recorded in docs/build-result.json of the project.
+7-Zip code is not linked into ZipLens. 7zz and the source archive below are
+distributed with their original license notices and without warranty.
+
+Binary origin:
+https://github.com/ip7z/7zip/releases/download/26.03/7z2603-mac.tar.xz
+Archive SHA-256:
+5ca87677072c59f5602e5c49baa27d4694bacd2259b4e507f0094249d4281480
+Official 7zz SHA-256 before signing:
+74b0910e50ea44d9760a57fada2192cfd530ba8bffbe7b47c412a464b796cabf
+
+Complete corresponding source (also included in this folder):
+https://github.com/ip7z/7zip/releases/download/26.03/7z2603-src.tar.xz
+Source archive SHA-256:
+9cbde5099c6deb73691b0579063da5827522ccbbcba3f0020fd04e8c8c16c0d4
+
+Extract 7z2603-src.tar.xz using macOS Archive Utility or tar. Consult the
+included DOC/readme.txt and CPP/7zip/Bundles/Alone2 makefiles for build details.
+The source archive includes the build scripts and original per-file notices.
+No ZipLens-specific changes were made to 7-Zip or to this source archive.
+
+The LGPL permits modifying this component under its conditions. The executable
+is Contents/MacOS/7zz inside the app. A compatible replacement must keep that
+name and the command-line interface used by ZipLens. macOS code signing may
+require signing a modified local app again; this is an OS integrity check.
+ZipLens does not add a restriction on modification or reverse engineering of
+the LGPL component. The unRAR restriction still applies to the relevant code.
+
+Project and license information:
+https://www.7-zip.org/
+https://www.7-zip.org/faq.html
+https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html

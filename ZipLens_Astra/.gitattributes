@@ -1,0 +1,2 @@
+# Preserve original license/source bytes for checksum verification on every platform.
+legal/** -text -whitespace

@@ -1,0 +1,603 @@
+{
+  "cargo:alloc-stdlib@0.2.2": [
+    {
+      "file": "upstream-supplements/c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "6032b6a9b20e03737135c55a0270ccffcc1438ef"
+        },
+        "path_in_vcs": "alloc-stdlib"
+      },
+      "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
+      "url": "https://raw.githubusercontent.com/dropbox/rust-alloc-no-stdlib/6032b6a9b20e03737135c55a0270ccffcc1438ef/LICENSE"
+    }
+  ],
+  "cargo:block2@0.6.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "b4167b582b2f75f9a1be75495c41b765344fd03c"
+        },
+        "path_in_vcs": "crates/block2"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/b4167b582b2f75f9a1be75495c41b765344fd03c/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:convert_case@0.4.0": [
+    {
+      "file": "upstream-supplements/5f821f7641c67da8a4e0eb2ebf994f5ba88ad811a3529cb91017d26c8075aea2.txt",
+      "note": "Exact manifest from the published crate; this older release supplies its license declaration without a separate full license file.",
+      "sha256": "5f821f7641c67da8a4e0eb2ebf994f5ba88ad811a3529cb91017d26c8075aea2",
+      "url": "https://crates.io/api/v1/crates/convert_case/0.4.0/download#/Cargo.toml.orig"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard license text referenced by the upstream declaration. Template copyright placeholders in the standard text do not replace component-specific notices; package author metadata and any published copyright notice are retained separately.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:dispatch2@0.3.1": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "8852b424193ca41602281b3d7540d7c8ed51e49a"
+        },
+        "path_in_vcs": "crates/dispatch2"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:fxhash@0.2.1": [
+    {
+      "file": "upstream-supplements/42f07fb23f8b37acf45914ccb71df077455a353850e148afeabb5c684f8ebaab.txt",
+      "note": "Exact manifest from the published crate; this older release supplies its license declaration without a separate full license file.",
+      "sha256": "42f07fb23f8b37acf45914ccb71df077455a353850e148afeabb5c684f8ebaab",
+      "url": "https://crates.io/api/v1/crates/fxhash/0.2.1/download#/Cargo.toml.orig"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard license text referenced by the upstream declaration. Template copyright placeholders in the standard text do not replace component-specific notices; package author metadata and any published copyright notice are retained separately.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    },
+    {
+      "file": "upstream-supplements/074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff.txt",
+      "note": "Standard license text referenced by the upstream declaration. Template copyright placeholders in the standard text do not replace component-specific notices; package author metadata and any published copyright notice are retained separately.",
+      "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/Apache-2.0.txt"
+    },
+    {
+      "file": "upstream-supplements/4b88f68c805a1bb0883f4c202c95083cf9bfc8122a9c57e16a0786bfe4a3b2e0.txt",
+      "note": "Verbatim copyright and license header from the exact published source.",
+      "sha256": "4b88f68c805a1bb0883f4c202c95083cf9bfc8122a9c57e16a0786bfe4a3b2e0",
+      "url": "https://crates.io/api/v1/crates/fxhash/0.2.1/download#/lib.rs"
+    }
+  ],
+  "cargo:libazo@0.1.1": [
+    {
+      "file": "upstream-supplements/2cd6ddc47923111fcceaacdfd968a7c3a04cf6a56290c638601e6abec9c9a6ad.txt",
+      "note": "Additional conservative attribution: this project is named as a reference by the adopted Rust crate. This does not assert that its original C/C++ implementation is linked or establish derivation; the referenced project license is preserved.",
+      "sha256": "2cd6ddc47923111fcceaacdfd968a7c3a04cf6a56290c638601e6abec9c9a6ad",
+      "url": "https://raw.githubusercontent.com/kippler/xunazo/9503e21740079c9a439cd6592d34f9fbe72a3166/LICENSE"
+    }
+  ],
+  "cargo:mac@0.1.1": [
+    {
+      "file": "upstream-supplements/6d465c5e5a4b3e197049e9fb7393b2f996c1c654e6ded700afce046fac2f7969.txt",
+      "note": "Exact manifest from the published crate; this older release supplies its license declaration without a separate full license file.",
+      "sha256": "6d465c5e5a4b3e197049e9fb7393b2f996c1c654e6ded700afce046fac2f7969",
+      "url": "https://crates.io/api/v1/crates/mac/0.1.1/download#/Cargo.toml"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard license text referenced by the upstream declaration. Template copyright placeholders in the standard text do not replace component-specific notices; package author metadata and any published copyright notice are retained separately.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    },
+    {
+      "file": "upstream-supplements/074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff.txt",
+      "note": "Standard license text referenced by the upstream declaration. Template copyright placeholders in the standard text do not replace component-specific notices; package author metadata and any published copyright notice are retained separately.",
+      "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/Apache-2.0.txt"
+    },
+    {
+      "file": "upstream-supplements/8edb7a912d295acf1e1cfeafdd19a6813a63b301c7bbfda3c67f65509bd8d8cc.txt",
+      "note": "Exact published README containing the licensing declaration.",
+      "sha256": "8edb7a912d295acf1e1cfeafdd19a6813a63b301c7bbfda3c67f65509bd8d8cc",
+      "url": "https://crates.io/api/v1/crates/mac/0.1.1/download#/README.md"
+    }
+  ],
+  "cargo:match_token@0.1.0": [
+    {
+      "file": "upstream-supplements/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "0e4e125b8672abad4ff14d1e0043d3be9305af6a"
+        },
+        "path_in_vcs": "match_token"
+      },
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "url": "https://raw.githubusercontent.com/servo/html5ever/0e4e125b8672abad4ff14d1e0043d3be9305af6a/LICENSE-APACHE"
+    },
+    {
+      "file": "upstream-supplements/86dd7f026f916daf7511e39951ad8ea8cf55a8db67ae64060dacf829761c18f3.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "0e4e125b8672abad4ff14d1e0043d3be9305af6a"
+        },
+        "path_in_vcs": "match_token"
+      },
+      "sha256": "86dd7f026f916daf7511e39951ad8ea8cf55a8db67ae64060dacf829761c18f3",
+      "url": "https://raw.githubusercontent.com/servo/html5ever/0e4e125b8672abad4ff14d1e0043d3be9305af6a/LICENSE-MIT"
+    }
+  ],
+  "cargo:objc2-app-kit@0.3.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b"
+        },
+        "path_in_vcs": "framework-crates/objc2-app-kit"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-core-foundation@0.3.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b"
+        },
+        "path_in_vcs": "framework-crates/objc2-core-foundation"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-core-graphics@0.3.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b"
+        },
+        "path_in_vcs": "framework-crates/objc2-core-graphics"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-encode@4.1.0": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "8d214f5477365ffcbcbb7de058c86ed9a518efb7"
+        },
+        "path_in_vcs": "crates/objc2-encode"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-exception-helper@0.1.1": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "8d214f5477365ffcbcbb7de058c86ed9a518efb7"
+        },
+        "path_in_vcs": "crates/objc2-exception-helper"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/8d214f5477365ffcbcbb7de058c86ed9a518efb7/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-foundation@0.3.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Workspace license declaration from the exact published crate VCS commit.",
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-io-surface@0.3.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b"
+        },
+        "path_in_vcs": "framework-crates/objc2-io-surface"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2-web-kit@0.3.2": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "7b1abfd750a2cacaea71d6a56ecfb83cb7de560b"
+        },
+        "path_in_vcs": "framework-crates/objc2-web-kit"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/7b1abfd750a2cacaea71d6a56ecfb83cb7de560b/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:objc2@0.6.4": [
+    {
+      "file": "upstream-supplements/7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "8852b424193ca41602281b3d7540d7c8ed51e49a"
+        },
+        "path_in_vcs": "crates/objc2"
+      },
+      "sha256": "7f976f7e9cb2d87df7230606feb932c3f21ac0e664045a775b600046ff850c54",
+      "url": "https://raw.githubusercontent.com/madsmtm/objc2/8852b424193ca41602281b3d7540d7c8ed51e49a/LICENSE.md"
+    },
+    {
+      "file": "upstream-supplements/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+      "note": "Standard MIT license text linked by the upstream workspace declaration. Upstream package author metadata is preserved; no copyright year or owner is invented.",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/16f3aa6c3bdd62e50f8b1cf618f32d2a510250ee/text/MIT.txt"
+    }
+  ],
+  "cargo:phf@0.10.1": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "bed01538ae576876f11189d541875d228acef9e8"
+        },
+        "path_in_vcs": "phf"
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/bed01538ae576876f11189d541875d228acef9e8/LICENSE"
+    }
+  ],
+  "cargo:phf@0.8.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "81c7cc5b48649108428671d3b8ad151f6fbdb359"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/81c7cc5b48649108428671d3b8ad151f6fbdb359/LICENSE"
+    }
+  ],
+  "cargo:phf_codegen@0.8.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "81c7cc5b48649108428671d3b8ad151f6fbdb359"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/81c7cc5b48649108428671d3b8ad151f6fbdb359/LICENSE"
+    }
+  ],
+  "cargo:phf_generator@0.10.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "3ea14b2166553ad6e7b9afe7244144f5d661b6c6"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/3ea14b2166553ad6e7b9afe7244144f5d661b6c6/LICENSE"
+    }
+  ],
+  "cargo:phf_generator@0.8.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "81c7cc5b48649108428671d3b8ad151f6fbdb359"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/81c7cc5b48649108428671d3b8ad151f6fbdb359/LICENSE"
+    }
+  ],
+  "cargo:phf_macros@0.10.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "3cc6f05cb07933af4cf886645d1170bdcb306b6b"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/3cc6f05cb07933af4cf886645d1170bdcb306b6b/LICENSE"
+    }
+  ],
+  "cargo:phf_shared@0.10.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "3ea14b2166553ad6e7b9afe7244144f5d661b6c6"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/3ea14b2166553ad6e7b9afe7244144f5d661b6c6/LICENSE"
+    }
+  ],
+  "cargo:phf_shared@0.8.0": [
+    {
+      "file": "upstream-supplements/d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "81c7cc5b48649108428671d3b8ad151f6fbdb359"
+        }
+      },
+      "sha256": "d8870d5e2ab20fc50915b711c5aa7588131c9abcc1bcb980da1efd7486522a46",
+      "url": "https://raw.githubusercontent.com/sfackler/rust-phf/81c7cc5b48649108428671d3b8ad151f6fbdb359/LICENSE"
+    }
+  ],
+  "cargo:selectors@0.24.0": [
+    {
+      "file": "upstream-supplements/1af2d2b02d9c86030d29ed77117ca7a1b0e4b6ff35bcf8eeb124867d0f5cb59e.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "e82d7868d999d84f6d59719e4c397e5252aecb85"
+        },
+        "path_in_vcs": "components/selectors"
+      },
+      "sha256": "1af2d2b02d9c86030d29ed77117ca7a1b0e4b6ff35bcf8eeb124867d0f5cb59e",
+      "url": "https://raw.githubusercontent.com/servo/servo/e82d7868d999d84f6d59719e4c397e5252aecb85/LICENSE"
+    }
+  ],
+  "cargo:tauri-plugin@2.5.4": [
+    {
+      "file": "upstream-supplements/0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "9b17a7aeae9a83222ffe829aa4e2d8a5ba6bed8c"
+        },
+        "path_in_vcs": "crates/tauri-plugin"
+      },
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "url": "https://raw.githubusercontent.com/tauri-apps/tauri/9b17a7aeae9a83222ffe829aa4e2d8a5ba6bed8c/LICENSE_APACHE-2.0"
+    },
+    {
+      "file": "upstream-supplements/9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "9b17a7aeae9a83222ffe829aa4e2d8a5ba6bed8c"
+        },
+        "path_in_vcs": "crates/tauri-plugin"
+      },
+      "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d",
+      "url": "https://raw.githubusercontent.com/tauri-apps/tauri/9b17a7aeae9a83222ffe829aa4e2d8a5ba6bed8c/LICENSE_MIT"
+    }
+  ],
+  "cargo:unalz@0.2.1": [
+    {
+      "file": "upstream-supplements/002ac8ef34ba28ea373d5a69dc0679acefe469e381f04b79609527a826730d4f.txt",
+      "note": "Additional conservative attribution: this project is named as a reference by the adopted Rust crate. This does not assert that its original C/C++ implementation is linked or establish derivation; the referenced project license is preserved.",
+      "sha256": "002ac8ef34ba28ea373d5a69dc0679acefe469e381f04b79609527a826730d4f",
+      "url": "https://raw.githubusercontent.com/kippler/unalz/457884d21962caa12085bfb6ec5bd12f3eb93c00/LICENSE"
+    }
+  ],
+  "cargo:unic-char-property@0.9.0": [
+    {
+      "file": "upstream-supplements/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE"
+    },
+    {
+      "file": "upstream-supplements/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT"
+    }
+  ],
+  "cargo:unic-char-range@0.9.0": [
+    {
+      "file": "upstream-supplements/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE"
+    },
+    {
+      "file": "upstream-supplements/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT"
+    }
+  ],
+  "cargo:unic-common@0.9.0": [
+    {
+      "file": "upstream-supplements/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE"
+    },
+    {
+      "file": "upstream-supplements/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT"
+    }
+  ],
+  "cargo:unic-ucd-ident@0.9.0": [
+    {
+      "file": "upstream-supplements/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "8a6ce83063d90b91ae2ce59eddb803edd393fca9"
+        }
+      },
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/8a6ce83063d90b91ae2ce59eddb803edd393fca9/LICENSE-APACHE"
+    },
+    {
+      "file": "upstream-supplements/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "8a6ce83063d90b91ae2ce59eddb803edd393fca9"
+        }
+      },
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/8a6ce83063d90b91ae2ce59eddb803edd393fca9/LICENSE-MIT"
+    }
+  ],
+  "cargo:unic-ucd-version@0.9.0": [
+    {
+      "file": "upstream-supplements/a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-APACHE"
+    },
+    {
+      "file": "upstream-supplements/23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3.txt",
+      "note": "Published crate omits license file; document fetched from its upstream repository. Exact crate VCS commit.",
+      "package_vcs": {
+        "git": {
+          "sha1": "5878605364af97a3358368a6eaef02104af2e016"
+        }
+      },
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "url": "https://raw.githubusercontent.com/open-i18n/rust-unic/5878605364af97a3358368a6eaef02104af2e016/LICENSE-MIT"
+    }
+  ]
+}
