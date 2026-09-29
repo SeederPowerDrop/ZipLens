@@ -411,8 +411,11 @@ async function loadArchivePreviewInner(path: string, pwAttempt: string | null = 
         loadedArchive = path;
         currentArchivePassword = acceptedPassword;
         if (elements.dropZone) elements.dropZone.classList.add("loaded");
-        if (elements.previewHeader) elements.previewHeader.style.display = "flex";
-        if (elements.previewColsHeader) elements.previewColsHeader.style.display = "flex";
+        const app = document.getElementById("app")!;
+        app.dataset.archiveLoaded = "true";
+        app.dataset.composing = "false";
+        if (elements.compressionOptions) elements.compressionOptions.style.display = "none";
+        document.getElementById("archive-browser")!.hidden = false;
 
         // Update stats initially
         globalArchiveFiles = files.map(f => ({ ...f, selected: !f.error }));
@@ -421,18 +424,6 @@ async function loadArchivePreviewInner(path: string, pwAttempt: string | null = 
         
         renderFileList();
         await autoResizeWindow(files.length);
-
-        // Force a layout recalculation for WebKit flexbox bug
-        // When the window isn't resized, flex: 1 elements sometimes fail to expand dynamically.
-        setTimeout(() => {
-            const mainContent = document.querySelector('.main-content') as HTMLElement;
-            if (mainContent) {
-                const oldDisplay = mainContent.style.display;
-                mainContent.style.display = 'none';
-                void mainContent.offsetHeight; // force reflow
-                mainContent.style.display = oldDisplay || 'flex';
-            }
-        }, 10);
 
         // Show warning if some entries have errors
         const errorFiles = files.filter(f => f.error);
@@ -450,8 +441,9 @@ async function loadArchivePreviewInner(path: string, pwAttempt: string | null = 
         }
         const dropTextNode = document.querySelector(".drop-text");
         if (dropTextNode) {
-            const filename = path.split(/[\\/]/).pop();
-            dropTextNode.textContent = `Loaded: ${filename}`;
+            const filename = path.split(/[\\/]/).pop() || path;
+            dropTextNode.textContent = filename;
+            elements.dropZone!.title = path;
         }
     } catch (err: any) {
         if (String(err) === "CANCELLED") return;
@@ -493,8 +485,10 @@ function renderFileList(resetPage = true) {
         const parts = currentDirectory.replace(/\\/g, '/').split('/').filter(p => p);
         
         const createCrumb = (text: string, path: string, isLast: boolean) => {
-            const span = document.createElement("span");
-            span.innerText = text;
+            const span = document.createElement("button");
+            span.type = "button";
+            span.textContent = text;
+            span.title = text;
             if (!isLast) {
                 span.style.cursor = "pointer";
                 span.style.color = "var(--accent-hover)";
@@ -504,6 +498,7 @@ function renderFileList(resetPage = true) {
                     renderFileList();
                 };
             } else {
+                span.setAttribute("aria-current", "location");
                 span.style.color = "var(--text-color)";
                 span.style.fontWeight = "600";
             }
@@ -634,7 +629,7 @@ function renderFileList(resetPage = true) {
             const errorCount = item.files.filter((f: ArchiveFileInfo) => f.error).length;
             const errBadge = errorCount > 0 ? `<span style="color:#ef4444;margin-left:6px;font-size:11px;" title="${errorCount} file(s) with errors">⚠️ ${errorCount}</span>` : '';
             info.innerHTML = `<span class="file-name" style="cursor:pointer; color:var(--accent-color);"><span style="margin-right:6px;">📁</span>${escapeHTML(item.name)}${errBadge}</span>
-                             <div class="flex-col" style="align-items:flex-end;width:180px;flex-shrink:0;">
+                             <div class="file-size-column">
                                  <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">${getTranslation("size")}</span> ${formatBytes(item.size)}</div>
                              </div>`;
             info.querySelector('.file-name')?.addEventListener('click', (e) => {
@@ -650,12 +645,14 @@ function renderFileList(resetPage = true) {
             const errIcon = hasError ? `<span style="color:#ef4444;margin-right:4px;" title="${escapeHTML(String(hasError))}">⚠️</span>` : '';
             const errStyle = hasError ? 'opacity:0.6;' : '';
             info.innerHTML = `<span class="file-name" style="${errStyle}">${errIcon}${lock}<span class="ext-badge" style="${hasError ? 'background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3);' : ''}">${escapeHTML(badge)}</span>${escapeHTML(item.name)}</span>
-                             <div class="flex-col" style="align-items:flex-end;width:180px;flex-shrink:0;">
+                             <div class="file-size-column">
                                  <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">${getTranslation("size")}</span> ${formatBytes(fileObj.size)}</div>
                                  ${hasError ? `<div style="font-size:10px;color:#ef4444;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHTML(String(hasError))}">Error: ${escapeHTML(String(hasError))}</div>` : ''}
                              </div>`;
         }
 
+        const fileName = info.querySelector<HTMLElement>('.file-name');
+        if (fileName) fileName.title = item.name;
         domItem.appendChild(checkbox);
         domItem.appendChild(info);
         let singleClickTimer = 0;

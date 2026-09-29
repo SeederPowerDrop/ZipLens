@@ -1,6 +1,6 @@
 # ZipLens 2.0
 
-첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens 2.0`, 현재 프리뷰 버전은 `2.0.1`입니다.
+첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens 2.0`, 현재 프리뷰 버전은 `2.0.2`입니다.
 
 ## 앱 화면
 
@@ -14,16 +14,27 @@
 
 실제 macOS 앱 화면이며 공개용 샘플 자료를 사용했습니다.
 
-## 2.0.1 실행 오류 수정
+## 2.0.2에서 달라진 점
+
+- 압축 파일을 열면 툴바와 파일 제목을 작게 표시해 내부 목록을 더 넓게 볼 수 있습니다.
+- 폴더 경로·검색·선택 버튼·정렬을 목록 위에 모으고 파일 목록은 따로 스크롤합니다. 작은 창에서는 버튼 배치를 조정합니다.
+- 긴 파일명은 화면 너비에 맞춰 줄여 표시하며 마우스를 올리면 전체 이름을 확인할 수 있습니다. 폴더 경로는 키보드로 이동할 수 있는 버튼으로 바꿨습니다.
+- 언어를 바꿔도 열어 둔 압축 파일명이 유지되며 검색 입력의 접근성 설명도 함께 번역됩니다.
+- 목록을 열 때 불필요한 화면 숨김·다시 표시와 애니메이션을 정리해 표시 안정성을 개선했습니다.
+
+[스크린샷과 한국어·영어 업데이트 안내](docs/RELEASE_2.0.2_KO_EN.md)
+
+## 이전 2.0.1의 실행 오류 수정
 
 앱이 꺼진 상태에서 Finder로 압축 파일을 열 때 창을 중복 생성해 종료되던 문제를 수정했습니다. 초기 파일 요청은 창 준비가 끝날 때까지 보관합니다. 배포 검사도 실제 ZIP 압축 해제 후 서명 확인까지 수행하며, 정식 배포는 Developer ID 서명·Apple 공증·Gatekeeper 허용이 모두 필요합니다. [진단 결과와 배포 방법](docs/MACOS_LAUNCH_KO.md)
 
 ## 먼저 보기
 
-- [2.0.1 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.1) — Finder 시작 오류 수정. Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
-
+- [2.0.2 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2) — Apple Silicon용. Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
+- [2.0.2 업데이트 안내 · 한국어 / English](docs/RELEASE_2.0.2_KO_EN.md)
+- [이전 2.0.1 실행 오류 수정 안내](docs/RELEASE_2.0.1_KO.md)
 - [기존 2.0.0 프리뷰·고객 안내](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.0) — Apple Silicon용, 시작 오류 및 Apple 공증 미완료
-- [이전 게시본 대비 변경점](docs/RELEASE_2.0.0_KO.md)
+- [2.0.0에서 추가한 기능](docs/RELEASE_2.0.0_KO.md)
 
 - [코드 검토·반디집 비교·남은 개선 과제](docs/REVIEW_KO.md)
 - [최종 버그·기능 점검 및 수정 결과](docs/FINAL_REVIEW_KO.md)
@@ -34,7 +45,7 @@
 - [검증 기록](docs/VALIDATION.md)
 - [배포·라이선스 안내](docs/DISTRIBUTION_KO.md)
 
-## 이번 버전에서 달라진 점
+## ZipLens 2.0의 주요 개선점
 
 - 압축 해제는 오목렌즈를 통과해 퍼지는 빛, 압축은 볼록렌즈를 통과해 모이는 빛으로 표현합니다. 실제 작업 중에만 광선이 움직이며 macOS 동작 줄이기를 지원합니다.
 - 두 완료창도 같은 렌즈 디자인을 사용합니다. 알아서 풀기는 폴더와 반짝임 아이콘으로 표현합니다.
@@ -128,4 +139,27 @@ cargo run --manifest-path astra-core/Cargo.toml --example benchmark --release --
 
 빌드 전에 `scripts/prepare-distribution.py`가 동봉된 공식 7-Zip 배포 파일·소스의 해시와 라이선스 자료를 확인하고, ALZ·EGG 해제 보조 프로그램을 빌드합니다. 라이선스 자료가 누락되거나 의존성 변경 후 갱신되지 않았으면 빌드를 중단합니다. 원본 프로젝트의 의존성이나 빌드 폴더를 공유하지 않습니다. 두 Rust lockfile은 각 명령의 재현성을 위해 유지합니다.
 
-로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.0.1_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.0.1_arm64.zip`입니다. 공개 다운로드는 [2.0.1 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.1)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
+로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.0.2_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.0.2_arm64.zip`입니다. 공개 다운로드는 [2.0.2 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
+
+## English
+
+**ZipLens 2.0.2** is a free macOS archive utility for previewing archives, extracting selected files, and creating ZIP, 7Z, TAR, TAR.GZ, and TAR.ZST files. ZIP/7Z support passwords and split archives. ALZ and EGG support listing, previews, and extraction through a dedicated helper; they are extraction-only formats. The app recognizes 36 extensions, including aliases.
+
+[Download the Apple Silicon preview](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2) · [Bilingual update and screenshots](docs/RELEASE_2.0.2_KO_EN.md)
+
+Version 2.0.2 gives archive contents more room with a compact toolbar and archive title, grouped search and selection controls, and a separately scrolling file list. Long filenames have full-name hover text, folder breadcrumbs are keyboard-accessible buttons, and changing languages preserves the open archive's name. The update also simplifies display transitions after loading. The Finder startup crash fixed in 2.0.1 remains fixed.
+
+The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. It provides a lens-inspired interface and seven languages. The screenshots above show the macOS app with public sample files.
+
+**This is an Apple Silicon preview without Apple Developer ID signing or notarization. macOS may still block it from opening.** Intel execution and every archive variant have not been verified. Encrypted EGG filenames/full headers are unsupported, and complete preservation of macOS app-bundle metadata remains unverified. See the [validation history](docs/VALIDATION.md) and [launch diagnosis](docs/MACOS_LAUNCH_KO.md) for details.
+
+To build, install Node.js, Rust/Cargo 1.89 or later, Python 3.11 or later, and Xcode Command Line Tools on macOS, then run:
+
+```sh
+cd ZipLens_Astra
+npm ci
+npm run tauri build -- --bundles app
+python3 scripts/package-macos.py --preview
+```
+
+The preview ZIP is written to `release_build/preview/ZipLens_2.0.2_arm64-preview.zip`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.

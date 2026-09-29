@@ -51,7 +51,7 @@
 #home-lens-scene { max-width: 470px; margin-bottom: 20px; }
 #home-lens-scene .optics-caption { display: none; }
 .drop-zone:not(.loaded) { padding: 24px 20px 36px; }
-.drop-zone.loaded #home-lens-scene { width: 104px; min-width: 104px; margin: 0; }
+.drop-zone.loaded #home-lens-scene { display: none; }
 #compression-lens-scene { max-width: 360px; margin-bottom: 20px; }
 #compression-lens-scene .optics-svg { max-height: 124px; }
 
@@ -86,11 +86,10 @@
 
 /* Keep live optics/progress in the first viewport instead of below a long list. */
 #app[data-composing="true"] #drop-zone,
+#app[data-composing="true"] #archive-browser,
+#app[data-processing="true"] #archive-browser,
 #app[data-processing="true"] #drop-zone,
-#app[data-processing="true"] #compression-options,
-#app[data-processing="true"] #preview-header,
-#app[data-processing="true"] #preview-cols-header,
-#app[data-processing="true"] #log-container { display: none !important; }
+#app[data-processing="true"] #compression-options { display: none !important; }
 
 #app[data-processing="true"] .main-content { overflow-y: auto; }
 #progress-container { position: relative; margin-top: 0; flex-shrink: 0; gap: 14px; }

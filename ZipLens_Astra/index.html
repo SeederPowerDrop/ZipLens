@@ -87,6 +87,7 @@
       <div class="drop-zone animated glass-card" id="drop-zone">
         <!-- Optical identity is drawn in SVG; the app icon remains in the macOS bundle. -->
         <div id="home-lens-scene"></div>
+        <svg class="archive-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M10 3v2m0 2v2m0 2v2"/><rect x="8" y="15" width="4" height="3" rx="1"/></svg>
         <div class="drop-text-wrapper">
           <div class="drop-text">Drag & Drop Archive Here</div>
           <div class="drop-subtext">or click <strong>'열기'</strong> to browse files</div>
@@ -178,41 +179,41 @@
         </div>
       </div>
 
-      <!-- Preview Header (Hidden by default) -->
-      <div id="preview-header" class="preview-header" style="display: none; flex-direction: column; gap: 8px;">
-        <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
-          <span id="preview-stats" style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-            <div id="preview-stats-main" style="font-weight: 600;">0 / 0 files selected</div>
-            <div id="preview-stats-sub" style="font-size: 11px; color: var(--text-muted);"></div>
-          </span>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <input type="text" id="preview-search" class="custom-input search-input" placeholder="파일명 검색 / Search files" style="height: 28px; width: 170px; font-size: 11px; padding: 4px 8px;">
-            <div id="search-matches-text" style="font-size: 11px; color: #f59e0b; font-weight: 600; width: 44px; text-align: center;"></div>
+      <!-- Archive browser owns the remaining window height. Only its file list scrolls. -->
+      <section id="archive-browser" class="archive-browser" hidden>
+        <div id="preview-header" class="preview-header">
+          <div class="preview-navigation">
+            <nav id="breadcrumb-container" aria-label="Folder path"></nav>
+            <div class="preview-search-wrapper">
+              <input type="search" id="preview-search" class="custom-input search-input" placeholder="파일명 검색 / Search files" aria-label="Search all filenames">
+              <div id="search-matches-text" role="status"></div>
+            </div>
           </div>
-          <button id="select-all" class="secondary-btn toggle-btn" style="height: 28px; padding: 0 12px; min-width: unset; font-size: 11px;">Select All</button>
-          <button id="deselect-all" class="secondary-btn toggle-btn" style="height: 28px; padding: 0 12px; min-width: unset; font-size: 11px;">Deselect All</button>
-          <button id="toggle-all" class="secondary-btn toggle-btn" style="height: 28px; padding: 0 12px; min-width: unset; font-size: 11px;">Invert Selection</button>
+          <div class="preview-selection">
+            <div id="preview-stats">
+              <div id="preview-stats-main">0 / 0 files selected</div>
+              <div id="preview-stats-sub"></div>
+            </div>
+            <div class="selection-actions">
+              <button id="select-all" class="secondary-btn toggle-btn">Select All</button>
+              <button id="deselect-all" class="secondary-btn toggle-btn">Deselect All</button>
+              <button id="toggle-all" class="secondary-btn toggle-btn">Invert Selection</button>
+            </div>
+          </div>
+          <div id="ext-filter-container"></div>
         </div>
-        <div id="breadcrumb-container" style="display: flex; gap: 4px; align-items: center; font-size: 12px; font-weight: 500; color: var(--text-color); margin-top: 2px;">
-          <!-- Breadcrumbs will be injected here -->
-        </div>
-        <div id="ext-filter-container" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
-          <!-- Checkbox UI will be injected here -->
-        </div>
-      </div>
 
-      <!-- Preview Columns Header (Hidden by default) -->
-      <div id="preview-cols-header" class="preview-list-header" style="display: none;">
-        <div class="sort-buttons">
-          <button class="sort-btn active" data-sort="name">Name <span class="sort-arrow">▲</span></button>
-          <button class="sort-btn" data-sort="size">Extracted Size <span class="sort-arrow"></span></button>
-          <button class="sort-btn" data-sort="compressed">Compressed Size <span class="sort-arrow"></span></button>
-          <button class="sort-btn" data-sort="ext">Extension <span class="sort-arrow"></span></button>
+        <div id="preview-cols-header" class="preview-list-header">
+          <div class="sort-buttons">
+            <button class="sort-btn active" data-sort="name">Name <span class="sort-arrow">▲</span></button>
+            <button class="sort-btn" data-sort="size">Extracted Size <span class="sort-arrow"></span></button>
+            <button class="sort-btn" data-sort="compressed">Compressed Size <span class="sort-arrow"></span></button>
+            <button class="sort-btn" data-sort="ext">Extension <span class="sort-arrow"></span></button>
+          </div>
         </div>
-      </div>
 
-      <!-- Log Container (Hidden by default) -->
-      <div class="log-container" id="log-container"></div>
+        <div class="log-container" id="log-container"></div>
+      </section>
     </main>
   </div>
 
@@ -337,7 +338,7 @@
         <img src="/about-image.jpg" alt="About" style="width: 80px; height: 80px; border: 2px solid #848284; border-right-color: #fff; border-bottom-color: #fff; object-fit: contain; background: white;" />
         <div class="about-copy" style="font-size: 12px; line-height: 1.5;">
           <!-- Keep the displayed release version in sync with tauri.conf.json. -->
-          <p style="margin: 0 0 10px 0;"><strong>ZipLens 2.0</strong><br>Version 2.0.1</p>
+          <p style="margin: 0 0 10px 0;"><strong>ZipLens 2.0</strong><br>Version 2.0.2</p>
           <div id="about-introduction"></div>
           <p style="margin: 0 0 10px 0;"><a href="https://github.com/SeederPowerDrop" target="_blank" style="color: #0000ff; text-decoration: underline;">(https://github.com/SeederPowerDrop)</a></p>
           <p style="margin: 0;"><a id="about-support-label" href="https://buymeacoffee.com/master_chief" target="_blank" style="color: #0058e6; text-decoration: underline;">☕ 후원하기 (Buy Me A Coffee)</a></p>

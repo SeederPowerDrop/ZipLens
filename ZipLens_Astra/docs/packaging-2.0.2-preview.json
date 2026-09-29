@@ -1,0 +1,23 @@
+{
+  "architecture": "arm64",
+  "preview": true,
+  "public_distribution_ready": false,
+  "archive_name": "ZipLens_2.0.2_arm64-preview.zip",
+  "app_file_count": 270,
+  "legal_file_count": 264,
+  "binary_sha256": "f88a019428b02f35a46909d08b7d23075ab24812749e14f105a7d5ccda7e68ac",
+  "legacy_helper_sha256": "36f1f22973088ac4dbdd3501c278f9d2fb2cef0ebc2d622c4c7fb8a21030df1e",
+  "signed_7zip_sha256": "303c947cf3b0d298b97e9da282c8fd8a69caf5dce5f1ec4082bc9ed82cae0809",
+  "official_7zip_input_sha256": "74b0910e50ea44d9760a57fada2192cfd530ba8bffbe7b47c412a464b796cabf",
+  "archive_sha256": "1e2ad1d714634e065090ce1f5c92ef9ef95a7f07f7690c58e3595b7545d5e15a",
+  "archive_bytes": 13023463,
+  "signature": "local ad-hoc; not Developer ID; not notarized",
+  "notarized": false,
+  "notarization_submission_id": null,
+  "stapled_ticket_verified": false,
+  "gatekeeper_assessment": "not assessed (local preview)",
+  "deep_strict_signature_verified": true,
+  "zip_crc_contents_and_modes_verified": true,
+  "zip_extracted_signature_verified": true,
+  "legacy_helper_architecture_and_prepared_bytes_verified": true
+}

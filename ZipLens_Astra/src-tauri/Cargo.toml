@@ -1,6 +1,6 @@
 [package]
 name = "ziplens"
-version = "2.0.1"
+version = "2.0.2"
 description = "ZipLens 2.0 — macOS archive utility"
 authors = ["you"]
 edition = "2021"

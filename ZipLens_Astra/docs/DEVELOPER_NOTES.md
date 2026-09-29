@@ -6,6 +6,8 @@
 
 이 문서는 다음 개발자나 AI가 변경 이유를 이해하고, 위험한 구현으로 되돌아가지 않게 하기 위한 기록입니다.
 
+현재 패키징 절차는 [macOS 실행 문제와 배포 방법](MACOS_LAUNCH_KO.md)을 기준으로 합니다. 아래 날짜별 설명은 당시 구현 기록입니다. 2.0.1부터 정식 패키징에는 Developer ID 서명·Apple 공증·티켓 첨부·재추출 앱의 Gatekeeper 검사가 필요하며, 로컬 ad-hoc 프리뷰는 `--preview`로 별도 생성합니다. 최신 명령과 프리뷰 경로는 [앱 README](../README.md), 버전별 검사 결과는 [검증 기록](VALIDATION.md)을 확인하세요.
+
 ## 앱 이름과 버전
 
 2026-09-06 사용자 요청으로 임시 이름 ZipLens Astra 1.4.0을 **ZipLens 2.0 / 2.0.0**으로 확정했습니다. `tauri.conf.json`, NPM/Rust 패키지와 lockfile 버전, 창 제목, 7개 언어의 제목, macOS 메뉴, 정보 화면을 함께 맞춥니다. 이후 버전 변경 시 `index.html`의 정보 화면 버전도 갱신합니다.

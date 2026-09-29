@@ -509,7 +509,9 @@ function updateDOM() {
     }
 
     elClassText('titlebar-title', getTranslation('titlebar'));
-    elClassText('drop-text', getTranslation('dropText'));
+    if (!document.getElementById('drop-zone')?.classList.contains('loaded')) {
+        elClassText('drop-text', getTranslation('dropText'));
+    }
     elClassText('drop-subtext', getTranslation('dropSubtext'));
     
     el('btn-extract', getTranslation('btnExtract'));
@@ -537,6 +539,7 @@ function updateDOM() {
     el('toggle-all', getTranslation('invertSelection'));
     
     elAttr('preview-search', 'placeholder', getTranslation('searchPlaceholder'));
+    elAttr('preview-search', 'aria-label', getTranslation('searchPlaceholder'));
     el('btn-reveal', getTranslation('revealInFinder'));
 
     elHtml('password-modal-title', getTranslation('passwordRequired'));
