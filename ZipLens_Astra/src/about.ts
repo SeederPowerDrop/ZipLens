@@ -2,6 +2,8 @@ import type { LanguageCode } from "./i18n";
 
 interface AboutCopy {
     title: string;
+    version: string;
+    dedicationPrefix: string;
     close: string;
     support: string;
     licenses: string;
@@ -10,10 +12,11 @@ interface AboutCopy {
     paragraphs: readonly [string, string, string, string, string];
 }
 
-// The Korean introduction is the author's original. Other languages accompany it.
+// Keep the author's Korean original, and show only the selected app language.
 const aboutCopy: Record<LanguageCode, AboutCopy> = {
     ko: {
         title: "ZipLens 2.0 정보", close: "확인", support: "후원하기",
+        version: "버전", dedicationPrefix: "그리고",
         licenses: "오픈소스 라이선스", licensesHint: "라이선스와 소스 코드 안내가 담긴 폴더를 Finder에서 엽니다.", licensesError: "오픈소스 라이선스 폴더를 열지 못했습니다.",
         paragraphs: [
             "안녕하세요, SeederPowerDrop입니다.",
@@ -25,6 +28,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     en: {
         title: "About ZipLens 2.0", close: "OK", support: "Support the project",
+        version: "Version", dedicationPrefix: "And",
         licenses: "Open-source licenses", licensesHint: "Open the folder containing licenses and source-code information in Finder.", licensesError: "Could not open the open-source licenses folder.",
         paragraphs: [
             "Hello, I'm SeederPowerDrop.",
@@ -36,6 +40,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     ja: {
         title: "ZipLens 2.0 について", close: "確認", support: "開発を支援する",
+        version: "バージョン", dedicationPrefix: "そして",
         licenses: "オープンソースライセンス", licensesHint: "ライセンスとソースコードの案内が入ったフォルダをFinderで開きます。", licensesError: "オープンソースライセンスのフォルダを開けませんでした。",
         paragraphs: [
             "こんにちは、SeederPowerDropです。",
@@ -47,6 +52,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     zh: {
         title: "关于 ZipLens 2.0", close: "确定", support: "支持开发",
+        version: "版本", dedicationPrefix: "还有",
         licenses: "开源许可证", licensesHint: "在 Finder 中打开包含许可证和源代码说明的文件夹。", licensesError: "无法打开开源许可证文件夹。",
         paragraphs: [
             "大家好，我是 SeederPowerDrop。",
@@ -58,6 +64,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     fr: {
         title: "À propos de ZipLens 2.0", close: "OK", support: "Soutenir le projet",
+        version: "Version", dedicationPrefix: "Et",
         licenses: "Licences open source", licensesHint: "Ouvrir dans le Finder le dossier des licences et des informations sur le code source.", licensesError: "Impossible d’ouvrir le dossier des licences open source.",
         paragraphs: [
             "Bonjour, je suis SeederPowerDrop.",
@@ -69,6 +76,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     es: {
         title: "Acerca de ZipLens 2.0", close: "Aceptar", support: "Apoyar el proyecto",
+        version: "Versión", dedicationPrefix: "Y",
         licenses: "Licencias de código abierto", licensesHint: "Abrir en Finder la carpeta con las licencias y la información del código fuente.", licensesError: "No se pudo abrir la carpeta de licencias de código abierto.",
         paragraphs: [
             "Hola, soy SeederPowerDrop.",
@@ -80,6 +88,7 @@ const aboutCopy: Record<LanguageCode, AboutCopy> = {
     },
     ar: {
         title: "حول ZipLens 2.0", close: "موافق", support: "دعم المشروع",
+        version: "الإصدار", dedicationPrefix: "وأيضًا",
         licenses: "تراخيص المصادر المفتوحة", licensesHint: "فتح المجلد الذي يحتوي على التراخيص ومعلومات الشفرة المصدرية في Finder.", licensesError: "تعذر فتح مجلد تراخيص المصادر المفتوحة.",
         paragraphs: [
             "مرحبًا، أنا SeederPowerDrop.",
@@ -95,41 +104,48 @@ export function updateAboutIntroduction(lang: LanguageCode) {
     const container = document.getElementById("about-introduction");
     if (!container) return;
     const copy = aboutCopy[lang];
-    const bilingual = (korean: string, localized: string) => lang === "ko" ? korean : `${korean} / ${localized}`;
+    const modal = document.getElementById("about-modal");
+    if (modal) {
+        modal.lang = lang;
+        modal.dir = lang === "ar" ? "rtl" : "ltr";
+    }
     container.replaceChildren();
-    aboutCopy.ko.paragraphs.forEach((korean, index) => {
-        const pair = document.createElement("div");
-        pair.className = "about-paragraph-pair";
-        const original = document.createElement("p");
-        original.lang = "ko";
-        original.dir = "ltr";
-        original.textContent = korean;
-        pair.appendChild(original);
-        if (lang !== "ko") {
-            const translation = document.createElement("p");
-            translation.className = "about-translation";
-            translation.lang = lang;
-            translation.dir = lang === "ar" ? "rtl" : "ltr";
-            translation.textContent = copy.paragraphs[index];
-            pair.appendChild(translation);
-        }
-        container.appendChild(pair);
+    copy.paragraphs.forEach(text => {
+        const paragraph = document.createElement("p");
+        paragraph.className = "about-paragraph";
+        paragraph.textContent = text;
+        container.appendChild(paragraph);
     });
     const title = document.getElementById("about-title");
-    if (title) title.textContent = bilingual(aboutCopy.ko.title, copy.title);
+    if (title) title.textContent = copy.title;
+    const version = document.getElementById("about-version-label");
+    if (version) version.textContent = copy.version;
+    const info = document.getElementById("btn-about");
+    if (info) {
+        info.title = copy.title;
+        info.setAttribute("aria-label", copy.title);
+    }
     const close = document.getElementById("about-close");
-    if (close) close.textContent = bilingual(aboutCopy.ko.close, copy.close);
+    if (close) close.textContent = copy.close;
     const support = document.getElementById("about-support-label");
-    if (support) support.textContent = `☕ ${bilingual(aboutCopy.ko.support, copy.support)} (Buy Me A Coffee)`;
+    if (support) {
+        support.textContent = `☕ ${copy.support} `;
+        const brand = document.createElement("bdi");
+        brand.dir = "ltr";
+        brand.textContent = "(Buy Me A Coffee)";
+        support.appendChild(brand);
+    }
     const licenses = document.getElementById("about-licenses");
     if (licenses) {
-        licenses.textContent = bilingual(aboutCopy.ko.licenses, copy.licenses);
+        licenses.textContent = copy.licenses;
         licenses.title = copy.licensesHint;
     }
     const licensesHint = document.getElementById("about-licenses-hint");
     if (licensesHint) licensesHint.textContent = copy.licensesHint;
     document.getElementById("about-close-x")?.setAttribute("aria-label", copy.close);
-    // The personal dedication lives outside this translated content, untouched.
+    const dedicationPrefix = document.getElementById("about-dedication-prefix");
+    if (dedicationPrefix) dedicationPrefix.textContent = copy.dedicationPrefix;
+    // Only the connecting word is translated; the personal message stays intact.
 }
 
 export function getAboutLicenseError(lang: LanguageCode): string {

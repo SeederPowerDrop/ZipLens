@@ -46,7 +46,7 @@
 
 ## 구조
 
-소개글은 `src/about.ts`가 한국어 원문을 기준으로 선택 언어 번역을 문단별로 덧붙인다. `setLanguage()`의 DOM 갱신에 연결되어 재실행 없이 바뀐다. 모든 문장은 `textContent`로 넣고 한국어는 `lang="ko" dir="ltr"`, 아랍어 번역만 `dir="rtl"`로 표시한다. 긴 병기는 소개글 본문만 스크롤하며 닫기 버튼은 남는다. 개인 헌사는 번역 컨테이너 밖의 `#about-dedication`에 한 번만 두고 `translate="no"`와 LTR 격리를 유지한다. 이 문구를 번역 데이터에 추가하지 않는다.
+소개글은 `src/about.ts`에서 현재 앱 언어의 본문과 제목·버전·후원·라이선스·확인 문구만 표시한다(2.0.3부터). `setLanguage()`의 DOM 갱신에 연결되어 저장된 언어로 시작하거나 언어를 바꾸면 정보창도 함께 갱신된다. 본문은 `textContent`로 넣고 모달의 `lang`과 `dir`도 맞춘다. 아랍어는 RTL과 시작 방향 정렬을 사용하며 다른 언어로 바꾸면 LTR로 복원한다. 제작자 링크와 서비스명, 앱 이름·버전은 LTR로 격리한다. 개인 메시지 `ERW FWS WRG`는 `#about-dedication`의 `bdi`에 한 번만 두고 `translate="no"`와 LTR을 유지한다. 앞의 연결어만 번역하며 개인 메시지 자체는 번역 데이터에 넣지 않는다.
 
 - `astra-core/src/lib.rs`: 검증 → 선택 확정 → private stage → 결과 검증 → publish.
 - `paths.rs`: 엔트리 경로/충돌/링크 검사와 macOS exclusive rename.

@@ -1,6 +1,14 @@
 # ZipLens 2.0
 
-첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens 2.0`, 현재 프리뷰 버전은 `2.0.2`입니다.
+첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens 2.0`, 현재 공개 프리뷰 버전은 `2.0.3`입니다.
+
+## 2.0.3에서 달라진 점 — 정보창 언어
+
+앱의 언어를 선택하고 정보 버튼을 누르면 해당 언어로만 소개글·제목·버전 표시·후원·라이선스·닫기 버튼을 표시합니다. 한국어, 영어, 일본어, 중국어, 프랑스어, 스페인어, 아랍어를 지원하며 아랍어는 오른쪽에서 왼쪽으로 읽는 방향을 적용합니다. 개인 메시지 `ERW FWS WRG`는 그대로 유지합니다.
+
+[2.0.3 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) · [한국어·영어 업데이트 안내](docs/RELEASE_2.0.3_KO_EN.md)
+
+> Apple Silicon용 프리뷰이며 로컬 ad-hoc 서명만 적용했습니다. Apple Developer ID 서명·공증은 완료하지 않아 macOS가 실행을 차단할 수 있습니다.
 
 ## 앱 화면
 
@@ -12,9 +20,9 @@
 
 <img src="docs/screenshots/archive-preview.jpg" alt="한글 샘플 ZIP의 폴더, 파일, 해제 용량을 확인하고 선택하는 화면" width="800">
 
-실제 macOS 앱 화면이며 공개용 샘플 자료를 사용했습니다.
+2.0.2의 실제 macOS 앱에서 공개용 샘플 자료로 촬영한 화면입니다. 2.0.3 정보창의 언어 변경 화면을 촬영한 이미지는 아닙니다.
 
-## 2.0.2에서 달라진 점
+## 이전 2.0.2에서 달라진 점
 
 - 압축 파일을 열면 툴바와 파일 제목을 작게 표시해 내부 목록을 더 넓게 볼 수 있습니다.
 - 폴더 경로·검색·선택 버튼·정렬을 목록 위에 모으고 파일 목록은 따로 스크롤합니다. 작은 창에서는 버튼 배치를 조정합니다.
@@ -30,8 +38,9 @@
 
 ## 먼저 보기
 
-- [2.0.2 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2) — Apple Silicon용. Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
-- [2.0.2 업데이트 안내 · 한국어 / English](docs/RELEASE_2.0.2_KO_EN.md)
+- [2.0.3 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) — Apple Silicon용. 로컬 ad-hoc 서명이며 Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
+- [2.0.3 업데이트 안내 · 한국어 / English](docs/RELEASE_2.0.3_KO_EN.md)
+- [이전 2.0.2 업데이트 안내 · 한국어 / English](docs/RELEASE_2.0.2_KO_EN.md)
 - [이전 2.0.1 실행 오류 수정 안내](docs/RELEASE_2.0.1_KO.md)
 - [기존 2.0.0 프리뷰·고객 안내](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.0) — Apple Silicon용, 시작 오류 및 Apple 공증 미완료
 - [2.0.0에서 추가한 기능](docs/RELEASE_2.0.0_KO.md)
@@ -49,7 +58,7 @@
 
 - 압축 해제는 오목렌즈를 통과해 퍼지는 빛, 압축은 볼록렌즈를 통과해 모이는 빛으로 표현합니다. 실제 작업 중에만 광선이 움직이며 macOS 동작 줄이기를 지원합니다.
 - 두 완료창도 같은 렌즈 디자인을 사용합니다. 알아서 풀기는 폴더와 반짝임 아이콘으로 표현합니다.
-- 소개글에는 한국어 원문과 선택한 언어의 번역을 함께 표시합니다. 한국어 선택 시에는 원문만 표시하며 개인 헌사는 그대로 유지합니다.
+- 2.0.3 정보창은 현재 앱 언어로 소개글·제목·버전 표시·버튼을 표시하고 아랍어 읽기 방향도 함께 바뀝니다. 개인 메시지 ERW FWS WRG는 그대로 유지합니다.
 
 - 덮어쓰기 시 기존 폴더 전체를 삭제하지 않습니다. 새 데이터를 임시 폴더에서 검증하고, 같은 파일만 교체합니다.
 - 상대 경로 탈출, 절대 경로, 외부 심볼릭 링크, 파일명 충돌을 검사합니다. ZIP 파일명과 오류 메시지는 HTML로 실행되지 않습니다.
@@ -139,19 +148,21 @@ cargo run --manifest-path astra-core/Cargo.toml --example benchmark --release --
 
 빌드 전에 `scripts/prepare-distribution.py`가 동봉된 공식 7-Zip 배포 파일·소스의 해시와 라이선스 자료를 확인하고, ALZ·EGG 해제 보조 프로그램을 빌드합니다. 라이선스 자료가 누락되거나 의존성 변경 후 갱신되지 않았으면 빌드를 중단합니다. 원본 프로젝트의 의존성이나 빌드 폴더를 공유하지 않습니다. 두 Rust lockfile은 각 명령의 재현성을 위해 유지합니다.
 
-로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.0.2_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.0.2_arm64.zip`입니다. 공개 다운로드는 [2.0.2 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
+로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.0.3_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.0.3_arm64.zip`입니다. 공개 다운로드는 [2.0.3 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
 
 ## English
 
-**ZipLens 2.0.2** is a free macOS archive utility for previewing archives, extracting selected files, and creating ZIP, 7Z, TAR, TAR.GZ, and TAR.ZST files. ZIP/7Z support passwords and split archives. ALZ and EGG support listing, previews, and extraction through a dedicated helper; they are extraction-only formats. The app recognizes 36 extensions, including aliases.
+**Current public preview: 2.0.3.** About shows only the selected app language, including its title, introduction, version label, support and license controls, and close buttons. It supports Korean, English, Japanese, Chinese, French, Spanish, and Arabic, including RTL layout for Arabic. The personal message `ERW FWS WRG` is preserved.
 
-[Download the Apple Silicon preview](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2) · [Bilingual update and screenshots](docs/RELEASE_2.0.2_KO_EN.md)
+**ZipLens 2.0.3** is a free macOS archive utility for previewing archives, extracting selected files, and creating ZIP, 7Z, TAR, TAR.GZ, and TAR.ZST files. ZIP/7Z support passwords and split archives. ALZ and EGG support listing, previews, and extraction through a dedicated helper; they are extraction-only formats. The app recognizes 36 extensions, including aliases.
 
-Version 2.0.2 gives archive contents more room with a compact toolbar and archive title, grouped search and selection controls, and a separately scrolling file list. Long filenames have full-name hover text, folder breadcrumbs are keyboard-accessible buttons, and changing languages preserves the open archive's name. The update also simplifies display transitions after loading. The Finder startup crash fixed in 2.0.1 remains fixed.
+[Download the Apple Silicon preview](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) · [Bilingual update and screenshots](docs/RELEASE_2.0.3_KO_EN.md)
 
-The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. It provides a lens-inspired interface and seven languages. The screenshots above show the macOS app with public sample files.
+Previous version 2.0.2 gave archive contents more room with a compact toolbar and archive title, grouped search and selection controls, and a separately scrolling file list. Long filenames have full-name hover text, folder breadcrumbs are keyboard-accessible buttons, and changing languages preserves the open archive's name. That update also simplified display transitions after loading. The Finder startup crash fixed in 2.0.1 remains fixed.
 
-**This is an Apple Silicon preview without Apple Developer ID signing or notarization. macOS may still block it from opening.** Intel execution and every archive variant have not been verified. Encrypted EGG filenames/full headers are unsupported, and complete preservation of macOS app-bundle metadata remains unverified. See the [validation history](docs/VALIDATION.md) and [launch diagnosis](docs/MACOS_LAUNCH_KO.md) for details.
+The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. It provides a lens-inspired interface and seven languages. The screenshots above were captured from the 2.0.2 macOS app with public sample files; they do not depict the updated About window in 2.0.3.
+
+**This is an Apple Silicon preview with a local ad-hoc signature, without Apple Developer ID signing or notarization. macOS may still block it from opening.** Intel execution and every archive variant have not been verified. Encrypted EGG filenames/full headers are unsupported, and complete preservation of macOS app-bundle metadata remains unverified. See the [validation history](docs/VALIDATION.md) and [launch diagnosis](docs/MACOS_LAUNCH_KO.md) for details.
 
 To build, install Node.js, Rust/Cargo 1.89 or later, Python 3.11 or later, and Xcode Command Line Tools on macOS, then run:
 
@@ -162,4 +173,4 @@ npm run tauri build -- --bundles app
 python3 scripts/package-macos.py --preview
 ```
 
-The preview ZIP is written to `release_build/preview/ZipLens_2.0.2_arm64-preview.zip`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.
+The preview ZIP is written to `release_build/preview/ZipLens_2.0.3_arm64-preview.zip`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.
