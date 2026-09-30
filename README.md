@@ -2,12 +2,20 @@
 
 압축을 풀기 전에 안을 보고, 필요한 파일만 골라 꺼내는 무료 macOS 압축 앱입니다. 압축은 볼록렌즈에 빛이 모이는 모습으로, 압축 해제는 오목렌즈에서 빛이 퍼지는 모습으로 표현합니다.
 
-**최신 프리뷰: ZipLens 2.0.2 · Apple Silicon Mac용**
-[다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2) · [업데이트 상세](ZipLens_Astra/docs/RELEASE_2.0.2_KO_EN.md) · [사용법·지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
+**최신 프리뷰: ZipLens 2.0.3 · Apple Silicon Mac용**
+[다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) · [업데이트 상세](ZipLens_Astra/docs/RELEASE_2.0.3_KO_EN.md) · [사용법·지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
 
-> 현재 배포본은 Apple Developer ID 서명·공증을 완료하지 않은 프리뷰입니다. macOS가 실행을 차단할 수 있으며, Intel Mac 실행은 검증하지 않았습니다. [실행 문제 안내](ZipLens_Astra/docs/MACOS_LAUNCH_KO.md)
+> 현재 배포본은 로컬 ad-hoc 서명만 적용한 프리뷰로, Apple Developer ID 서명·공증을 완료하지 않았습니다. macOS가 실행을 차단할 수 있으며, Intel Mac 실행은 검증하지 않았습니다. [실행 문제 안내](ZipLens_Astra/docs/MACOS_LAUNCH_KO.md)
 
-## 2.0.2에서 달라진 점
+## 2.0.3에서 달라진 점
+
+- **앱 언어에 맞는 정보창:** 앱에서 선택한 언어로 소개글·제목·버전 표시·후원·라이선스·닫기 버튼을 표시합니다.
+- **7개 언어 지원:** 한국어, 영어, 일본어, 중국어, 프랑스어, 스페인어, 아랍어에 맞춰 전환하며 아랍어는 오른쪽에서 왼쪽으로 읽는 방향을 적용합니다.
+- **개인 메시지 보존:** `ERW FWS WRG`는 번역하거나 순서를 바꾸지 않고 유지합니다.
+
+[2.0.3 한국어·영어 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.0.3_KO_EN.md)
+
+## 이전 2.0.2에서 달라진 점
 
 - **더 넓어진 파일 목록:** 압축 파일을 열면 상단 도구와 파일 제목을 작게 정돈해 내부 파일을 볼 공간을 확보합니다.
 - **찾기와 선택을 한곳에서:** 폴더 경로·검색·전체 선택·선택 해제·정렬을 목록 위에 배치하고, 파일 목록은 따로 스크롤합니다.
@@ -31,7 +39,7 @@
 
 <img src="ZipLens_Astra/docs/screenshots/compression-settings.jpg" alt="볼록렌즈와 압축 형식·압축 정도·암호 설정" width="800">
 
-실제 macOS 앱에서 공개용 샘플 자료로 촬영했습니다. [스크린샷 안내](ZipLens_Astra/docs/screenshots/README.md)
+위 스크린샷은 2.0.2 macOS 앱에서 공개용 샘플 자료로 촬영했습니다. 2.0.3 정보창의 언어 변경 화면을 촬영한 이미지는 아닙니다. [스크린샷 안내](ZipLens_Astra/docs/screenshots/README.md)
 
 ## 2.0 시리즈의 주요 개선
 
@@ -48,7 +56,7 @@
 
 ## 다운로드와 시작
 
-1. [2.0.2 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2)에서 `ZipLens_2.0.2_arm64-preview.zip`을 받습니다.
+1. [2.0.3 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3)에서 `ZipLens_2.0.3_arm64-preview.zip`을 받습니다.
 2. 실행 중인 구버전은 ⌘Q로 종료하고, ZIP은 macOS의 아카이브 유틸리티로 풉니다.
 3. `ZipLens 2.0.app`을 사용할 위치에 둔 뒤 실행합니다. 기존 설치본을 바꾼다면 먼저 백업하세요.
 
@@ -78,9 +86,13 @@ macOS, Node.js, Rust/Cargo 1.89 이상, Xcode Command Line Tools, Python 3.11 �
 
 ZipLens is a free macOS archive app for looking inside archives and extracting just the files you need. Its interface uses a converging convex lens for compression and a diverging concave lens for extraction.
 
-**Current preview: ZipLens 2.0.2 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.2) · [Full update notes in Korean and English](ZipLens_Astra/docs/RELEASE_2.0.2_KO_EN.md)
+**Current preview: ZipLens 2.0.3 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) · [Full update notes in Korean and English](ZipLens_Astra/docs/RELEASE_2.0.3_KO_EN.md)
 
-### What's new in 2.0.2
+### What's new in 2.0.3
+
+The About window now follows the selected app language for its introduction, title, version label, support and license controls, and close buttons. It supports Korean, English, Japanese, Chinese, French, Spanish, and Arabic, including right-to-left layout for Arabic. The personal message `ERW FWS WRG` remains unchanged.
+
+### Previous improvements in 2.0.2
 
 - A compact toolbar and archive title leave more room for the file list.
 - Folder navigation, search, selection controls and sorting sit above a separately scrolling list.
@@ -89,13 +101,13 @@ ZipLens is a free macOS archive app for looking inside archives and extracting j
 - Archive display is more stable after removing the forced hide-and-redisplay step and simplifying loaded-view animations.
 - Includes the 2.0.1 fix for a startup crash when opening an archive from Finder while the app is closed.
 
-The screenshots above show the actual macOS app using public sample files: the home screen, archive browser and compression settings.
+The screenshots above were captured from the actual 2.0.2 macOS app using public sample files: the home screen, archive browser and compression settings. They do not depict the updated About window in 2.0.3.
 
 ### Features and availability
 
 The 2.0 series adds ALZ/EGG extraction and previews, stronger protection for original files, improved ZIP processing, default archive-app settings in macOS, password retries, cancellation, completion reports and seven interface languages. It creates ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives, and recognizes 36 file extensions including aliases. Support varies by format and variant; ALZ/EGG creation is not supported.
 
-**This preview has not completed Apple Developer ID signing or notarization. macOS may block it from opening. Intel Mac execution has not been verified.** Download `ZipLens_2.0.2_arm64-preview.zip` from the release page, quit older copies, extract with macOS Archive Utility, and place the app where you want to keep it. The release includes SHA-256 checksums.
+**This preview uses a local ad-hoc signature and has not completed Apple Developer ID signing or notarization. macOS may block it from opening. Intel Mac execution has not been verified.** Download `ZipLens_2.0.3_arm64-preview.zip` from the release page, quit older copies, extract with macOS Archive Utility, and place the app where you want to keep it. The release includes SHA-256 checksums.
 
 ### Building and project history
 

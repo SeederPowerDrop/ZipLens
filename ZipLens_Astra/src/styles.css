@@ -1040,7 +1040,7 @@ button.primary:hover {
 }
 
 /* Modal Overlay */
-/* Reopening the bilingual sheet must not depend on a retained fade animation. */
+/* Reopening the localized sheet must not depend on a retained fade animation. */
 #about-modal {
   animation: none;
   opacity: 1;
@@ -1058,9 +1058,7 @@ button.primary:hover {
 .about-content { min-height: 0; overflow-y: auto; }
 .about-content > img { flex-shrink: 0; }
 .about-copy { min-width: 0; overflow-wrap: anywhere; }
-.about-paragraph-pair { margin-bottom: 14px; }
-.about-paragraph-pair p { white-space: pre-line; }
-.about-translation { margin-top: 5px; color: #39445a; text-align: start; }
+.about-paragraph { margin: 0 0 14px; white-space: pre-line; }
 .about-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 8px 12px 12px; }
 #about-licenses {
   background: #ece9d8;
