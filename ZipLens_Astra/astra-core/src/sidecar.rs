@@ -139,6 +139,7 @@ impl Engine {
             "-spd".into(),
             "-bb0".into(),
             "-bsp0".into(),
+            format!("-mmt={}", crate::zip_engine::worker_count()),
             format!("-p{}", password.unwrap_or("")),
             format!("-i@{}", list.path().display()),
             "--".into(),

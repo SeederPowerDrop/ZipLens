@@ -15,6 +15,8 @@ import sys
 import tempfile
 import zipfile
 
+from distribution_license import verify_app_license
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -215,6 +217,7 @@ def main(arguments=None):
     targets = {'arm64': 'aarch64-apple-darwin', 'x86_64': 'x86_64-apple-darwin'}
     if architecture not in targets:
         raise RuntimeError('Package each macOS architecture separately')
+    verify_app_license(ROOT)
     run([sys.executable, str(ROOT / 'scripts/prepare-sidecar.py')])
     run([sys.executable, str(ROOT / 'scripts/generate-third-party-notices.py'),
          '--check', '--target', targets[architecture]])

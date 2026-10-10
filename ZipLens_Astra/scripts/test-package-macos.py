@@ -51,6 +51,11 @@ class ReleasePackagingTests(unittest.TestCase):
             'sha256_binary': hashlib.sha256(b'7zz').hexdigest()}))
         (self.directory / 'legal').mkdir()
         (self.directory / 'legal/NOTICE.txt').write_text('License notice\n')
+        (self.directory / 'LICENSE').write_text('Canonical GPL text for test fixture\n')
+        (self.directory / 'legal/ziplens').mkdir()
+        (self.directory / 'legal/ziplens/COPYING.txt').write_bytes(
+            (self.directory / 'LICENSE').read_bytes())
+        (self.directory / 'legal/ziplens/NOTICE.txt').write_text('ZipLens license notice\n')
         self.release = self.directory / 'release_build'
         self.release.mkdir()
         (self.release / 'previous.zip').write_bytes(b'previous release')
@@ -132,6 +137,31 @@ class ReleasePackagingTests(unittest.TestCase):
             options = namespace['parse_options']([])
             self.assertEqual(self.certificate, namespace['validate_credentials'](options))
 
+    def test_missing_or_empty_app_license_documents_prevent_packaging(self):
+        for relative in ('LICENSE', 'legal/ziplens/COPYING.txt', 'legal/ziplens/NOTICE.txt'):
+            path = self.directory / relative
+            original = path.read_bytes()
+            for state in ('missing', 'empty'):
+                with self.subTest(document=relative, state=state):
+                    if state == 'missing':
+                        path.unlink()
+                    else:
+                        path.write_text(' \n')
+                    try:
+                        with self.assertRaisesRegex(RuntimeError, 'Missing or empty ZipLens license document'):
+                            namespace['main'](['--preview'])
+                        self.assert_release_unchanged()
+                    finally:
+                        path.write_bytes(original)
+        self.assertFalse(any(command[0] in ['codesign', 'ditto'] for command in self.commands))
+
+    def test_mismatched_bundled_app_license_prevents_packaging(self):
+        (self.directory / 'legal/ziplens/COPYING.txt').write_text('Stale license text\n')
+        with self.assertRaisesRegex(RuntimeError, 'differs from the canonical LICENSE'):
+            namespace['main'](['--preview'])
+        self.assert_release_unchanged()
+        self.assertFalse(any(command[0] in ['codesign', 'ditto'] for command in self.commands))
+
     def test_public_package_signs_inside_out_notarizes_staples_then_verifies_extracted_zip(self):
         result = self.package(self.public_arguments())
         signing = [command for command in self.commands if command[:2] == ['codesign', '--force']]
@@ -162,6 +192,11 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertEqual('test-submission-id', result['notarization_submission_id'])
         self.assertEqual('ZipLens_2.0.0_arm64.zip', result['archive_name'])
         archive = self.release / result['archive_name']
+        with zipfile.ZipFile(archive) as zipped:
+            prefix = 'ZipLens Test.app/Contents/Resources/legal/ziplens/'
+            self.assertEqual((self.directory / 'LICENSE').read_bytes(), zipped.read(prefix + 'COPYING.txt'))
+            self.assertEqual((self.directory / 'legal/ziplens/NOTICE.txt').read_bytes(),
+                             zipped.read(prefix + 'NOTICE.txt'))
         checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
         self.assertEqual(f'{checksum}  {archive.name}\n', (self.release / 'SHA256SUMS.txt').read_text())
 

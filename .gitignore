@@ -37,3 +37,14 @@ cargo-lock.json
 
 # Builds
 release_build/
+
+# Private development archive and credentials
+/content/
+.env
+.env.*
+!.env.example
+.aws/
+*.p12
+*.pfx
+*.keychain
+*.keychain-db

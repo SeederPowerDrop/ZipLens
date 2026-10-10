@@ -22,10 +22,14 @@
 .optics-ray { fill: none; stroke-width: 1.5; stroke-linecap: round; opacity: 0.75; }
 .optics-glass { stroke: #ccedffc4; stroke-width: 1.25; }
 .optics-edge { stroke: #edf7ffb3; stroke-width: 1; fill: none; }
+.optics-rim { stroke: #e7f6ff99; stroke-width: 1; fill: none; }
 .optics-output { stroke: #e8d9ff; stroke-width: 2.5; stroke-linecap: round; }
 .optics-focus { opacity: var(--optics-energy); transition: opacity 0.3s ease; }
 .optics-caption { color: #b9c9e2; font-size: 11px; letter-spacing: 0.08em; text-align: center; margin-top: 2px; }
 
+.optics-scene:not([data-mode="home"]) .optics-home,
+.optics-scene[data-mode="home"] .optics-extract,
+.optics-scene[data-mode="home"] .optics-compress,
 .optics-scene[data-mode="extract"] .optics-compress,
 .optics-scene[data-mode="compress"] .optics-extract,
 .optics-scene[data-mode="preview"] { display: none; }
@@ -48,8 +52,93 @@
 .optics-scene[data-running="true"] .optics-envelope { opacity: 0.09; }
 @keyframes optics-travel { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
 
-#home-lens-scene { max-width: 470px; margin-bottom: 20px; }
+#home-lens-scene { max-width: 490px; margin-bottom: 20px; }
 #home-lens-scene .optics-caption { display: none; }
+#home-lens-scene.lens-explorer {
+  pointer-events: auto;
+  position: relative;
+  cursor: default;
+  /* Reserve one quiet illustration area; exploring does not grow the window. */
+  min-height: 214px;
+  margin-bottom: 20px;
+}
+.lens-explorer-trigger {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.lens-explorer-trigger:focus-visible,
+.lens-explorer-reset:focus-visible { outline: 2px solid #b8ccff; outline-offset: 3px; }
+.lens-explorer-trigger:disabled { cursor: default; }
+.lens-explorer-trigger,
+.lens-explorer-trigger:hover,
+.lens-explorer-trigger:active {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.lens-explorer[data-view="exhibit"] .optics-svg { height: 150px; }
+.lens-explorer .optics-svg { direction: ltr; }
+.lens-explorer [data-chief-ray] { opacity: .85; }
+.lens-explorer [data-marginal-ray] { opacity: .25; }
+.lens-explorer-info { text-align: center; padding: 1px 8px 0; }
+.lens-explorer-name { color: #e1e9ff; font-size: 13px; font-weight: 600; line-height: 1.45; }
+.lens-explorer-description { margin: 5px auto 0; max-width: 440px; color: #b4bdd1; font-size: 12px; line-height: 1.5; text-wrap: pretty; }
+.lens-explorer-footer { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 7px; color: #8f9ab3; text-align: center; font-size: 9px; line-height: 1.4; }
+.lens-explorer-note { color: #8290ad; }
+.lens-explorer-note::after { content: "·"; margin-inline-start: 8px; }
+.lens-explorer[data-view="pair"] .lens-explorer-footer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.lens-explorer-reset {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  padding: 6px;
+  border: 1px solid #afbbde2e;
+  border-radius: 50%;
+  color: #b8c4df;
+  background: #a8b9ff08;
+  cursor: pointer;
+}
+.lens-explorer-reset:hover { background: #a8b9ff17; }
+.lens-explorer-reset, .lens-explorer-reset:hover, .lens-explorer-reset:active { transform: none; box-shadow: none; transition: none; }
+.lens-explorer-reset:disabled { opacity: .4; cursor: default; }
+.lens-explorer-reset svg { width: 100%; height: 100%; }
+.lens-explorer-info[hidden], .lens-explorer-reset[hidden] { display: none; }
+.optics-home .optics-envelope { opacity: 0.04; }
+.optics-home .optics-ray { opacity: 0.62; stroke-width: 1.25; }
+.optics-home .optics-glass { stroke-width: 1.1; }
+.optics-home-concave .optics-glass { stroke: #c4efffc4; }
+.optics-home-convex .optics-glass { stroke: #dedaffb8; }
+.optics-home .optics-edge { opacity: 0.8; stroke-width: 0.8; }
+/* The paired home illustration remains still regardless of active-job state. */
+.optics-scene[data-mode="home"] .optics-svg {
+  background: radial-gradient(ellipse at 34% 50%, #66ceff0d, transparent 44%),
+              radial-gradient(ellipse at 65% 50%, #afa0ff10, transparent 44%);
+}
 .drop-zone:not(.loaded) { padding: 24px 20px 36px; }
 .drop-zone.loaded #home-lens-scene { display: none; }
 #compression-lens-scene { max-width: 360px; margin-bottom: 20px; }

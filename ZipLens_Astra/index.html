@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/src/lens-scene.css" />
   <link rel="icon" type="image/png" href="/app-icon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZipLens 2.0</title>
+  <title>ZipLens</title>
   <script type="module" src="/src/main.ts" defer></script>
 </head>
 
@@ -36,15 +36,18 @@
   <div id="app">
     <!-- Titlebar configured to drag window in Tauri -->
     <div data-tauri-drag-region class="titlebar">
-      <div class="titlebar-title">ZipLens 2.0</div>
+      <div class="titlebar-title" dir="ltr">ZipLens</div>
       <div class="titlebar-controls" style="margin-left: auto; z-index: 10; display: flex; align-items: center;">
         <select id="lang-select" class="custom-select" style="height: 24px; padding: 0 24px 0 8px; font-size: 11px; margin-right: 8px; width: auto; background-color: rgba(255,255,255,0.05); border: none;">
-          <option value="en">English</option>
           <option value="ko">한국어</option>
+          <option value="en">English</option>
           <option value="ja">日本語</option>
-          <option value="zh">中文</option>
-          <option value="fr">Français</option>
+          <option value="zh">中文（简体）</option>
+          <option value="vi">Tiếng Việt</option>
           <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="ru">Русский</option>
           <option value="ar">العربية</option>
         </select>
         <button id="btn-file-associations" class="file-associations-trigger" type="button" title="기본 압축 앱 설정" aria-label="기본 압축 앱 설정">
@@ -84,22 +87,33 @@
       </div>
 
       <!-- Main Drop Zone / Premium Glass Card -->
-      <div class="drop-zone animated glass-card" id="drop-zone">
+      <div class="drop-zone glass-card" id="drop-zone" tabindex="0" role="group" aria-labelledby="home-drop-title" aria-describedby="home-drop-description">
         <!-- Optical identity is drawn in SVG; the app icon remains in the macOS bundle. -->
         <div id="home-lens-scene"></div>
         <svg class="archive-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M10 3v2m0 2v2m0 2v2"/><rect x="8" y="15" width="4" height="3" rx="1"/></svg>
         <div class="drop-text-wrapper">
-          <div class="drop-text">Drag & Drop Archive Here</div>
-          <div class="drop-subtext">or click <strong>'열기'</strong> to browse files</div>
+          <div class="drop-text" id="home-drop-title">파일이나 폴더를 놓아주세요</div>
+          <div class="drop-subtext" id="home-drop-description">압축 파일은 풀고, 파일과 폴더는 압축해요</div>
+        </div>
+        <div class="home-input-actions">
+          <button type="button" id="btn-choose-files" class="home-input-button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/></svg><span>파일 선택</span></button>
+          <button type="button" id="btn-choose-folders" class="home-input-button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 7v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-7l-2-3H5a2 2 0 0 0-2 2Z"/></svg><span>폴더 선택</span></button>
         </div>
       </div>
 
       <!-- Compression Options (Hidden by default, shown when Compress is clicked) -->
       <div class="compression-options-panel" id="compression-options" style="display: none;">
         <div id="compression-lens-scene"></div>
+        <div id="compression-selection" class="compression-selection" hidden>
+          <div class="compression-selection-heading">
+            <span id="compression-selection-summary" aria-live="polite"></span>
+            <button type="button" id="btn-change-compression-source" class="compression-change-button"><span>다시 선택</span></button>
+          </div>
+          <ul id="compression-selection-list"></ul>
+        </div>
         <div class="select-group">
           <div class="select-wrapper">
-            <select id="format-select" class="custom-select">
+            <select id="format-select" class="custom-select" dir="ltr">
               <option value="zip">.zip</option>
               <option value="7z">.7z</option>
               <option value="tar.gz">.tar.gz</option>
@@ -110,7 +124,7 @@
           <div class="select-wrapper">
             <input type="text" id="split-select" class="custom-input" list="split-options" placeholder="Split Archive (e.g. 10m)">
             <datalist id="split-options">
-              <option value="0">No Split</option>
+              <option id="split-option-none" value="0">No Split</option>
               <option value="10m">10MB</option>
               <option value="100m">100MB</option>
               <option value="4g">4GB</option>
@@ -118,12 +132,12 @@
           </div>
         </div>
         <div class="astra-compression-settings">
-          <label>압축 정도 / Level
+          <label><span id="compression-level-label">압축 정도</span>
             <select id="compression-level" class="custom-select" aria-label="Compression level">
               <option value="1">빠르게 / Fast</option><option value="6" selected>균형 / Balanced</option><option value="9">최대 압축 / Maximum</option>
             </select>
           </label>
-          <label>선택 대상 / Source
+          <label id="compression-source-field"><span id="compression-source-label">선택 대상</span>
             <select id="compression-source" class="custom-select" aria-label="Compression source"><option value="folder">폴더 / Folder</option><option value="files">파일 / Files</option></select>
           </label>
         </div>
@@ -139,7 +153,7 @@
             <button tabindex="-1" type="button" class="pwd-toggle-btn" id="compress-pwd-toggle">👁️</button>
           </div>
           <div class="select-wrapper small-select-wrapper">
-            <select id="encrypt-level" class="custom-select small-select">
+            <select id="encrypt-level" class="custom-select small-select" dir="ltr">
               <option value="AES-256">AES-256</option>
               <option value="ZipCrypto">ZipC</option>
             </select>
@@ -205,10 +219,10 @@
 
         <div id="preview-cols-header" class="preview-list-header">
           <div class="sort-buttons">
-            <button class="sort-btn active" data-sort="name">Name <span class="sort-arrow">▲</span></button>
-            <button class="sort-btn" data-sort="size">Extracted Size <span class="sort-arrow"></span></button>
-            <button class="sort-btn" data-sort="compressed">Compressed Size <span class="sort-arrow"></span></button>
-            <button class="sort-btn" data-sort="ext">Extension <span class="sort-arrow"></span></button>
+            <button class="sort-btn active" data-sort="name"><span class="sort-label">Name</span> <span class="sort-arrow">▲</span></button>
+            <button class="sort-btn" data-sort="size"><span class="sort-label">Extracted Size</span> <span class="sort-arrow"></span></button>
+            <button class="sort-btn" data-sort="compressed"><span class="sort-label">Compressed Size</span> <span class="sort-arrow"></span></button>
+            <button class="sort-btn" data-sort="ext"><span class="sort-label">Extension</span> <span class="sort-arrow"></span></button>
           </div>
         </div>
 
@@ -329,21 +343,60 @@
     <div class="modal about-modal-2000s" style="background: #ece9d8; border: 2px solid #fff; border-right-color: #848284; border-bottom-color: #848284; padding: 2px; color: #000; font-family: 'Tahoma', 'Gulim', sans-serif;">
       <!-- Titlebar 2000s -->
       <div style="background: linear-gradient(90deg, #0058e6, #3a93ff); padding: 3px 5px; color: white; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
-        <span id="about-title">ZipLens 2.0 정보</span>
+        <span id="about-title">ZipLens 정보</span>
         <button id="about-close-x" style="background: #e04343 !important; border: 1px solid #fff !important; border-radius: 3px !important; padding: 0 !important; margin: 0 !important; width: 21px !important; height: 21px !important; display: flex !important; justify-content: center !important; align-items: center !important; font-weight: bold !important; font-size: 11px !important; font-family: 'Tahoma', sans-serif !important; cursor: pointer !important; color: #fff !important; line-height: 1 !important; min-width: unset !important; flex: 0 0 auto !important; box-shadow: inset 0 0 2px rgba(255,255,255,0.5), 1px 1px 2px rgba(0,0,0,0.3) !important;">X</button>
       </div>
       
       <!-- Content -->
-      <div class="about-content" style="padding: 16px; display: flex; gap: 16px; align-items: flex-start; text-align: start;">
-        <img src="/about-image.jpg" alt="" style="width: 80px; height: 80px; border: 2px solid #848284; border-right-color: #fff; border-bottom-color: #fff; object-fit: contain; background: white;" />
-        <div class="about-copy" style="font-size: 12px; line-height: 1.5;">
-          <!-- Keep the displayed release version in sync with tauri.conf.json. -->
-          <p style="margin: 0 0 10px 0;"><bdi dir="ltr"><strong>ZipLens 2.0</strong></bdi><br><span id="about-version-label">버전</span> <bdi dir="ltr">2.0.3</bdi></p>
-          <div id="about-introduction"></div>
-          <p style="margin: 0 0 10px 0;"><a href="https://github.com/SeederPowerDrop" target="_blank" dir="ltr" style="unicode-bidi: isolate; color: #0000ff; text-decoration: underline;">(https://github.com/SeederPowerDrop)</a></p>
-          <p style="margin: 0;"><a id="about-support-label" href="https://buymeacoffee.com/master_chief" target="_blank" style="color: #0058e6; text-decoration: underline;">☕ 후원하기 (Buy Me A Coffee)</a></p>
-          <!-- Translate only the prefix; preserve the personal message and its letter order. -->
-          <p id="about-dedication" style="margin: 14px 0 0;"><span id="about-dedication-prefix">그리고</span> <bdi dir="ltr" translate="no">ERW FWS WRG</bdi></p>
+      <div class="about-content">
+        <div class="about-copy">
+          <div class="about-story">
+            <figure class="about-artwork">
+              <img id="about-artwork" src="/about-image.jpg" alt="ZipLens" width="144" height="144" />
+            </figure>
+            <header class="about-profile">
+              <p class="about-app-heading"><bdi dir="ltr"><strong id="about-app-name">ZipLens</strong></bdi></p>
+              <p id="about-tagline">누구나 자유롭게 쓰는 macOS 압축 도구.</p>
+              <nav class="about-links" aria-label="ZipLens">
+                <a id="about-user-guide" href="#user-guide-dialog" aria-haspopup="dialog" aria-controls="user-guide-dialog">사용방법</a>
+                <a href="https://github.com/SeederPowerDrop" target="_blank" rel="noopener noreferrer"><bdi dir="ltr" translate="no">GitHub · SeederPowerDrop</bdi></a>
+              </nav>
+            </header>
+            <div id="about-introduction"></div>
+            <!-- This is the final line of the introduction in every language. -->
+            <p id="about-dedication"><span id="about-dedication-prefix">그리고</span> <bdi dir="ltr" translate="no">ERW FWS WRG</bdi></p>
+          </div>
+          <section class="about-support" aria-labelledby="about-support-title">
+            <h2 id="about-support-title">후원하기</h2>
+            <p id="about-support-message">제가 받은 도움을 다시 나누는 마음으로, 누구나 무료로 쓸 수 있는 도구를 만듭니다. 유용하게 쓰셨다면 작은 후원으로 응원해 주세요.</p>
+            <div class="about-support-links">
+              <a id="about-support-label" class="about-support-card" href="https://buymeacoffee.com/master_chief" target="_blank" rel="noopener noreferrer">
+                <span class="about-service-icon about-service-coffee" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" focusable="false"><path d="M7 9h10l-1 12H8L7 9Z"/><path d="M6 6h12v3H6zM8 3h8l2 3H6l2-3Z"/><path d="M8 13h8"/></svg></span>
+                <bdi dir="ltr" translate="no">Buy Me a Coffee</bdi>
+              </a>
+              <a id="about-kofi-link" class="about-support-card" href="https://ko-fi.com/seederpower" target="_blank" rel="noopener noreferrer">
+                <span class="about-service-icon about-service-kofi" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M4 6h13v8a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V6ZM17 7h2a3 3 0 0 1 0 6h-2M3 22h16"/><path d="M7 10c0-2 3-2 3.5 0 .5-2 3.5-2 3.5 0 0 2-3.5 4-3.5 4S7 12 7 10Z" fill="currentColor" stroke="none"/></svg></span>
+                <bdi dir="ltr" translate="no">Ko-fi</bdi>
+              </a>
+              <button id="about-bitcoin-toggle" class="about-support-card" type="button" aria-expanded="false" aria-controls="about-bitcoin">
+                <span class="about-service-icon about-service-wallet" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M4 7V5a2 2 0 0 1 2-2h12v4M4 7h16v14H6a2 2 0 0 1-2-2V7ZM20 11h-6v6h6"/><circle cx="16" cy="14" r=".8" fill="currentColor" stroke="none"/></svg></span>
+                <span class="about-service-name"><bdi dir="ltr" translate="no">BlueWallet</bdi><small dir="ltr" translate="no">Bitcoin (BTC)</small></span>
+                <svg class="about-support-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="m3 4.5 3 3 3-3"/></svg>
+              </button>
+            </div>
+            <div id="about-bitcoin" class="about-bitcoin" hidden>
+              <p id="about-bitcoin-hint">비트코인 네트워크로 후원할 수 있어요. 주소를 복사하거나 QR 코드를 스캔해 주세요.</p>
+              <div class="about-bitcoin-payment">
+                <img id="about-bitcoin-qr" src="/bitcoin-support.svg" width="148" height="148" alt="비트코인 후원용 QR 코드" />
+                <div class="about-bitcoin-copy">
+                  <label id="about-bitcoin-address-label" for="about-bitcoin-address">비트코인 수신 주소</label>
+                  <textarea id="about-bitcoin-address" dir="ltr" rows="3" readonly spellcheck="false" autocapitalize="off">BC1QUEUAX3FJP77NZUKF732AEWVFE0YVS9ZPKUMLTV</textarea>
+                  <button id="about-bitcoin-copy" type="button">주소 복사</button>
+                  <p id="about-bitcoin-status" role="status" aria-live="polite"></p>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
       
@@ -351,10 +404,16 @@
       <div class="about-actions">
         <button id="about-licenses" type="button" aria-describedby="about-licenses-hint">오픈소스 라이선스</button>
         <span id="about-licenses-hint" class="visually-hidden">라이선스와 소스 코드 안내가 담긴 폴더를 Finder에서 엽니다.</span>
-        <button id="about-close" style="background: #ece9d8; border: 2px solid #fff; border-right-color: #848284; border-bottom-color: #848284; padding: 4px 20px; font-family: 'Tahoma', 'Gulim'; font-size: 12px; cursor: pointer; color: #000;">확인</button>
+        <button id="about-close" type="button">확인</button>
       </div>
     </div>
   </div>
+
+  <dialog id="user-guide-dialog" class="user-guide-dialog" aria-labelledby="user-guide-title">
+    <h2 id="user-guide-title" class="user-guide-title">사용방법</h2>
+    <div id="user-guide-content" class="user-guide-content" tabindex="0"></div>
+    <div class="user-guide-actions"><button id="user-guide-close" type="button" autofocus>닫기</button></div>
+  </dialog>
 
   <!-- Toast Notification Container -->
   <div id="toast-container" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>

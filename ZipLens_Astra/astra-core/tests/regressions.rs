@@ -217,6 +217,30 @@ fn cancelled_job_produces_no_success() {
     assert!(!r.destination.exists());
 }
 #[test]
+fn cancelled_native_zip_support_and_entry_lookup_stop_before_scanning() {
+    use ziplens_astra_core::zip_engine;
+
+    let root = tempfile::tempdir().unwrap();
+    let archive = root.path().join("input.zip");
+    zip(&archive, &[("file", b"data")]);
+    let ctx = Context::new(Arc::new(AtomicBool::new(true)), |_| {});
+    assert_eq!(
+        zip_engine::native_supported(&archive, &ctx).unwrap_err(),
+        "CANCELLED"
+    );
+    // A missing target never reaches Context::copy, so lookup itself must check cancellation.
+    assert_eq!(
+        zip_engine::read_entry(&archive, "missing", None, &ctx).unwrap_err(),
+        "CANCELLED"
+    );
+    assert_eq!(
+        engine()
+            .read_entry(&archive, "missing", None, &ctx)
+            .unwrap_err(),
+        "CANCELLED"
+    );
+}
+#[test]
 fn encrypted_zip_prompts_then_retries_without_truncating_existing_file() {
     let root = tempfile::tempdir().unwrap();
     let mut r = request(&root);

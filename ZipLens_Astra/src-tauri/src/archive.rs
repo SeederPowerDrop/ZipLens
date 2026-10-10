@@ -37,7 +37,7 @@ fn begin(app: &AppHandle) -> Result<(Job, Context), String> {
         }),
     ))
 }
-fn engine() -> Result<Engine, String> {
+pub(crate) fn engine() -> Result<Engine, String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let bundled = exe
         .parent()

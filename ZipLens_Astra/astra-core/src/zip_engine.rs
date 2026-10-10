@@ -5,9 +5,12 @@ use std::{
     fs::{self, File},
     io::{self, BufReader, BufWriter, Read, Seek, SeekFrom},
     path::Path,
-    sync::Arc,
+    sync::{Arc, OnceLock},
 };
 use zip::{CompressionMethod, ZipArchive};
+
+const MAX_ZIP_WORKERS: usize = 8;
+static ZIP_POOL: OnceLock<Result<rayon::ThreadPool, String>> = OnceLock::new();
 
 /// Clones share an open file, but NOT the seek cursor (File::try_clone would share it on Unix).
 /// ZipArchive::clone shares the parsed central directory, avoiding O(entries²) reparsing.
@@ -113,10 +116,12 @@ pub fn preview(path: &Path, ctx: &Context) -> Result<Vec<Entry>, String> {
     Ok(files)
 }
 
-pub fn native_supported(path: &Path) -> Result<bool, String> {
+pub fn native_supported(path: &Path, ctx: &Context) -> Result<bool, String> {
+    ctx.check()?;
     let mut zip = ZipArchive::new(BufReader::new(File::open(path).map_err(|e| e.to_string())?))
         .map_err(|e| e.to_string())?;
     for i in 0..zip.len() {
+        ctx.check()?;
         let f = zip.by_index_raw(i).map_err(|e| e.to_string())?;
         if !matches!(
             f.compression(),
@@ -168,54 +173,59 @@ pub fn extract(
             if f.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000) {
                 links.push(i);
             } else {
-                regular.push(i);
+                // Account for both compressed input reads and decoded output writes.
+                regular.push((i, f.compressed_size().saturating_add(f.size()).max(1)));
             }
         }
     }
-    // Each worker keeps its own decoder/cursor. Metadata parsing is constant per operation.
-    let template = archive.clone();
-    regular
-        .par_chunks((regular.len().div_ceil(worker_count())).max(1))
-        .try_for_each(|chunk| {
-            let mut zip = template.clone();
-            for &i in chunk {
-                ctx.check()?;
-                let mut f = match password {
-                    Some(pw) => zip.by_index_decrypt(i, pw.as_bytes()),
-                    None => zip.by_index(i),
+    if !regular.is_empty() {
+        let pool = worker_pool()?;
+        let batches = balanced_batches(regular, pool.current_num_threads());
+        // Clone once per balanced batch, sharing metadata while keeping independent cursors.
+        let template = archive.clone();
+        pool.install(|| {
+            batches.par_iter().try_for_each(|chunk| {
+                let mut zip = template.clone();
+                for &i in chunk {
+                    ctx.check()?;
+                    let mut f = match password {
+                        Some(pw) => zip.by_index_decrypt(i, pw.as_bytes()),
+                        None => zip.by_index(i),
+                    }
+                    .map_err(password_error)?;
+                    let filename = name(&f);
+                    let output = dest.join(paths::relative(&filename)?);
+                    let mut writer = BufWriter::with_capacity(
+                        256 * 1024,
+                        File::options()
+                            .write(true)
+                            .create_new(true)
+                            .open(&output)
+                            .map_err(|e| e.to_string())?,
+                    );
+                    let size = f.size();
+                    ctx.copy(&mut f, &mut writer, &filename, size)?;
+                    // into_inner flushes; an I/O/CRC failure aborts the stage, preserving the destination.
+                    let writer = writer.into_inner().map_err(|e| e.to_string())?;
+                    if writer.metadata().map_err(|e| e.to_string())?.len() != f.size() {
+                        return Err(format!("{filename}: decoded size mismatch"));
+                    }
+                    set_mode(&output, f.unix_mode())?;
+                    if let Some(time) = f
+                        .last_modified()
+                        .and_then(|d| time::OffsetDateTime::try_from(d).ok())
+                    {
+                        filetime::set_file_mtime(
+                            &output,
+                            filetime::FileTime::from_unix_time(time.unix_timestamp(), 0),
+                        )
+                        .map_err(|e| e.to_string())?;
+                    }
                 }
-                .map_err(password_error)?;
-                let filename = name(&f);
-                let output = dest.join(paths::relative(&filename)?);
-                let mut writer = BufWriter::with_capacity(
-                    256 * 1024,
-                    File::options()
-                        .write(true)
-                        .create_new(true)
-                        .open(&output)
-                        .map_err(|e| e.to_string())?,
-                );
-                let size = f.size();
-                ctx.copy(&mut f, &mut writer, &filename, size)?;
-                // into_inner flushes; an I/O/CRC failure aborts the stage, preserving the destination.
-                let writer = writer.into_inner().map_err(|e| e.to_string())?;
-                if writer.metadata().map_err(|e| e.to_string())?.len() != f.size() {
-                    return Err(format!("{filename}: decoded size mismatch"));
-                }
-                set_mode(&output, f.unix_mode())?;
-                if let Some(time) = f
-                    .last_modified()
-                    .and_then(|d| time::OffsetDateTime::try_from(d).ok())
-                {
-                    filetime::set_file_mtime(
-                        &output,
-                        filetime::FileTime::from_unix_time(time.unix_timestamp(), 0),
-                    )
-                    .map_err(|e| e.to_string())?;
-                }
-            }
-            Ok::<_, String>(())
+                Ok::<_, String>(())
+            })
         })?;
+    }
     for i in links {
         let mut f = match password {
             Some(pw) => archive.by_index_decrypt(i, pw.as_bytes()),
@@ -243,7 +253,43 @@ pub fn extract(
 pub fn worker_count() -> usize {
     std::thread::available_parallelism()
         .map_or(2, |n| n.get())
-        .min(8)
+        .min(MAX_ZIP_WORKERS)
+}
+
+fn worker_pool() -> Result<&'static rayon::ThreadPool, String> {
+    ZIP_POOL
+        .get_or_init(|| {
+            rayon::ThreadPoolBuilder::new()
+                .num_threads(worker_count())
+                .thread_name(|i| format!("ziplens-zip-{i}"))
+                .build()
+                .map_err(|e| format!("Cannot start ZIP workers: {e}"))
+        })
+        .as_ref()
+        .map_err(Clone::clone)
+}
+
+fn balanced_batches(mut files: Vec<(usize, u64)>, workers: usize) -> Vec<Vec<usize>> {
+    if files.is_empty() {
+        return Vec::new();
+    }
+    let count = workers.clamp(1, MAX_ZIP_WORKERS).min(files.len());
+    let mut batches = vec![Vec::new(); count];
+    // Wider sums keep scheduling correct even for extreme sizes in untrusted headers.
+    let mut loads = vec![0u128; count];
+    files.sort_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    for (index, weight) in files {
+        let next = (0..count)
+            .min_by_key(|&i| (loads[i], batches[i].len(), i))
+            .unwrap(); // count is at least one for a nonempty input.
+        batches[next].push(index);
+        loads[next] += u128::from(weight.max(1));
+    }
+    // Retain archive order within each batch for input locality.
+    for batch in &mut batches {
+        batch.sort_unstable();
+    }
+    batches
 }
 
 pub(crate) fn set_mode(path: &Path, mode: Option<u32>) -> Result<(), String> {
@@ -262,11 +308,18 @@ pub fn read_entry(
     password: Option<&str>,
     ctx: &Context,
 ) -> Result<Vec<u8>, String> {
+    ctx.check()?;
     let mut zip = ZipArchive::new(BufReader::new(File::open(path).map_err(|e| e.to_string())?))
         .map_err(|e| e.to_string())?;
-    let index = (0..zip.len())
-        .find(|&i| zip.by_index_raw(i).is_ok_and(|f| name(&f) == target))
-        .ok_or("File not found in archive")?;
+    let mut index = None;
+    for i in 0..zip.len() {
+        ctx.check()?;
+        if zip.by_index_raw(i).is_ok_and(|f| name(&f) == target) {
+            index = Some(i);
+            break;
+        }
+    }
+    let index = index.ok_or("File not found in archive")?;
     let mut f = match password {
         Some(pw) => zip.by_index_decrypt(index, pw.as_bytes()),
         None => zip.by_index(index),
@@ -281,4 +334,48 @@ pub fn read_entry(
     let mut data = Vec::new();
     ctx.copy(&mut f, &mut data, target, PREVIEW_LIMIT)?;
     Ok(data)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{balanced_batches, MAX_ZIP_WORKERS};
+
+    #[test]
+    fn balanced_batches_spread_clustered_large_entries() {
+        let weights: Vec<u64> = (0..80)
+            .map(|i| if i < 8 { 1024 * 1024 * 1024 } else { 4096 })
+            .collect();
+        let files = weights.iter().copied().enumerate().collect();
+        let batches = balanced_batches(files, 8);
+        assert_eq!(batches.len(), 8);
+        let loads: Vec<u64> = batches
+            .iter()
+            .map(|batch| {
+                assert_eq!(batch.iter().filter(|&&index| index < 8).count(), 1);
+                batch.iter().map(|&index| weights[index]).sum()
+            })
+            .collect();
+        assert!(loads.iter().max().unwrap() - loads.iter().min().unwrap() <= 4096);
+    }
+
+    #[test]
+    fn balanced_batches_cover_every_entry_once_and_bound_workers() {
+        for len in [0, 1, 3, 80] {
+            for workers in [0, 1, 2, 4, 8, 64] {
+                let files: Vec<_> = (0..len)
+                    .map(|i| (i, [0, 1, u64::MAX, 4096][i % 4]))
+                    .collect();
+                let batches = balanced_batches(files.clone(), workers);
+                assert_eq!(batches.len(), workers.clamp(1, MAX_ZIP_WORKERS).min(len));
+                assert!(batches.iter().all(|batch| !batch.is_empty()));
+                assert!(batches
+                    .iter()
+                    .all(|batch| batch.windows(2).all(|pair| pair[0] < pair[1])));
+                let mut actual: Vec<_> = batches.iter().flatten().copied().collect();
+                actual.sort_unstable();
+                assert_eq!(actual, (0..len).collect::<Vec<_>>());
+                assert_eq!(batches, balanced_batches(files, workers));
+            }
+        }
+    }
 }

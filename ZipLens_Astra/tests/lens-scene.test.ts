@@ -46,6 +46,37 @@ test("preview never starts a compression animation and stopping a job removes mo
     assert.equal(container.dataset.running, "false");
 });
 
+test("returning home stops an active job and both lenses share a still beam", () => {
+    const { scene, container, caption } = fixture();
+    scene.setMode("extract", "압축 해제 중");
+    scene.setRunning(true);
+    scene.setHome("파일에 맞춰 압축 또는 해제");
+    assert.equal(container.dataset.mode, "home");
+    assert.equal(container.dataset.running, "false");
+    assert.equal(caption.textContent, "파일에 맞춰 압축 또는 해제");
+    scene.setRunning(true);
+    assert.equal(container.dataset.running, "false");
+
+    const home = container.innerHTML.split('<g class="optics-home"')[1].split('<g class="optics-extract"')[0];
+    assert.match(home, /class="optics-home-concave"/);
+    assert.match(home, /class="optics-home-convex"/);
+    assert.equal((home.match(/class="optics-ray"/g) ?? []).length, 5);
+    assert.match(home, /M30 140 H224 L416 140 L610 140/);
+    assert.doesNotMatch(home, /optics-photon|optics-focus|<animate/);
+
+    scene.setMode("compress", "압축 중");
+    scene.setRunning(true);
+    assert.equal(container.dataset.running, "true");
+});
+
+test("switching directly from an active operation to preview clears motion", () => {
+    const { scene, container } = fixture();
+    scene.setMode("compress", "압축 중");
+    scene.setRunning(true);
+    scene.setMode("preview", "미리 보기");
+    assert.equal(container.dataset.running, "false");
+});
+
 test("unknown or invalid progress is not presented as a measured percentage", () => {
     const { scene, container, properties } = fixture();
     for (const value of [null, NaN, Infinity]) {

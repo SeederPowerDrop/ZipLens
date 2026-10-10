@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+Tauri merges this dictionary into the generated macOS Info.plist. Its file association
+schema does not expose CFBundleTypeIconFile, so keep each extension family, role, and
+rank in sync with bundle.fileAssociations in tauri.conf.json. These are existing
+archive formats, not new ZipLens-owned UTIs. Icons are copied to Resources via
+bundle.resources; they do not replace the application icon or change user defaults.
+Versioned resource destinations distinguish revisions of document-icon artwork.
+-->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>zip</string>
+				<string>zipx</string>
+				<string>cbz</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-zip-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>ZIP Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>7z</string>
+				<string>cb7</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-7z-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>7-Zip Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>rar</string>
+				<string>cbr</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-rar-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>RAR Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>tar</string>
+				<string>cbt</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-tar-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>TAR Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>gz</string>
+				<string>gzip</string>
+				<string>tgz</string>
+				<string>z</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-gzip-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Gzip Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>bz2</string>
+				<string>bzip2</string>
+				<string>tbz</string>
+				<string>tbz2</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-bzip2-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Bzip2 Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>xz</string>
+				<string>txz</string>
+				<string>lzma</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-xz-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>XZ Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>zst</string>
+				<string>zstd</string>
+				<string>tzst</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-zstd-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Zstandard Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>alz</string>
+				<string>egg</string>
+				<string>cab</string>
+				<string>lzh</string>
+				<string>lha</string>
+				<string>arj</string>
+				<string>cpio</string>
+				<string>ar</string>
+				<string>xar</string>
+				<string>wim</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-legacy-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Legacy Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>iso</string>
+				<string>dmg</string>
+				<string>001</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>archive-generic-v2.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Archive Container</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -28,7 +28,7 @@
 이번 파일은 **프리뷰이며 Apple Developer ID 서명·공증을 완료하지 않았습니다.** macOS에서 실행 경고나 차단이 발생할 수 있습니다. Intel 실행과 모든 압축 변형의 호환성을 검증한 것은 아닙니다. EGG의 암호화된 파일명·전체 헤더는 지원하지 않으며 AES/LEA 및 일부 AZO 변형은 아직 검증하지 않았습니다.
 
 - [이전 2.0 소스 대비 전체 변경](https://github.com/SeederPowerDrop/ZipLens/compare/e0423bcb06484f1b4f544f061c6a07f52175c179...v2.0.0)
-- [상세 점검 기록](https://github.com/SeederPowerDrop/ZipLens/blob/v2.0.0/ZipLens_Astra/docs/FINAL_REVIEW_KO.md)
+- [공개 검증 요약](VALIDATION.md)
 - [ALZ·EGG 지원 한도](https://github.com/SeederPowerDrop/ZipLens/blob/v2.0.0/ZipLens_Astra/astra-core/tests/fixtures/legacy/README.md)
 - [문제 신고](https://github.com/SeederPowerDrop/ZipLens/issues/new)
 

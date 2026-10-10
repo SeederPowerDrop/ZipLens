@@ -47,3 +47,24 @@ release_build/
 # Python runtime caches
 __pycache__/
 *.py[cod]
+
+# Internal development records are archived in a private repository.
+/app-icon.prompt.txt
+/docs/BENCHMARKS_KO.md
+/docs/DEVELOPER_NOTES.md
+/docs/FINAL_REVIEW_KO.md
+/docs/PERFORMANCE_COMPATIBILITY_2026-10-02.md
+/docs/REAL_IMAGE_TEST_2026-10-10.md
+/docs/REVIEW_KO.md
+/docs/WORK_LOG.md
+/docs/ZIP_SIZE_KO.md
+/docs/benchmark-results.json
+/docs/build-result.json
+/docs/original-manifest.json
+/docs/original-verification.json
+/docs/packaging-2.0.2-preview.json
+/docs/packaging-2.0.3-preview.json
+/docs/real-image-test-2026-10-10.json
+/docs/resource-benchmark-after-2026-10-02.json
+/docs/resource-benchmark-before-2026-10-02.json
+/scripts/verify-originals.py
