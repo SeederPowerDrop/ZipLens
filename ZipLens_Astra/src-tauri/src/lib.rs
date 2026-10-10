@@ -5,7 +5,9 @@ fn greet(name: &str) -> String {
 }
 
 mod archive;
+pub mod cli;
 mod file_associations;
+mod input;
 mod licenses;
 
 use serde::Serialize;
@@ -71,6 +73,73 @@ fn take_startup_actions(queue: tauri::State<'_, StartupQueue>) -> Vec<StartupAct
     std::mem::take(&mut *queue.0.lock().unwrap())
 }
 
+/// Follow the in-app language for custom menu labels. Native standard actions
+/// retain their macOS-managed labels, shortcuts and behavior.
+#[tauri::command]
+fn set_menu_language(app: tauri::AppHandle, lang: String) -> Result<(), String> {
+    let (about, defaults, file, edit) = match lang.as_str() {
+        "ko" => ("ZipLens 정보", "기본 압축 앱 설정…", "파일", "편집"),
+        "en" => ("About ZipLens", "Default Archive App…", "File", "Edit"),
+        "ja" => (
+            "ZipLens について",
+            "標準の圧縮アプリ…",
+            "ファイル",
+            "編集",
+        ),
+        "zh" => ("关于 ZipLens", "默认压缩应用…", "文件", "编辑"),
+        "vi" => (
+            "Giới thiệu về ZipLens",
+            "Ứng dụng nén mặc định…",
+            "Tệp",
+            "Sửa",
+        ),
+        "es" => (
+            "Acerca de ZipLens",
+            "Aplicación de archivos predeterminada…",
+            "Archivo",
+            "Edición",
+        ),
+        "fr" => (
+            "À propos de ZipLens",
+            "Application d’archives par défaut…",
+            "Fichier",
+            "Édition",
+        ),
+        "de" => (
+            "Über ZipLens",
+            "Standard-App für Archive…",
+            "Ablage",
+            "Bearbeiten",
+        ),
+        "ru" => ("О ZipLens", "Архиватор по умолчанию…", "Файл", "Правка"),
+        "ar" => ("حول ZipLens", "تطبيق الأرشيف الافتراضي…", "ملف", "تحرير"),
+        _ => return Err("UNSUPPORTED_LANGUAGE".into()),
+    };
+
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::menu::MenuItemKind;
+        let Some(menu) = app.menu() else {
+            return Ok(());
+        };
+        if let Some(MenuItemKind::Submenu(submenu)) = menu.get("app_submenu") {
+            for (id, text) in [("custom_about", about), ("file_associations", defaults)] {
+                if let Some(MenuItemKind::MenuItem(item)) = submenu.get(id) {
+                    item.set_text(text).map_err(|error| error.to_string())?;
+                }
+            }
+        }
+        for (id, text) in [("file_submenu", file), ("edit_submenu", edit)] {
+            if let Some(MenuItemKind::Submenu(submenu)) = menu.get(id) {
+                submenu.set_text(text).map_err(|error| error.to_string())?;
+            }
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, about, defaults, file, edit);
+    Ok(())
+}
+
 // Finder can send Opened/Reopen before Tauri's Ready event creates the main
 // window. Creating it here would make Tauri's setup fail with a duplicate label
 // and abort inside applicationDidFinishLaunching. Early actions stay queued for
@@ -124,13 +193,13 @@ pub fn run() {
                 let app_submenu = Submenu::with_id_and_items(
                     app,
                     "app_submenu",
-                    "ZipLens 2.0",
+                    "ZipLens",
                     true,
                     &[
                         &MenuItem::with_id(
                             app,
                             "custom_about",
-                            "About ZipLens 2.0",
+                            "About ZipLens",
                             true,
                             None::<&str>,
                         )
@@ -228,7 +297,9 @@ pub fn run() {
             archive::save_report_file,
             archive::cancel_operation,
             archive::prepare_external_preview,
+            input::inspect_input_paths,
             take_startup_actions,
+            set_menu_language,
             licenses::open_license_folder,
             file_associations::get_file_associations,
             file_associations::set_default_file_associations,

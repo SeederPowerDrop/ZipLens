@@ -1,0 +1,71 @@
+ZipLens — application license / 앱 라이선스
+
+Copyright (C) 2026 SeederPowerDrop and contributors
+SPDX-License-Identifier: GPL-3.0-only
+
+ZipLens is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation, version 3 of the License.
+
+ZipLens is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with ZipLens. See COPYING.txt in this folder. If not, see
+https://www.gnu.org/licenses/.
+
+Scope / 적용 범위
+
+This license applies to the project's own application code, including the
+legacy 1.x application, the current application, archive engine, helper,
+tests and build scripts, unless a file states otherwise. Third-party code,
+software, license documents and other materials with separate notices
+retain their respective licenses. In particular, the separately executed
+7-Zip binary and its sources retain the terms in ../7zip/. Dependency
+notices are in ../third-party/. This notice does not relicense those works.
+
+ZipLens 자체 앱 코드(기존 1.x 앱, 현재 앱, 압축 엔진, 보조 프로그램,
+테스트와 빌드 스크립트)는 파일별 별도 표시가 없는 한 GNU GPL 버전 3으로
+제공합니다. 외부 구성요소와 별도 고지가 있는 자료에는 각자의 라이선스가
+적용됩니다. 라이선스 전문은 이 폴더의 COPYING.txt에서 확인할 수 있습니다.
+GPL에 명시된 범위에서 이 프로그램에는 보증이 없습니다.
+
+Source and contact / 소스 및 연락처
+
+Project: https://github.com/SeederPowerDrop/ZipLens
+Author: https://github.com/SeederPowerDrop
+Build instructions: ZipLens_Astra/README.md in the source tree.
+
+When distributing a binary, provide its complete corresponding source
+under GPLv3 section 6, including the build scripts, configuration and
+lockfiles needed to build that version. For download releases, provide
+equivalent access to that exact source alongside the binary and identify
+it in the release notes. The repository's changing default branch alone
+is not a substitute for the source corresponding to a particular build.
+Distributing modified versions also requires the applicable GPL notices,
+including prominent identification of modifications and their dates.
+
+실행 파일을 배포할 때에는 GPLv3 제6조에 따라 그 버전을 빌드하는 데 필요한
+스크립트·설정·잠금 파일 등을 포함한 완전한 대응 소스를 제공해야 합니다.
+다운로드 릴리스에는 실행 파일과 함께 정확히 대응하는 소스를 받을 수 있는
+경로를 안내해 주세요. 계속 바뀌는 기본 브랜치 링크만으로 특정 배포본의
+대응 소스를 대신하지 않습니다. 수정본에는 GPL에서 요구하는 변경 사실과
+날짜 등의 고지도 포함해야 합니다.
+
+Voluntary support / 자발적인 후원
+
+Official support links:
+https://buymeacoffee.com/master_chief
+https://ko-fi.com/seederpower
+
+If you distribute a modified version, please also introduce the original
+project and retain links to support the original author. This is a
+voluntary request, not an additional license condition. Donations and
+retention of donation links are not required to exercise GPLv3 rights.
+
+수정본을 배포하실 때에도 원작 프로젝트와 원작자 후원 링크를 함께 소개해
+주시면 감사하겠습니다. 이는 자발적인 협조 요청이며 라이선스의 추가 조건이
+아닙니다. GPLv3의 권리를 행사하기 위해 후원하거나 후원 링크를 유지할 의무는
+없습니다. 공식 ZipLens 앱은 기존 후원란을 유지합니다.

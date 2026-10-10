@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ZipLens 2.0",
-  "version": "2.0.3",
+  "productName": "ZipLens",
+  "version": "2.1.1",
   "identifier": "com.ziplens.astra",
   "build": {
     "beforeDevCommand": "python3 scripts/prepare-distribution.py && npm run dev",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "ZipLens 2.0",
+        "title": "ZipLens",
         "width": 800,
         "height": 600,
         "titleBarStyle": "Overlay",
@@ -42,29 +42,97 @@
     ],
     "fileAssociations": [
       {
-        "name": "Archive",
+        "name": "ZIP Archive",
         "ext": [
           "zip",
           "zipx",
+          "cbz"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "7-Zip Archive",
+        "ext": [
           "7z",
+          "cb7"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "RAR Archive",
+        "ext": [
           "rar",
-          "alz",
-          "egg",
+          "cbr"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "TAR Archive",
+        "ext": [
           "tar",
+          "cbt"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "Gzip Archive",
+        "ext": [
           "gz",
           "gzip",
           "tgz",
+          "z"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "Bzip2 Archive",
+        "ext": [
           "bz2",
           "bzip2",
           "tbz",
-          "tbz2",
+          "tbz2"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "XZ Archive",
+        "ext": [
           "xz",
           "txz",
+          "lzma"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "Zstandard Archive",
+        "ext": [
           "zst",
           "zstd",
-          "tzst",
-          "lzma",
-          "z",
+          "tzst"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "Legacy Archive",
+        "ext": [
+          "alz",
+          "egg",
           "cab",
           "lzh",
           "lha",
@@ -72,11 +140,15 @@
           "cpio",
           "ar",
           "xar",
-          "wim",
-          "cbz",
-          "cbr",
-          "cb7",
-          "cbt",
+          "wim"
+        ],
+        "description": "Compressed Archive File",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "name": "Archive Container",
+        "ext": [
           "iso",
           "dmg",
           "001"
@@ -87,7 +159,21 @@
       }
     ],
     "resources": {
-      "../legal/": "legal/"
+      "../legal/": "legal/",
+      "icons/archive-zip.icns": "archive-zip-v2.icns",
+      "icons/archive-7z.icns": "archive-7z-v2.icns",
+      "icons/archive-rar.icns": "archive-rar-v2.icns",
+      "icons/archive-tar.icns": "archive-tar-v2.icns",
+      "icons/archive-gzip.icns": "archive-gzip-v2.icns",
+      "icons/archive-bzip2.icns": "archive-bzip2-v2.icns",
+      "icons/archive-xz.icns": "archive-xz-v2.icns",
+      "icons/archive-zstd.icns": "archive-zstd-v2.icns",
+      "icons/archive-legacy.icns": "archive-legacy-v2.icns",
+      "icons/archive-generic.icns": "archive-generic-v2.icns"
+    },
+    "macOS": {
+      "infoPlist": "Info.plist",
+      "bundleVersion": "2.1.2"
     }
   }
 }

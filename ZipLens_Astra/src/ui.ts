@@ -85,14 +85,22 @@ export const elements = {
  * Updates UI processing state
  */
 export function updateButtonState(processing: boolean) {
+  const composing = document.getElementById("app")?.dataset.composing === "true";
   const associationButton = document.getElementById("btn-file-associations") as HTMLButtonElement | null;
   if (associationButton) associationButton.disabled = processing;
   if (elements.btnOpenArchive) (elements.btnOpenArchive as HTMLButtonElement).disabled = processing;
-  if (elements.btnExtract) (elements.btnExtract as HTMLButtonElement).disabled = processing || !document.getElementById("drop-zone")?.classList.contains("loaded");
-  if (elements.btnSmartExtract) (elements.btnSmartExtract as HTMLButtonElement).disabled = processing || !document.getElementById("drop-zone")?.classList.contains("loaded");
+  if (elements.btnExtract) (elements.btnExtract as HTMLButtonElement).disabled = processing || composing || !document.getElementById("drop-zone")?.classList.contains("loaded");
+  if (elements.btnSmartExtract) (elements.btnSmartExtract as HTMLButtonElement).disabled = processing || composing || !document.getElementById("drop-zone")?.classList.contains("loaded");
   if (elements.btnCompress) (elements.btnCompress as HTMLButtonElement).disabled = processing;
   if (elements.btnConfirmCompress) (elements.btnConfirmCompress as HTMLButtonElement).disabled = processing;
   if (elements.btnCancelCompress) (elements.btnCancelCompress as HTMLButtonElement).disabled = processing;
+  for (const id of ["btn-choose-files", "btn-choose-folders", "btn-change-compression-source"]) {
+    const button = document.getElementById(id) as HTMLButtonElement | null;
+    if (button) button.disabled = processing;
+  }
+  elements.dropZone?.setAttribute("aria-disabled", String(processing));
+  document.querySelectorAll<HTMLButtonElement>("#home-lens-scene button")
+    .forEach(button => { button.disabled = processing; });
   for (const button of [elements.selectAllBtn, elements.deselectAllBtn, elements.toggleAllBtn]) {
     if (button) button.disabled = processing;
   }

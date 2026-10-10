@@ -1,13 +1,15 @@
 export type ProcessingOperation = "extract" | "compress" | "preview";
+type SceneMode = ProcessingOperation | "home";
 
 /**
  * The operation, never translated status text, selects the optical geometry.
- * Both scenes send light left → right: a concave lens spreads parallel rays;
+ * Operation scenes send light left → right: a concave lens spreads parallel rays;
  * a convex lens brings them to a common focus and a single outgoing beam.
+ * Home brings both lenses together in one still optical path.
  * The moving highlights indicate activity, not bytes or a simulated percentage.
  */
 export class LensScene {
-    private mode: ProcessingOperation = "extract";
+    private mode: SceneMode = "extract";
 
     constructor(private container: HTMLElement, id: string) {
         // All markup is application-owned. Archive names never enter this SVG.
@@ -17,6 +19,9 @@ export class LensScene {
             return `<path class="optics-ray" d="${path}" />
                 <path class="optics-photon" d="${path}" pathLength="100" style="--ray-delay:${-i * 0.31}s" />`;
         }).join("");
+        const homeRays = [96, 118, 140, 162, 184].map((y, i) =>
+            `<path class="optics-ray" d="M30 ${y} H224 L416 ${60 + i * 40} L610 ${y}"/>`
+        ).join("");
         this.container.classList.add("optics-scene");
         this.container.dataset.mode = "extract";
         this.container.dataset.running = "false";
@@ -42,8 +47,28 @@ export class LensScene {
                         <stop offset=".18" stop-color="#d2c3ff" stop-opacity=".7"/>
                         <stop offset="1" stop-color="#a88cff" stop-opacity="0"/>
                     </radialGradient>
+                    <linearGradient id="${id}-paired-glass" x1="0%" y1="0%" x2="100%" y2="25%">
+                        <stop offset="0" stop-color="#d8d0ff" stop-opacity=".6"/>
+                        <stop offset=".2" stop-color="#a6a4ff" stop-opacity=".18"/>
+                        <stop offset=".62" stop-color="#acbaff" stop-opacity=".09"/>
+                        <stop offset=".87" stop-color="#c7e9ff" stop-opacity=".35"/>
+                        <stop offset="1" stop-color="#eefaff" stop-opacity=".65"/>
+                    </linearGradient>
                 </defs>
                 <path class="optics-axis" d="M18 140 H622"/>
+                <g class="optics-home" stroke="url(#${id}-beam)">
+                    <path class="optics-envelope" d="M30 96 H224 L416 60 L610 96 V184 L416 220 L224 184 H30 Z" fill="url(#${id}-beam)"/>
+                    ${homeRays}
+                    <g class="optics-home-concave">
+                        <path class="optics-glass" d="M193 42 Q226 140 193 238 H255 Q222 140 255 42 Z" fill="url(#${id}-glass)"/>
+                        <path class="optics-edge" d="M198 50 Q229 140 198 230 M250 50 Q219 140 250 230"/>
+                        <path class="optics-rim" d="M193 42 H255 M193 238 H255"/>
+                    </g>
+                    <g class="optics-home-convex">
+                        <path class="optics-glass" d="M416 34 C470 76 470 204 416 246 C362 204 362 76 416 34 Z" fill="url(#${id}-paired-glass)"/>
+                        <path class="optics-edge" d="M414 43 C371 87 371 193 414 237 M422 45 C465 90 465 190 422 235"/>
+                    </g>
+                </g>
                 <g class="optics-extract" stroke="url(#${id}-beam)">
                     <path class="optics-envelope" d="M30 80 H300 L610 20 V260 L300 200 H30 Z" fill="url(#${id}-beam)"/>
                     ${rays(false)}
@@ -66,10 +91,18 @@ export class LensScene {
         this.mode = mode;
         this.container.dataset.mode = mode;
         this.container.querySelector(".optics-caption")!.textContent = caption;
+        if (mode === "preview") this.setRunning(false);
+    }
+
+    setHome(caption = "") {
+        this.mode = "home";
+        this.container.dataset.mode = "home";
+        this.container.querySelector(".optics-caption")!.textContent = caption;
+        this.setRunning(false);
     }
 
     setRunning(running: boolean) {
-        this.container.dataset.running = String(running && this.mode !== "preview");
+        this.container.dataset.running = String(running && (this.mode === "extract" || this.mode === "compress"));
     }
 
     setProgress(percent: number | null) {

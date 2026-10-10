@@ -7,6 +7,8 @@ import subprocess
 import sys
 import tempfile
 
+from distribution_license import verify_app_license
+
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--target', help='Rust macOS target triple (defaults to Tauri target/host)')
@@ -18,6 +20,7 @@ target = args.target or (f'{architecture}-apple-darwin' if architecture else hos
 if target not in ('aarch64-apple-darwin', 'x86_64-apple-darwin'):
     raise SystemExit(f'Unsupported distribution target: {target}. Build each macOS architecture separately.')
 
+verify_app_license(ROOT)
 subprocess.run([sys.executable, str(ROOT / 'scripts/prepare-sidecar.py')], check=True)
 for name in ('README.txt', '7zip/SOURCE.txt', '7zip/License.txt', '7zip/readme.txt'):
     path = ROOT / 'legal' / name

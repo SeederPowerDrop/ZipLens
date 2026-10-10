@@ -78,6 +78,7 @@ impl Engine {
                 "-bd",
                 "-bb0",
                 "-bsp0",
+                &format!("-mmt={}", crate::zip_engine::worker_count()),
                 &format!("-t{kind}"),
                 "--",
             ])

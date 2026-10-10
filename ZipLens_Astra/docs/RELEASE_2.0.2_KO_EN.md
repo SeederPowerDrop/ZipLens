@@ -38,7 +38,7 @@
 - **Finder 시작 오류 수정:** 앱이 꺼진 상태에서 압축 파일을 열면 종료되던 문제를 2.0.1에서 수정했으며 이번 버전에도 포함합니다.
 - **ALZ·EGG 해제:** 목록, 선택 해제와 파일 미리보기를 지원합니다. ALZ·EGG 생성은 지원하지 않습니다.
 - **원본 보호:** 기존 폴더 전체를 삭제하지 않고 검증한 파일만 반영합니다. 원본·분할 조각 덮어쓰기, 위험한 경로와 외부 링크를 검사합니다.
-- **ZIP 처리 개선:** 중앙 목록을 재사용해 반복 읽기를 줄였습니다. [실제 측정 조건과 결과](https://github.com/SeederPowerDrop/ZipLens/blob/v2.0.2/ZipLens_Astra/docs/BENCHMARKS_KO.md)를 함께 공개합니다.
+- **ZIP 처리 개선:** 중앙 목록을 재사용해 반복 읽기를 줄였습니다. [공개 검증 요약](VALIDATION.md)에서 확인 범위를 안내합니다.
 - **사용 편의:** 한글 파일명, 검색, 페이지 이동, 암호 재입력, 취소, 완료 보고서와 7개 언어를 지원합니다.
 - **macOS 연동:** 앱에서 종류별 기본 열기 앱을 설정하고 Finder로 압축 파일을 열 수 있습니다.
 - **지원 범위:** ZIP·7Z·TAR·TAR.GZ·TAR.ZST 생성, 별칭 포함 36개 확장자 인식. 형식과 변종별 지원 차이가 있습니다.
@@ -82,7 +82,7 @@ The screenshots above show the actual 2.0.2 macOS app with public sample files: 
 - Includes the 2.0.1 fix for a startup crash when opening archives from Finder while the app is closed.
 - ALZ/EGG listing, previews and selective extraction; creating ALZ/EGG archives is not supported.
 - Stronger original-file protection, validated extraction before publishing files, and checks for unsafe paths and links.
-- Reused ZIP directory data to reduce repeated parsing; [benchmarks](https://github.com/SeederPowerDrop/ZipLens/blob/v2.0.2/ZipLens_Astra/docs/BENCHMARKS_KO.md) document the measured conditions and limits.
+- Reused ZIP directory data to reduce repeated parsing; the [public validation summary](VALIDATION.md) describes the tested scope and limits.
 - Korean filenames, search, pagination, password retries, cancellation, completion reports and seven interface languages.
 - macOS default archive-app settings. Creates ZIP, 7Z, TAR, TAR.GZ and TAR.ZST; recognizes 36 extensions including aliases. Support varies by format and variant.
 

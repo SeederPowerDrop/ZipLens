@@ -165,7 +165,7 @@ impl Engine {
             {
                 inputs.add(&source)?;
             }
-        } else if is_zip(input) && zip_engine::native_supported(input)? {
+        } else if is_zip(input) && zip_engine::native_supported(input, ctx)? {
             zip_engine::extract(input, stage.path(), &names, r.password.as_deref(), ctx)?;
         } else if tar_engine::supports(input) {
             tar_engine::extract(input, stage.path(), &names, ctx)?;
@@ -207,7 +207,7 @@ impl Engine {
         ctx: &Context,
     ) -> Result<Vec<u8>, String> {
         paths::relative(name)?;
-        if is_zip(archive) && zip_engine::native_supported(archive)? {
+        if is_zip(archive) && zip_engine::native_supported(archive, ctx)? {
             return zip_engine::read_entry(archive, name, password, ctx);
         }
         let entries = self.preview(archive, password, ctx)?;

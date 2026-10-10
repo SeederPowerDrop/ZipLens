@@ -10,7 +10,7 @@ interface FileAssociationStatus {
 
 const messages = {
     en: {
-        title: "Default archive app", close: "Close", intro: "Open archives in ZipLens 2.0 when you double-click them in Finder. Files open in preview first.",
+        title: "Default archive app", close: "Close", intro: "Open archives in ZipLens when you double-click them in Finder. Files open in preview first.",
         selection: "Choose file types", all: "Select all", none: "Clear selection", current: "ZipLens is default", other: "Not default", unknown: "Could not check", loading: "Checking current defaults…", applying: "Setting defaults…",
         apply: "Use ZipLens for selected types", scope: "Checked types will use ZipLens. Unchecking does not undo existing defaults. Extensions macOS treats as the same format may change together.",
         support: "Extraction: ZIP / 7Z / RAR / ALZ / EGG, compressed TAR, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, comic archives, ISO / DMG, and split archives (.001).",
@@ -20,7 +20,7 @@ const messages = {
         appRequired: "To change defaults, run the built ZipLens app, for example from your Applications folder.", selected: "{count} selected", errorDetails: "Details"
     },
     ko: {
-        title: "기본 압축 앱 설정", close: "닫기", intro: "Finder에서 압축 파일을 두 번 클릭하면 ZipLens 2.0의 미리보기로 열립니다.",
+        title: "기본 압축 앱 설정", close: "닫기", intro: "Finder에서 압축 파일을 두 번 클릭하면 ZipLens의 미리보기로 열립니다.",
         selection: "파일 형식 선택", all: "전체 선택", none: "선택 해제", current: "ZipLens가 기본 앱", other: "기본 앱 아님", unknown: "확인 불가", loading: "현재 기본 앱 확인 중…", applying: "기본 앱 설정 중…",
         apply: "선택한 형식의 기본 앱으로 설정", scope: "체크한 형식을 ZipLens로 연결합니다. 체크를 해제해도 기존 연결은 해제되지 않습니다. macOS가 같은 형식으로 묶는 확장자는 함께 변경될 수 있습니다.",
         support: "압축 해제: ZIP / 7Z / RAR / ALZ / EGG, TAR 압축 계열, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, 만화 압축 파일, ISO / DMG, 분할 압축(.001).",
@@ -30,7 +30,7 @@ const messages = {
         appRequired: "기본 앱을 변경하려면 빌드된 ZipLens 앱을 실행하세요. 응용 프로그램 폴더에 넣어두면 편리합니다.", selected: "{count}개 선택", errorDetails: "상세 내용"
     },
     ja: {
-        title: "標準の圧縮アプリ", close: "閉じる", intro: "Finderで圧縮ファイルをダブルクリックすると、ZipLens 2.0のプレビューで開きます。",
+        title: "標準の圧縮アプリ", close: "閉じる", intro: "Finderで圧縮ファイルをダブルクリックすると、ZipLensのプレビューで開きます。",
         selection: "ファイル形式を選択", all: "すべて選択", none: "選択を解除", current: "ZipLensが標準", other: "標準ではありません", unknown: "確認できません", loading: "現在の設定を確認中…", applying: "標準アプリを設定中…",
         apply: "選択した形式の標準アプリに設定", scope: "選択した形式をZipLensで開きます。選択解除では既存の設定は解除されません。macOSが同じ形式とみなす拡張子も一緒に変更される場合があります。",
         support: "解凍: ZIP / 7Z / RAR / ALZ / EGG、圧縮TAR、CAB / LZH / ARJ / CPIO / AR / XAR / WIM、コミック書庫、ISO / DMG、分割書庫（.001）。",
@@ -40,7 +40,7 @@ const messages = {
         appRequired: "設定を変更するには、ビルド済みのZipLensアプリを開いてください。アプリケーションフォルダへの配置をお勧めします。", selected: "{count}形式を選択", errorDetails: "詳細"
     },
     zh: {
-        title: "默认压缩应用", close: "关闭", intro: "在 Finder 中双击压缩文件时，使用 ZipLens 2.0 打开预览。",
+        title: "默认压缩应用", close: "关闭", intro: "在 Finder 中双击压缩文件时，使用 ZipLens 打开预览。",
         selection: "选择文件类型", all: "全选", none: "取消选择", current: "ZipLens 为默认应用", other: "不是默认应用", unknown: "无法确认", loading: "正在检查默认应用…", applying: "正在设置默认应用…",
         apply: "设为所选类型的默认应用", scope: "勾选的类型将使用 ZipLens。取消勾选不会撤销已有默认设置。macOS 视为同一格式的扩展名可能一起更改。",
         support: "解压：ZIP / 7Z / RAR / ALZ / EGG、压缩 TAR、CAB / LZH / ARJ / CPIO / AR / XAR / WIM、漫画压缩文件、ISO / DMG 和分卷压缩文件（.001）。",
@@ -49,8 +49,18 @@ const messages = {
         success: "已将 ZipLens 设为所选 {count} 种类型的默认应用。", partial: "已设置 {success} 种类型，{failed} 种未能设置。请查看标记的类型。",
         appRequired: "要更改默认应用，请运行构建后的 ZipLens 应用。建议将其放入“应用程序”文件夹。", selected: "已选 {count} 种", errorDetails: "详细信息"
     },
+    vi: {
+        title: "Ứng dụng nén mặc định", close: "Đóng", intro: "Khi bạn nhấp đúp vào tệp nén trong Finder, ZipLens sẽ mở bản xem trước của tệp.",
+        selection: "Chọn loại tệp", all: "Chọn tất cả", none: "Bỏ chọn tất cả", current: "ZipLens là mặc định", other: "Chưa là mặc định", unknown: "Không thể kiểm tra", loading: "Đang kiểm tra ứng dụng mặc định…", applying: "Đang đặt ứng dụng mặc định…",
+        apply: "Dùng ZipLens cho các loại đã chọn", scope: "Các loại tệp được chọn sẽ mở bằng ZipLens. Bỏ chọn không hủy các thiết lập mặc định hiện có. Những phần mở rộng mà macOS coi là cùng một định dạng có thể được thay đổi cùng nhau.",
+        support: "Giải nén: ZIP / 7Z / RAR / ALZ / EGG, TAR nén, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, tệp truyện tranh nén, ISO / DMG và tệp nén chia nhỏ (.001).",
+        limits: "ALZ và EGG chỉ hỗ trợ giải nén. Lệnh Nén của Finder vẫn giữ nguyên.",
+        loadError: "Không thể đọc thiết lập ứng dụng mặc định.", applyError: "Không thể thay đổi ứng dụng mặc định.", retry: "Thử lại",
+        success: "Đã đặt ZipLens làm ứng dụng mặc định cho {count} loại tệp đã chọn.", partial: "Đã thiết lập {success} loại tệp. Không thể thiết lập {failed} loại; hãy xem các loại được đánh dấu.",
+        appRequired: "Để thay đổi ứng dụng mặc định, hãy chạy bản ứng dụng ZipLens đã được biên dịch, chẳng hạn từ thư mục Ứng dụng.", selected: "Đã chọn {count} loại", errorDetails: "Chi tiết"
+    },
     fr: {
-        title: "Application d’archives par défaut", close: "Fermer", intro: "Un double-clic sur une archive dans le Finder ouvre son aperçu dans ZipLens 2.0.",
+        title: "Application d’archives par défaut", close: "Fermer", intro: "Un double-clic sur une archive dans le Finder ouvre son aperçu dans ZipLens.",
         selection: "Choisir les types de fichiers", all: "Tout sélectionner", none: "Tout désélectionner", current: "ZipLens par défaut", other: "Autre application", unknown: "Vérification impossible", loading: "Vérification des réglages…", applying: "Modification en cours…",
         apply: "Utiliser ZipLens pour les types sélectionnés", scope: "Les types cochés utiliseront ZipLens. Décocher n’annule pas les réglages existants. Les extensions d’un même format macOS peuvent changer ensemble.",
         support: "Extraction : ZIP / 7Z / RAR / ALZ / EGG, TAR compressé, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, bandes dessinées, ISO / DMG et archives fractionnées (.001).",
@@ -60,7 +70,7 @@ const messages = {
         appRequired: "Pour modifier les réglages, ouvrez l’application ZipLens compilée, par exemple depuis le dossier Applications.", selected: "{count} sélectionnés", errorDetails: "Détails"
     },
     es: {
-        title: "Aplicación de archivos predeterminada", close: "Cerrar", intro: "Al hacer doble clic en un archivo comprimido en Finder, se abre una vista previa en ZipLens 2.0.",
+        title: "Aplicación de archivos predeterminada", close: "Cerrar", intro: "Al hacer doble clic en un archivo comprimido en Finder, se abre una vista previa en ZipLens.",
         selection: "Elegir tipos de archivo", all: "Seleccionar todo", none: "Borrar selección", current: "ZipLens predeterminado", other: "No predeterminado", unknown: "No se pudo comprobar", loading: "Comprobando aplicaciones…", applying: "Guardando ajustes…",
         apply: "Usar ZipLens para los tipos seleccionados", scope: "Los tipos marcados usarán ZipLens. Desmarcar no deshace los ajustes existentes. Las extensiones del mismo formato de macOS pueden cambiar juntas.",
         support: "Extracción: ZIP / 7Z / RAR / ALZ / EGG, TAR comprimido, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, cómics, ISO / DMG y archivos divididos (.001).",
@@ -69,8 +79,28 @@ const messages = {
         success: "ZipLens es la aplicación predeterminada para los {count} tipos seleccionados.", partial: "Se configuraron {success} tipos. Fallaron {failed}; revisa los tipos señalados.",
         appRequired: "Para cambiar los ajustes, abre la aplicación ZipLens compilada, por ejemplo desde Aplicaciones.", selected: "{count} seleccionados", errorDetails: "Detalles"
     },
+    de: {
+        title: "Standard-App für Archive", close: "Schließen", intro: "Wenn Sie im Finder auf ein Archiv doppelklicken, öffnet ZipLens zunächst eine Vorschau.",
+        selection: "Dateitypen auswählen", all: "Alle auswählen", none: "Auswahl aufheben", current: "ZipLens ist Standard", other: "Nicht als Standard festgelegt", unknown: "Prüfung nicht möglich", loading: "Standard-Apps werden geprüft…", applying: "Standard-Apps werden festgelegt…",
+        apply: "ZipLens für ausgewählte Typen verwenden", scope: "Markierte Dateitypen werden mit ZipLens geöffnet. Das Entfernen einer Markierung hebt bestehende Zuordnungen nicht auf. Dateiendungen, die macOS demselben Format zuordnet, können gemeinsam geändert werden.",
+        support: "Entpacken: ZIP / 7Z / RAR / ALZ / EGG, komprimierte TAR-Archive, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, Comic-Archive, ISO / DMG und mehrteilige Archive (.001).",
+        limits: "ALZ und EGG können nur entpackt werden. Der Finder-Befehl „Komprimieren“ bleibt unverändert.",
+        loadError: "Die Standard-Apps konnten nicht ermittelt werden.", applyError: "Die Standard-Apps konnten nicht geändert werden.", retry: "Erneut versuchen",
+        success: "ZipLens ist jetzt die Standard-App für die {count} ausgewählten Dateitypen.", partial: "Für {success} Dateitypen eingerichtet. Bei {failed} Dateitypen ist die Änderung fehlgeschlagen; prüfen Sie die markierten Einträge.",
+        appRequired: "Um die Standard-Apps zu ändern, starten Sie die fertig erstellte ZipLens-App, zum Beispiel aus dem Ordner „Programme“.", selected: "{count} ausgewählt", errorDetails: "Details"
+    },
+    ru: {
+        title: "Архиватор по умолчанию", close: "Закрыть", intro: "При двойном нажатии на архив в Finder ZipLens сначала открывает его для предварительного просмотра.",
+        selection: "Выберите типы файлов", all: "Выбрать все", none: "Снять выделение", current: "ZipLens по умолчанию", other: "Не по умолчанию", unknown: "Не удалось проверить", loading: "Проверка приложений по умолчанию…", applying: "Назначение приложений по умолчанию…",
+        apply: "Использовать ZipLens для выбранных типов", scope: "Отмеченные типы файлов будут открываться в ZipLens. Снятие отметки не отменяет существующие настройки. Расширения, которые macOS относит к одному формату, могут измениться одновременно.",
+        support: "Распаковка: ZIP / 7Z / RAR / ALZ / EGG, сжатые архивы TAR, CAB / LZH / ARJ / CPIO / AR / XAR / WIM, архивы комиксов, ISO / DMG и многотомные архивы (.001).",
+        limits: "Для ALZ и EGG доступна только распаковка. Команда сжатия в Finder остаётся без изменений.",
+        loadError: "Не удалось определить приложения по умолчанию.", applyError: "Не удалось изменить приложения по умолчанию.", retry: "Повторить",
+        success: "ZipLens назначен приложением по умолчанию для выбранных типов файлов: {count}.", partial: "Настроено типов файлов: {success}. Не удалось настроить: {failed}; проверьте отмеченные типы.",
+        appRequired: "Чтобы изменить приложения по умолчанию, запустите собранное приложение ZipLens, например из папки «Программы».", selected: "Выбрано типов: {count}", errorDetails: "Подробности"
+    },
     ar: {
-        title: "تطبيق الأرشيف الافتراضي", close: "إغلاق", intro: "عند النقر المزدوج على أرشيف في Finder، تفتح معاينته في ZipLens 2.0.",
+        title: "تطبيق الأرشيف الافتراضي", close: "إغلاق", intro: "عند النقر المزدوج على أرشيف في Finder، تفتح معاينته في ZipLens.",
         selection: "اختيار أنواع الملفات", all: "تحديد الكل", none: "إلغاء التحديد", current: "ZipLens هو الافتراضي", other: "ليس الافتراضي", unknown: "تعذر التحقق", loading: "جارٍ التحقق من التطبيقات…", applying: "جارٍ تغيير الإعدادات…",
         apply: "استخدام ZipLens للأنواع المحددة", scope: "ستستخدم الأنواع المحددة ZipLens. إلغاء التحديد لا يلغي الإعدادات الحالية. قد تتغير معاً الامتدادات التي يعتبرها macOS من التنسيق نفسه.",
         support: "فك الضغط: ZIP / 7Z / RAR / ALZ / EGG، وTAR المضغوط، وCAB / LZH / ARJ / CPIO / AR / XAR / WIM، وأرشيفات القصص المصورة، وISO / DMG، والأرشيفات المقسمة (.001).",
