@@ -5,6 +5,8 @@
 **최신 공개 프리뷰: ZipLens 2.1.1 · Apple Silicon Mac용**
 [다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [사용 설명서](ZipLens_Astra/docs/USER_GUIDE_KO_EN.md) · [지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
 
+코드를 공부하거나 업데이트하려면 [코드 읽기 안내](ZipLens_Astra/docs/CODE_GUIDE_KO.md)와 [기여·검증 절차](ZipLens_Astra/docs/CONTRIBUTING_KO.md)에서 시작하세요. 현재 앱 소스는 `ZipLens_Astra/`에 있습니다.
+
 **2.1.1 프리뷰 — 2026-10-11.** 앱 이름을 `ZipLens`(`ZipLens.app`)로 통일하고, 정보창의 버전 표시·제작 철학·후원·사용법을 정리했습니다. 사람과 AI가 기본적인 디지털 도구를 지식 공유처럼 자유롭게 사용하며 공존할 수 있기를 바랍니다. 무료·광고 없는 앱을 선택적으로 후원할 수 있도록 Buy Me a Coffee, Ko-fi, Bitcoin 수신 주소와 QR 코드를 안내합니다. 오프라인 사용법과 정보창은 10개 언어로 제공합니다.
 
 2.1.0의 AI/CLI 기능과 기존 압축 엔진 개선도 포함합니다. 사람은 앱 화면으로, AI·자동화 도구는 같은 앱의 JSON 명령줄 인터페이스로 압축을 조회·해제·생성할 수 있습니다. [AI/CLI 사용법](ZipLens_Astra/docs/AI_CLI.md). 2.1.1은 GPLv3 적용, 공식 후원 유지, 앱과 함께 제공하는 대응 소스 `ZipLens_2.1.1_source.tar.gz`를 포함합니다. [2.1.1 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)
@@ -119,6 +121,8 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 ZipLens is a free macOS archive app for looking inside archives and extracting just the files you need. Its interface uses a converging convex lens for compression and a diverging concave lens for extraction.
 
 **Current public preview: ZipLens 2.1.1 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 release notes](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [User guide](ZipLens_Astra/docs/USER_GUIDE_KO_EN.md)
+
+For studying or updating the current app in `ZipLens_Astra/`, start with the [code reading guide](ZipLens_Astra/docs/CODE_GUIDE_KO.md) and [contribution and validation workflow](ZipLens_Astra/docs/CONTRIBUTING_KO.md) (in Korean).
 
 **Preview 2.1.1 — October 11, 2026.** The app is named `ZipLens` (`ZipLens.app`). About shows the actual version once and brings together the project philosophy, optional Buy Me a Coffee, Ko-fi and Bitcoin support, and a bundled offline user guide in ten languages. The project aims to make basic digital tools freely available to people and AI in the spirit of shared knowledge and coexistence, while keeping the app free and ad-free.
 

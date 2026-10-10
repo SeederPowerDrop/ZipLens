@@ -1,4 +1,9 @@
-//! Headless interface for automation. Dispatch happens before Tauri is initialized.
+//! Tauri 창을 만들기 전에 실행되는 자동화용 CLI입니다.
+//!
+//! 읽는 순서: run_if_requested → parse_cli_options → run_cli_operation
+//! → execute_cli_command → write_json_response. 실제 압축은 GUI와 같은 core가 수행합니다.
+//! 명령·옵션·JSON 키·종료 코드는 호출자의 계약이므로 내부 함수 이름과 구별합니다.
+//! 작업 결과의 stdout은 JSON 한 개로 유지합니다(도움말·버전은 텍스트).
 use serde_json::{json, Value};
 use std::{
     ffi::OsString,
@@ -51,7 +56,8 @@ enum Command {
 }
 
 #[derive(Debug)]
-struct Options {
+/// 파싱과 조합 검사를 마친 옵션입니다. 파일시스템 검사는 실행 단계에서 수행합니다.
+struct CliOptions {
     command: Command,
     inputs: Vec<PathBuf>,
     destination: Option<PathBuf>,
@@ -116,7 +122,8 @@ impl CliError {
     }
 }
 
-fn parse(args: &[String]) -> Result<Options, CliError> {
+/// 옵션 순서와 -- 경계를 해석합니다. 파일 접근이나 암호 입력 등 부수 효과는 없습니다.
+fn parse_cli_options(args: &[String]) -> Result<CliOptions, CliError> {
     let command = match args.first().map(String::as_str) {
         Some("--help" | "-h") => Command::Help,
         Some("--version" | "-V") => Command::Version,
@@ -130,7 +137,7 @@ fn parse(args: &[String]) -> Result<Options, CliError> {
             ))
         }
     };
-    let mut options = Options {
+    let mut options = CliOptions {
         command,
         inputs: vec![],
         destination: None,
@@ -298,6 +305,7 @@ fn parse(args: &[String]) -> Result<Options, CliError> {
     Ok(options)
 }
 
+/// 끝의 개행 한 번만 제거합니다. 앞뒤 공백은 실제 암호의 일부일 수 있어 trim하지 않습니다.
 fn read_password(mut input: impl Read) -> Result<String, CliError> {
     let mut bytes = vec![];
     input
@@ -324,7 +332,8 @@ fn read_password(mut input: impl Read) -> Result<String, CliError> {
     Ok(password)
 }
 
-fn absolute(path: &Path) -> Result<PathBuf, CliError> {
+/// 상대 경로에 작업 디렉터리를 붙입니다. 존재 확인이나 symlink 해석은 아직 하지 않습니다.
+fn make_absolute_path(path: &Path) -> Result<PathBuf, CliError> {
     if path.is_absolute() {
         Ok(path.into())
     } else {
@@ -332,7 +341,7 @@ fn absolute(path: &Path) -> Result<PathBuf, CliError> {
     }
 }
 
-fn existing_input(path: &Path, archive: bool) -> Result<PathBuf, CliError> {
+fn canonicalize_existing_input(path: &Path, archive: bool) -> Result<PathBuf, CliError> {
     let path = fs::canonicalize(path).map_err(|error| {
         if error.kind() == io::ErrorKind::NotFound {
             CliError::new(
@@ -354,8 +363,9 @@ fn existing_input(path: &Path, archive: bool) -> Result<PathBuf, CliError> {
     Ok(path)
 }
 
-/// Resolve existing ancestors before any mkdir, preserving symlink/.. semantics.
-fn prospective_directory(path: &Path) -> Result<PathBuf, CliError> {
+/// mkdir 전에 이미 존재하는 상위 경로만 정규화합니다. 아직 없는 저장 폴더도 허용하되
+/// symlink와 ..를 실제 순서대로 해석해 뒤의 원본 보호 검사가 올바른 경로를 비교하게 합니다.
+fn resolve_destination_ancestors(path: &Path) -> Result<PathBuf, CliError> {
     let mut resolved = PathBuf::new();
     for component in path.components() {
         match component {
@@ -434,7 +444,7 @@ fn numbered_compression_path(path: &Path, n: usize) -> PathBuf {
     paths::numbered(path, n)
 }
 
-fn capabilities(engine: &Engine) -> Result<Value, CliError> {
+fn build_capabilities_response(engine: &Engine) -> Result<Value, CliError> {
     Ok(json!({
         "name": "ZipLens", "version": env!("CARGO_PKG_VERSION"),
         "commands": ["capabilities", "list", "extract", "compress"],
@@ -468,25 +478,27 @@ fn capabilities(engine: &Engine) -> Result<Value, CliError> {
 
 /// The core compression API overwrites a regular output. Stage its output privately, then
 /// publish with the same atomic keep-both policy used by extraction on macOS.
-fn compress(
+/// CLI는 임시 파일로 압축한 뒤 최종 이름에 반영합니다. 기본값은 번호를 붙여 기존 파일 보존.
+/// 반환하는 output_paths가 실제 결과이며, 요청한 destination과 다를 수 있습니다.
+fn execute_compression_command(
     engine: &Engine,
-    options: &Options,
+    options: &CliOptions,
     password: Option<String>,
     ctx: &Context,
 ) -> Result<Value, CliError> {
-    let requested = absolute(options.destination.as_ref().unwrap())?;
+    let requested = make_absolute_path(options.destination.as_ref().unwrap())?;
     let filename = requested
         .file_name()
         .ok_or_else(|| CliError::usage("Destination must include an archive filename."))?;
     let sources = options
         .inputs
         .iter()
-        .map(|p| existing_input(p, false))
+        .map(|p| canonicalize_existing_input(p, false))
         .collect::<Result<Vec<_>, _>>()?;
     let parent = requested
         .parent()
         .ok_or_else(|| CliError::usage("Destination has no parent directory."))?;
-    let parent = prospective_directory(parent)?;
+    let parent = resolve_destination_ancestors(parent)?;
     protect_compression_sources(&sources, &parent.join(filename))?;
     let format = options.format.as_ref().unwrap();
     validate_compression_suffix(&requested, format)?;
@@ -568,24 +580,24 @@ fn check_regular_output(path: &Path) -> Result<(), CliError> {
     }
 }
 
-fn execute(
+fn execute_cli_command(
     engine: &Engine,
-    options: &Options,
+    options: &CliOptions,
     password: Option<String>,
     ctx: &Context,
 ) -> Result<Value, CliError> {
     match options.command {
-        Command::Capabilities => capabilities(engine),
+        Command::Capabilities => build_capabilities_response(engine),
         Command::List => {
-            let archive = existing_input(&options.inputs[0], true)?;
+            let archive = canonicalize_existing_input(&options.inputs[0], true)?;
             let entries = engine
                 .preview(&archive, password.as_deref(), ctx)
                 .map_err(CliError::engine)?;
             Ok(json!({"archive": archive, "entries": entries}))
         }
         Command::Extract => {
-            let archive = existing_input(&options.inputs[0], true)?;
-            let destination = absolute(options.destination.as_ref().unwrap())?;
+            let archive = canonicalize_existing_input(&options.inputs[0], true)?;
+            let destination = make_absolute_path(options.destination.as_ref().unwrap())?;
             let report = engine
                 .extract(
                     &ExtractRequest {
@@ -621,17 +633,19 @@ fn execute(
                 Ok(result)
             }
         }
-        Command::Compress => compress(engine, options, password, ctx),
+        Command::Compress => execute_compression_command(engine, options, password, ctx),
         _ => unreachable!("Help and version are handled before execution"),
     }
 }
 
-struct Deadline {
+/// 별도 감시 스레드의 수명입니다. 정상 완료 시에도 Drop으로 깨우고 join해 남기지 않습니다.
+/// 시간 초과는 협조적 취소 요청이며, 이미 반영한 파일을 되돌리는 트랜잭션은 아닙니다.
+struct OperationDeadline {
     stop: mpsc::Sender<()>,
     worker: Option<thread::JoinHandle<()>>,
 }
 
-impl Deadline {
+impl OperationDeadline {
     fn start(seconds: u64, ctx: &Context, expired: Arc<AtomicBool>) -> Self {
         let (stop, receiver) = mpsc::channel();
         let cancelled = ctx.cancelled.clone();
@@ -651,7 +665,7 @@ impl Deadline {
     }
 }
 
-impl Drop for Deadline {
+impl Drop for OperationDeadline {
     fn drop(&mut self) {
         let _ = self.stop.send(());
         if let Some(worker) = self.worker.take() {
@@ -660,7 +674,9 @@ impl Drop for Deadline {
     }
 }
 
-fn dispatch(options: &Options) -> Result<Value, CliError> {
+/// 암호 stdin을 모두 읽은 뒤 타이머를 시작하고, 엔진 결과를 CLI 오류·JSON 계약으로 바꿉니다.
+/// 암호 입력 자체의 대기 시간은 호출자가 관리해야 합니다.
+fn run_cli_operation(options: &CliOptions) -> Result<Value, CliError> {
     let password = if options.password_stdin {
         if io::stdin().is_terminal() {
             return Err(CliError::usage(
@@ -671,13 +687,13 @@ fn dispatch(options: &Options) -> Result<Value, CliError> {
     } else {
         None
     };
-    let engine = crate::archive::engine().map_err(CliError::engine)?;
+    let engine = crate::archive::create_archive_engine().map_err(CliError::engine)?;
     let ctx = Context::default();
     let expired = Arc::new(AtomicBool::new(false));
     let deadline = options
         .timeout
-        .map(|seconds| Deadline::start(seconds, &ctx, expired.clone()));
-    let mut result = execute(&engine, options, password.clone(), &ctx);
+        .map(|seconds| OperationDeadline::start(seconds, &ctx, expired.clone()));
+    let mut result = execute_cli_command(&engine, options, password.clone(), &ctx);
     drop(deadline);
     if expired.load(Ordering::Acquire) {
         let mut error = CliError::new(
@@ -712,7 +728,7 @@ pub fn run_if_requested() -> Option<i32> {
         let error = CliError::usage(
             "Unknown startup option. Use 'ziplens cli --help' for headless commands.",
         );
-        return Some(write_response(&error.response(), error.exit));
+        return Some(write_json_response(&error.response(), error.exit));
     } else {
         return None;
     };
@@ -724,10 +740,10 @@ pub fn run_if_requested() -> Option<i32> {
                 .ok_or_else(|| CliError::usage("CLI arguments must be valid UTF-8."))
         })
         .collect::<Result<Vec<_>, _>>()
-        .and_then(|args| parse(&args));
+        .and_then(|args| parse_cli_options(&args));
     let options = match result {
         Ok(options) => options,
-        Err(error) => return Some(write_response(&error.response(), error.exit)),
+        Err(error) => return Some(write_json_response(&error.response(), error.exit)),
     };
     match options.command {
         Command::Help => return Some(write_text(HELP)),
@@ -740,16 +756,17 @@ pub fn run_if_requested() -> Option<i32> {
         }
         _ => (),
     }
-    Some(match dispatch(&options) {
-        Ok(result) => write_response(
+    Some(match run_cli_operation(&options) {
+        Ok(result) => write_json_response(
             &json!({"schema_version": SCHEMA_VERSION, "ok": true, "result": result}),
             0,
         ),
-        Err(error) => write_response(&error.response(), error.exit),
+        Err(error) => write_json_response(&error.response(), error.exit),
     })
 }
 
-fn write_response(response: &Value, exit: i32) -> i32 {
+/// 자동화 도구가 파싱하는 stdout에 JSON 한 개와 개행만 씁니다. 로그를 여기에 섞지 않습니다.
+fn write_json_response(response: &Value, exit: i32) -> i32 {
     let mut output = io::stdout().lock();
     if serde_json::to_writer(&mut output, response).is_err() || writeln!(output).is_err() {
         return 1;
@@ -775,15 +792,21 @@ mod tests {
 
     #[test]
     fn extraction_requires_destination_and_defaults_to_keep_both() {
-        assert_eq!(parse(&args(&["extract", "input.zip"])).unwrap_err().exit, 2);
-        let options = parse(&args(&["extract", "input.zip", "--destination", "output"])).unwrap();
+        assert_eq!(
+            parse_cli_options(&args(&["extract", "input.zip"]))
+                .unwrap_err()
+                .exit,
+            2
+        );
+        let options =
+            parse_cli_options(&args(&["extract", "input.zip", "--destination", "output"])).unwrap();
         assert!(!options.overwrite);
         assert!(options.targets.is_empty());
     }
 
     #[test]
     fn parser_preserves_exact_targets_and_option_like_paths() {
-        let options = parse(&args(&[
+        let options = parse_cli_options(&args(&[
             "extract",
             "--destination=./-out",
             "--target=-n.txt",
@@ -839,7 +862,7 @@ mod tests {
             ],
             vec!["list", "a.zip", "--timeout-seconds", "0"],
         ] {
-            let error = parse(&args(&values)).unwrap_err();
+            let error = parse_cli_options(&args(&values)).unwrap_err();
             assert_eq!(error.code, "INVALID_ARGUMENTS");
             assert!(!error.message.contains("secret"));
         }
@@ -860,9 +883,9 @@ mod tests {
         let engine = Engine {
             sidecar: temp.path().join("no-helper"),
         };
-        let mut options = parse(&args(&["list", "missing.zip"])).unwrap();
+        let mut options = parse_cli_options(&args(&["list", "missing.zip"])).unwrap();
         options.inputs = vec![temp.path().join("missing.zip")];
-        let error = execute(&engine, &options, None, &Context::default()).unwrap_err();
+        let error = execute_cli_command(&engine, &options, None, &Context::default()).unwrap_err();
         assert_eq!(error.code, "MISSING_INPUT");
         assert_eq!(error.response()["schema_version"], 1);
         assert_eq!(error.response()["ok"], false);
@@ -878,7 +901,7 @@ mod tests {
         let engine = Engine {
             sidecar: temp.path().join("no-helper"),
         };
-        let mut options = parse(&args(&[
+        let mut options = parse_cli_options(&args(&[
             "compress",
             "source",
             "--destination",
@@ -889,7 +912,7 @@ mod tests {
         .unwrap();
         options.inputs = vec![source.clone()];
         options.destination = Some(destination.clone());
-        let result = execute(&engine, &options, None, &Context::default()).unwrap();
+        let result = execute_cli_command(&engine, &options, None, &Context::default()).unwrap();
         assert_eq!(
             fs::read_to_string(&destination).unwrap(),
             "existing contents"
@@ -903,7 +926,7 @@ mod tests {
         options.destination = Some(source.clone());
         options.overwrite = true;
         assert_eq!(
-            execute(&engine, &options, None, &Context::default())
+            execute_cli_command(&engine, &options, None, &Context::default())
                 .unwrap_err()
                 .code,
             "ARCHIVE_ERROR"
@@ -919,7 +942,7 @@ mod tests {
         let engine = Engine {
             sidecar: temp.path().join("no-helper"),
         };
-        let mut options = parse(&args(&[
+        let mut options = parse_cli_options(&args(&[
             "compress",
             "source",
             "--destination",
@@ -931,7 +954,7 @@ mod tests {
         options.inputs = vec![source.clone()];
         options.destination = Some(source.join("new-parent/output.zip"));
         assert_eq!(
-            execute(&engine, &options, None, &Context::default())
+            execute_cli_command(&engine, &options, None, &Context::default())
                 .unwrap_err()
                 .code,
             "ARCHIVE_ERROR"
@@ -943,7 +966,7 @@ mod tests {
     fn deadline_marks_context_cancelled_without_leaving_a_worker() {
         let ctx = Context::default();
         let expired = Arc::new(AtomicBool::new(false));
-        let mut deadline = Deadline::start(0, &ctx, expired.clone());
+        let mut deadline = OperationDeadline::start(0, &ctx, expired.clone());
         deadline.worker.take().unwrap().join().unwrap();
         assert!(expired.load(Ordering::Acquire));
         assert_eq!(ctx.check().unwrap_err(), "CANCELLED");
@@ -951,7 +974,7 @@ mod tests {
 
         let ctx = Context::default();
         let expired = Arc::new(AtomicBool::new(false));
-        drop(Deadline::start(60, &ctx, expired.clone()));
+        drop(OperationDeadline::start(60, &ctx, expired.clone()));
         assert!(!expired.load(Ordering::Acquire));
         assert!(ctx.check().is_ok());
     }
@@ -967,7 +990,7 @@ mod tests {
         for format in ["tar.gz", "tar.zst"] {
             let destination = temp.path().join(format!("archive.{format}"));
             fs::write(&destination, "existing contents").unwrap();
-            let mut options = parse(&args(&[
+            let mut options = parse_cli_options(&args(&[
                 "compress",
                 "source",
                 "--destination",
@@ -978,7 +1001,7 @@ mod tests {
             .unwrap();
             options.inputs = vec![source.clone()];
             options.destination = Some(destination.clone());
-            let result = execute(&engine, &options, None, &Context::default()).unwrap();
+            let result = execute_cli_command(&engine, &options, None, &Context::default()).unwrap();
             let archive = PathBuf::from(result["output_paths"][0].as_str().unwrap());
             assert_eq!(
                 archive.file_name().unwrap(),
@@ -1021,7 +1044,7 @@ mod tests {
         let engine = Engine {
             sidecar: temp.path().join("no-helper"),
         };
-        let mut options = parse(&args(&[
+        let mut options = parse_cli_options(&args(&[
             "compress",
             "source",
             "--destination",
@@ -1032,7 +1055,7 @@ mod tests {
         .unwrap();
         options.inputs = vec![source.clone()];
         options.destination = Some(source.join("new/../../outside.zip"));
-        execute(&engine, &options, None, &Context::default()).unwrap();
+        execute_cli_command(&engine, &options, None, &Context::default()).unwrap();
         assert!(!source.join("new").exists());
         let entries = engine
             .preview(&temp.path().join("outside.zip"), None, &Context::default())
@@ -1041,7 +1064,7 @@ mod tests {
 
         options.destination = Some(temp.path().join("missing-parent/mismatched.tar"));
         assert_eq!(
-            execute(&engine, &options, None, &Context::default())
+            execute_cli_command(&engine, &options, None, &Context::default())
                 .unwrap_err()
                 .code,
             "INVALID_ARGUMENTS"

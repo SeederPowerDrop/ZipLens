@@ -1,5 +1,5 @@
 /**
- * Centralized DOM element references
+ * DOM ID의 참조를 한곳에 둔다. getter이므로 모듈 import 시점에 아직 없는 노드를 저장하지 않는다.
  */
 export const elements = {
   get dropZone() { return document.getElementById("drop-zone"); },
@@ -82,29 +82,30 @@ export const elements = {
 
 
 /**
- * Updates UI processing state
+ * 진행 중이거나 대화상자를 기다리는 동안 입력을 잠근다.
+ * 호출자는 엔진 표시 상태와 ArchiveActionGate.busy를 합쳐 전달해야 한다.
  */
-export function updateButtonState(processing: boolean) {
+export function updateButtonState(busy: boolean) {
   const composing = document.getElementById("app")?.dataset.composing === "true";
   const associationButton = document.getElementById("btn-file-associations") as HTMLButtonElement | null;
-  if (associationButton) associationButton.disabled = processing;
-  if (elements.btnOpenArchive) (elements.btnOpenArchive as HTMLButtonElement).disabled = processing;
-  if (elements.btnExtract) (elements.btnExtract as HTMLButtonElement).disabled = processing || composing || !document.getElementById("drop-zone")?.classList.contains("loaded");
-  if (elements.btnSmartExtract) (elements.btnSmartExtract as HTMLButtonElement).disabled = processing || composing || !document.getElementById("drop-zone")?.classList.contains("loaded");
-  if (elements.btnCompress) (elements.btnCompress as HTMLButtonElement).disabled = processing;
-  if (elements.btnConfirmCompress) (elements.btnConfirmCompress as HTMLButtonElement).disabled = processing;
-  if (elements.btnCancelCompress) (elements.btnCancelCompress as HTMLButtonElement).disabled = processing;
+  if (associationButton) associationButton.disabled = busy;
+  if (elements.btnOpenArchive) (elements.btnOpenArchive as HTMLButtonElement).disabled = busy;
+  if (elements.btnExtract) (elements.btnExtract as HTMLButtonElement).disabled = busy || composing || !document.getElementById("drop-zone")?.classList.contains("loaded");
+  if (elements.btnSmartExtract) (elements.btnSmartExtract as HTMLButtonElement).disabled = busy || composing || !document.getElementById("drop-zone")?.classList.contains("loaded");
+  if (elements.btnCompress) (elements.btnCompress as HTMLButtonElement).disabled = busy;
+  if (elements.btnConfirmCompress) (elements.btnConfirmCompress as HTMLButtonElement).disabled = busy;
+  if (elements.btnCancelCompress) (elements.btnCancelCompress as HTMLButtonElement).disabled = busy;
   for (const id of ["btn-choose-files", "btn-choose-folders", "btn-change-compression-source"]) {
     const button = document.getElementById(id) as HTMLButtonElement | null;
-    if (button) button.disabled = processing;
+    if (button) button.disabled = busy;
   }
-  elements.dropZone?.setAttribute("aria-disabled", String(processing));
+  elements.dropZone?.setAttribute("aria-disabled", String(busy));
   document.querySelectorAll<HTMLButtonElement>("#home-lens-scene button")
-    .forEach(button => { button.disabled = processing; });
+    .forEach(button => { button.disabled = busy; });
   for (const button of [elements.selectAllBtn, elements.deselectAllBtn, elements.toggleAllBtn]) {
-    if (button) button.disabled = processing;
+    if (button) button.disabled = busy;
   }
-  document.querySelectorAll<HTMLInputElement>(".file-checkbox").forEach(control => { control.disabled = processing; });
+  document.querySelectorAll<HTMLInputElement>(".file-checkbox").forEach(control => { control.disabled = busy; });
   document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("#compression-options input, #compression-options select")
-    .forEach(control => { control.disabled = processing; });
+    .forEach(control => { control.disabled = busy; });
 }

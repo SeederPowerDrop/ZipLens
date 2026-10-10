@@ -1,4 +1,5 @@
-//! ALZ/EGG codecs run in a separate process so CPU-only decoders can be cancelled.
+//! ALZ/EGG 디코더는 별도 프로세스에서 실행합니다. 디코더 내부가 취소 토큰을 확인하지 않아도
+//! 부모가 프로세스를 종료할 수 있습니다. 이 분리는 운영체제 sandbox를 구성하지 않습니다.
 use crate::{paths, Context, Engine, Entry};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -58,16 +59,19 @@ impl Engine {
         let mut stdin = child.stdin.take().unwrap();
         let stdout = child.stdout.take().unwrap();
         let stderr = child.stderr.take().unwrap();
+        // 요청 전송과 두 출력 읽기를 분리해 큰 JSON 때문에 파이프가 서로 막히지 않게 합니다.
         let send = thread::spawn(move || stdin.write_all(&input));
         let out = thread::spawn(move || crate::sidecar::collect(stdout));
         let err = thread::spawn(move || crate::sidecar::collect(stderr));
         let started = Instant::now();
         ctx.set_total(0);
         ctx.progress("ALZ / EGG", false);
+        // 10분 제한은 이 ALZ/EGG helper의 정책입니다. 취소와 시간 초과는 호출자에게 구별해 알립니다.
         let mut timed_out = false;
         let status = loop {
             if ctx.check().is_err() || started.elapsed() > Duration::from_secs(600) {
                 timed_out = ctx.check().is_ok();
+                // kill만 호출하면 자식 회수가 끝나지 않으므로 wait까지 수행합니다.
                 let _ = child.kill();
                 break child.wait();
             }

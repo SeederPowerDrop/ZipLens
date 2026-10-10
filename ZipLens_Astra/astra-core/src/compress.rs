@@ -1,3 +1,5 @@
+//! 입력을 수집·검증한 뒤 임시 폴더에서 압축을 완료하고 목적지로 옮깁니다.
+//! ZIP/TAR는 조건에 따라 Rust로 처리하고, 7Z·암호·분할 압축은 번들 7-Zip에 맡깁니다.
 use crate::{paths, Context, Engine};
 use std::{
     collections::HashSet,
@@ -8,13 +10,16 @@ use std::{
 use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
 
+/// 한 번의 압축 요청. 출력 경로는 원본 파일 또는 선택한 원본 폴더 안을 가리킬 수 없습니다.
 pub struct CompressionRequest {
     pub sources: Vec<PathBuf>,
     pub destination: PathBuf,
     pub format: String,
+    /// 예: `100m`, `2g`. 비어 있거나 `0`이면 분할하지 않습니다.
     pub split_size: Option<String>,
     pub password: Option<String>,
     pub encryption: Option<String>,
+    /// 사용자 수준 0–9. 형식별 코덱이 실제 압축 매개변수로 매핑합니다.
     pub level: u32,
 }
 struct Source {
@@ -24,35 +29,45 @@ struct Source {
 }
 
 impl Engine {
-    pub fn compress(&self, r: &CompressionRequest, ctx: &Context) -> Result<Vec<String>, String> {
-        if r.sources.is_empty() {
+    /// 완료된 아카이브 또는 분할 볼륨의 실제 출력 경로들을 반환합니다.
+    /// 압축 해제와 달리 취소는 `Err("CANCELLED")`이므로 호출자가 상태로 변환합니다.
+    pub fn compress(
+        &self,
+        request: &CompressionRequest,
+        ctx: &Context,
+    ) -> Result<Vec<String>, String> {
+        if request.sources.is_empty() {
             return Err("No source files selected".into());
         }
-        if r.level > 9 {
+        if request.level > 9 {
             return Err("Compression level must be 0–9".into());
         }
-        if !["zip", "7z", "tar", "tar.gz", "tar.zst"].contains(&r.format.as_str()) {
+        if !["zip", "7z", "tar", "tar.gz", "tar.zst"].contains(&request.format.as_str()) {
             return Err("Unsupported compression format".into());
         }
-        if r.password.as_deref() == Some("") {
+        if request.password.as_deref() == Some("") {
             return Err("Password cannot be empty".into());
         }
-        let split = r
+        let split = request
             .split_size
             .as_deref()
             .filter(|s| !s.trim().is_empty() && s.trim() != "0")
             .map(validate_split)
             .transpose()?;
-        if r.format.starts_with("tar") && (r.password.is_some() || split.is_some()) {
+        if request.format.starts_with("tar") && (request.password.is_some() || split.is_some()) {
             return Err(
                 "TAR formats do not support passwords or split volumes; select ZIP or 7Z".into(),
             );
         }
-        let parent = r.destination.parent().ok_or("Missing destination parent")?;
+        let parent = request
+            .destination
+            .parent()
+            .ok_or("Missing destination parent")?;
         paths::ensure_directory(parent)?;
         let parent = fs::canonicalize(parent).map_err(|e| e.to_string())?;
         let dest = parent.join(
-            r.destination
+            request
+                .destination
                 .file_name()
                 .ok_or("Missing archive filename")?,
         );
@@ -62,7 +77,7 @@ impl Engine {
         let mut sources = Vec::new();
         let mut seen = HashSet::new();
         let mut absolute_sources = Vec::new();
-        for input in &r.sources {
+        for input in &request.sources {
             ctx.check()?;
             let source =
                 fs::canonicalize(input).map_err(|e| format!("{}: {e}", input.display()))?;
@@ -117,11 +132,11 @@ impl Engine {
             .tempdir_in(&parent)
             .map_err(|e| e.to_string())?;
         let staged_file = stage.path().join(dest.file_name().unwrap());
-        if r.format == "7z" || r.password.is_some() || split.is_some() {
+        if request.format == "7z" || request.password.is_some() || split.is_some() {
             let mut args = vec![
                 "a".into(),
-                format!("-t{}", r.format),
-                format!("-mx={}", r.level),
+                format!("-t{}", request.format),
+                format!("-mx={}", request.level),
                 format!("-mmt={}", crate::zip_engine::worker_count()),
                 "-y".into(),
                 "-sccUTF-8".into(),
@@ -132,10 +147,10 @@ impl Engine {
             if let Some(split) = &split {
                 args.push(format!("-v{split}"));
             }
-            if let Some(pw) = &r.password {
+            if let Some(pw) = &request.password {
                 args.push(format!("-p{pw}"));
-                if r.format == "zip" {
-                    args.push(if r.encryption.as_deref() == Some("ZipCrypto") {
+                if request.format == "zip" {
+                    args.push(if request.encryption.as_deref() == Some("ZipCrypto") {
                         "-mem=ZipCrypto".into()
                     } else {
                         "-mem=AES256".into()
@@ -144,7 +159,7 @@ impl Engine {
                     args.push("-mhe=on".into());
                 }
             }
-            if r.format == "7z" {
+            if request.format == "7z" {
                 args.push("-m0=lzma2".into());
             }
             args.extend(["--".into(), staged_file.to_string_lossy().into()]);
@@ -156,17 +171,17 @@ impl Engine {
             ctx.set_total(0);
             ctx.progress("7-Zip", false);
             self.run_sidecar(&args, ctx)?;
-        } else if r.format == "zip" {
-            compress_zip(&sources, &staged_file, r.level, ctx)?;
+        } else if request.format == "zip" {
+            compress_zip(&sources, &staged_file, request.level, ctx)?;
         } else {
             let file = BufWriter::with_capacity(
                 256 * 1024,
                 File::create(&staged_file).map_err(|e| e.to_string())?,
             );
-            if r.format == "tar.gz" {
+            if request.format == "tar.gz" {
                 let mut builder = tar::Builder::new(flate2::write::GzEncoder::new(
                     file,
-                    flate2::Compression::new(r.level),
+                    flate2::Compression::new(request.level),
                 ));
                 compress_tar(&sources, &mut builder, ctx)?;
                 let mut output = builder
@@ -175,10 +190,10 @@ impl Engine {
                     .finish()
                     .map_err(|e| e.to_string())?;
                 output.flush().map_err(|e| e.to_string())?;
-            } else if r.format == "tar.zst" {
+            } else if request.format == "tar.zst" {
                 let mut enc = zstd::stream::write::Encoder::new(
                     file,
-                    match r.level {
+                    match request.level {
                         0..=3 => 1,
                         4..=6 => 3,
                         _ => 9,
@@ -232,7 +247,7 @@ impl Engine {
                 fs::rename(&output, &target)
             };
             if let Err(e) = renamed {
-                // Only remove volumes created by this operation, restoring the prior state.
+                // 이 작업이 만든 볼륨만 삭제를 시도합니다. 삭제 실패는 무시하므로 복구가 항상 보장되지는 않습니다.
                 if split.is_some() {
                     for p in &result {
                         let _ = fs::remove_file(p);

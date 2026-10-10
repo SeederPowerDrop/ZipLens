@@ -20,11 +20,19 @@ import { updateUserGuide } from "./user-guide";
 import { initFileAssociations, isFileAssociationsOpen, openFileAssociations } from "./file-associations";
 import "./file-associations.css";
 
-// --- State Variables ---
+/**
+ * 화면의 진입점: 파일 선택/Finder 요청 → 입력 분류 → Tauri 명령 → 결과 확인.
+ * 파일 접근과 압축은 Rust가 수행하고, 이 모듈은 선택 상태와 대화상자의 순서를 관리한다.
+ * 처음 읽을 때는 runArchiveAction → routeInputs → executeExtraction/executeCompression을 따라간다.
+ */
+
+// --- 선택한 압축 파일과 마지막 결과 ---
 let lastResultPath: string | null = null;
 let lastResultOperation: "extract" | "compress" = "extract";
-let loadedArchive: string | null = null;
+let loadedArchivePath: string | null = null;
 let currentArchivePassword: string | null = null;
+// 진행 UI의 수명이다. 결과창이 열린 동안에도 true일 수 있으므로 엔진 실행 여부로 쓰지 않는다.
+// 더 넓은 사용자 작업(파일 선택·암호·결과 확인)의 중복 실행은 archiveActions가 막는다.
 let isProcessing = false;
 let cancellationRequested = false;
 let activeOperation: ProcessingOperation | null = null;
@@ -50,14 +58,17 @@ function updateLensLabels() {
 let startTime = 0;
 let timerInterval: number | null = null;
 let currentProgress = 0;
-let globalArchiveFiles: ArchiveFileInfo[] = [];
-let currentDirectory: string = "";
+// 검색·정렬·페이지 이동은 이 원본 목록을 줄이지 않는다. selected는 모든 페이지에서 공유한다.
+let archiveEntries: ArchiveFileInfo[] = [];
+// 압축 파일 안의 상대 경로. 호스트 파일 시스템의 작업 디렉터리가 아니다.
+let archiveDirectory: string = "";
 let currentPage = 0;
 const PAGE_SIZE = 300;
 let progressUnlisten: (() => void) | null = null;
 let previewBlobUrl: string | null = null;
+// Finder/CLI 진입은 큐에 남긴다. 일반 버튼의 중복 클릭은 ArchiveActionGate가 무시한다.
 const pendingStartupActions: StartupAction[] = [];
-let drainingStartupAction = false;
+let isHandlingStartupAction = false;
 const archiveActions = new ArchiveActionGate(busy => {
     const app = document.getElementById("app");
     if (app) app.dataset.actionBusy = String(busy);
@@ -65,10 +76,14 @@ const archiveActions = new ArchiveActionGate(busy => {
     if (!busy) {
         if (pendingPanelFocus?.getClientRects().length) pendingPanelFocus.focus();
         pendingPanelFocus = null;
-        queueMicrotask(() => void handleNextStartupAction());
+        queueMicrotask(() => void processNextStartupAction());
     }
 });
 
+/**
+ * 사용자 작업의 공통 진입점. action이 연 대화상자까지 await해야 잠금이 너무 일찍 풀리지 않는다.
+ * 이 안에서는 execute* 함수를 직접 호출한다. 중첩 runArchiveAction은 게이트가 거절한다.
+ */
 async function runArchiveAction(action: () => Promise<void>): Promise<void> {
     if (isFileAssociationsOpen()) return;
     await archiveActions.run(async () => {
@@ -81,6 +96,7 @@ async function runArchiveAction(action: () => Promise<void>): Promise<void> {
     });
 }
 
+// Rust의 직렬화 형식과 맞춘 IPC 응답이다. snake_case 필드는 서버와 함께 변경해야 한다.
 interface ExtractionReport {
     success_files: string[];
     failed_files: [string, string][];
@@ -96,6 +112,7 @@ interface StartupAction {
   paths: string[];
 }
 
+/** preview_archive 응답에 프런트엔드 전용 selected를 더한 항목. 디렉터리도 포함된다. */
 interface ArchiveFileInfo {
   path: string;
   size: number;
@@ -107,9 +124,23 @@ interface ArchiveFileInfo {
   error?: string | null;
 }
 
-type PasswordValidator = (pw: string) => Promise<boolean>;
+/**
+ * 화면의 한 행: 실제 항목이거나 하위 항목을 묶은 가상 폴더다.
+ * files는 archiveEntries의 항목을 참조하므로 행의 체크 상태 변경이 원본 선택에 반영된다.
+ */
+interface ArchiveBrowserItem {
+    name: string;
+    isDir: boolean;
+    fullPath: string;
+    size: number;
+    totalFileCount: number;
+    selectedFileCount: number;
+    files: ArchiveFileInfo[];
+}
 
-// --- Event Listeners & Initialization ---
+type PasswordValidator = (password: string) => Promise<boolean>;
+
+// --- 화면 초기화와 사용자 입력 연결 ---
 
 document.addEventListener("DOMContentLoaded", async () => {
     homeLens = new HomeLensExplorer(document.getElementById("home-lens-scene")!, "home-optics", getCurrentLang(),
@@ -156,7 +187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             langSelect.value = getCurrentLang();
             updateLensLabels();
             renderCompressionSelection();
-            if (loadedArchive) renderFileList(false);
+            if (loadedArchivePath) renderFileList(false);
             void invoke("set_menu_language", { lang: getCurrentLang() }).catch(error => {
                 console.error("Could not update native menu language", error);
             });
@@ -168,10 +199,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         applyLanguage(localStorage.getItem("astra-language"));
     }
 
-    initFileAssociations({ onClose: () => { void handleNextStartupAction(); } });
+    initFileAssociations({ onClose: () => { void processNextStartupAction(); } });
 
     const cancelButton = document.getElementById("btn-cancel-operation") as HTMLButtonElement;
     cancelButton.onclick = async () => {
+        // 취소 명령은 요청일 뿐 완료 통지가 아니다. 원래 invoke의 종료/부분 결과를 기다린다.
         cancellationRequested = true;
         cancelButton.disabled = true;
         progressLens.setRunning(false);
@@ -185,6 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             showToast(String(error), "error");
         }
     };
+    // percent=null은 측정 불가다. 애니메이션의 움직임을 실제 진행률로 바꾸지 않는다.
     progressUnlisten = await listen<ArchiveProgress>("archive_progress", ({ payload }) => {
         if (!isProcessing) return;
         currentProgress = payload.percent ?? 0;
@@ -199,7 +232,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     const collectStartupActions = async () => {
         pendingStartupActions.push(...await invoke<StartupAction[]>("take_startup_actions"));
-        await handleNextStartupAction();
+        await processNextStartupAction();
     };
     await listen("startup_actions_available", collectStartupActions);
     await collectStartupActions();
@@ -294,7 +327,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (elements.selectAllBtn) {
         elements.selectAllBtn.onclick = () => {
             // Select all files
-            globalArchiveFiles.forEach(f => f.selected = !f.error);
+            archiveEntries.forEach(f => f.selected = !f.error);
             renderFileList();
         };
     }
@@ -302,7 +335,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (elements.deselectAllBtn) {
         elements.deselectAllBtn.onclick = () => {
             // Deselect all files
-            globalArchiveFiles.forEach(f => f.selected = false);
+            archiveEntries.forEach(f => f.selected = false);
             renderFileList();
         };
     }
@@ -310,7 +343,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (elements.toggleAllBtn) {
         elements.toggleAllBtn.onclick = () => {
             // Invert selection for all files
-            globalArchiveFiles.forEach(f => f.selected = !f.error && !f.selected);
+            archiveEntries.forEach(f => f.selected = !f.error && !f.selected);
             renderFileList();
         };
     }
@@ -366,7 +399,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 });
 
-// Setup Native Drag & Drop
+// --- 네이티브 이벤트와 대기 중인 Finder/CLI 요청 ---
 listen<{ paths: string[] }>("tauri://drag-enter", () => {
     if (archiveActions.busy || isProcessing || isFileAssociationsOpen()) return;
     elements.dropZone?.classList.add("active");
@@ -390,28 +423,29 @@ listen<{ paths: string[] }>("tauri://drag-drop", async (event) => {
     await runArchiveAction(() => routeInputs(droppedPaths));
 });
 
-async function handleNextStartupAction() {
-    if (drainingStartupAction || archiveActions.busy || isProcessing || isFileAssociationsOpen() || document.getElementById("app")?.dataset.composing === "true" || !pendingStartupActions.length) return;
-    drainingStartupAction = true;
+/** 한 요청씩 소비한다. 작업/설정/압축 옵션 창이 닫힐 때 다시 호출되어 다음 요청을 처리한다. */
+async function processNextStartupAction() {
+    if (isHandlingStartupAction || archiveActions.busy || isProcessing || isFileAssociationsOpen() || document.getElementById("app")?.dataset.composing === "true" || !pendingStartupActions.length) return;
+    isHandlingStartupAction = true;
     try {
         const next = pendingStartupActions.shift()!;
         if (next.action === "settings") { openFileAssociations(); return; }
         if (!next.paths.length) return;
-        if (next.action === "compress") await handleDirectCompression(next.paths);
+        if (next.action === "compress") await startCompression(next.paths);
         else {
             await loadArchivePreview(next.paths[0]);
             if (next.paths.length > 1) showToast("여러 압축 파일 중 첫 번째 파일을 열었습니다. / Opened the first archive.");
         }
     } finally {
-        drainingStartupAction = false;
-        // Save-dialog cancellation does not call setProcessing(false). Always resume here too.
+        isHandlingStartupAction = false;
+        // 저장창 취소는 setProcessing(false)를 거치지 않으므로 여기에서도 다음 요청을 재개한다.
         if (pendingStartupActions.length && !archiveActions.busy && !isProcessing && !isFileAssociationsOpen()) {
-            queueMicrotask(() => void handleNextStartupAction());
+            queueMicrotask(() => void processNextStartupAction());
         }
     }
 }
 
-// --- Core Functions ---
+// --- 입력 분류와 압축 옵션 ---
 
 async function chooseInputs(directory = false) {
     await runArchiveAction(async () => {
@@ -421,12 +455,13 @@ async function chooseInputs(directory = false) {
     });
 }
 
+/** 게이트 안에서 호출한다. 확장자만 보면 .zip이라는 폴더를 오인하므로 먼저 실제 경로 종류를 조회한다. */
 async function routeInputs(paths: string[]) {
     const inputs = await invoke<InputPath[]>("inspect_input_paths", { paths });
     const route = classifyInputPaths(inputs);
     if (route.kind === "extract") {
-        await loadArchivePreviewInner(route.path);
-        if (route.archiveCount > 1 && loadedArchive === route.path) {
+        await executeArchivePreview(route.path);
+        if (route.archiveCount > 1 && loadedArchivePath === route.path) {
             showToast(getTranslation("firstArchiveOpened")
                 .replace("{count}", String(route.archiveCount))
                 .replace("{name}", () => route.path.split(/[\\/]/).pop() || route.path));
@@ -469,7 +504,7 @@ function closeCompressionPanel() {
     renderCompressionSelection();
     updateButtonState(archiveActions.busy || isProcessing);
     focusPanelControl(elements.dropZone!);
-    queueMicrotask(() => void handleNextStartupAction());
+    queueMicrotask(() => void processNextStartupAction());
 }
 
 function focusPanelControl(control: HTMLElement) {
@@ -479,8 +514,8 @@ function focusPanelControl(control: HTMLElement) {
 
 async function confirmCompression() {
     await runArchiveAction(async () => {
-        // Keep both the chosen inputs and settings stable through the save dialog.
-        const options = compressionOptions();
+        // await 전에 입력과 옵션을 복사한다. 저장창을 기다리는 동안 UI를 다시 읽지 않는다.
+        const options = readCompressionOptions();
         let paths = [...pendingCompressionPaths];
         if (!paths.length) {
             const directory = (document.getElementById("compression-source") as HTMLSelectElement).value === "folder";
@@ -489,15 +524,22 @@ async function confirmCompression() {
             paths = Array.isArray(selected) ? selected : [selected];
             showCompressionPanel(paths);
         }
-        await handleDirectCompressionInner(paths, options);
+        await executeCompression(paths, options);
     });
 }
 
+// --- 압축 파일 목록과 항목 미리보기 ---
+
+/** Finder 등 아직 작업 게이트를 잡지 않은 호출자를 위한 진입점. */
 async function loadArchivePreview(path: string, pwAttempt: string | null = null) {
-    await runArchiveAction(() => loadArchivePreviewInner(path, pwAttempt));
+    await runArchiveAction(() => executeArchivePreview(path, pwAttempt));
 }
 
-async function loadArchivePreviewInner(path: string, pwAttempt: string | null = null) {
+/**
+ * 호출자가 게이트를 소유해야 한다. 목록/암호 확인에 성공한 뒤에만 현재 압축 파일을 교체한다.
+ * 취소하거나 읽기에 실패하면 기존 파일 선택을 유지한다.
+ */
+async function executeArchivePreview(path: string, pwAttempt: string | null = null) {
     if (isProcessing) return;
     setProcessing(true, "preview");
     let files: ArchiveFileInfo[] = [];
@@ -536,7 +578,7 @@ async function loadArchivePreviewInner(path: string, pwAttempt: string | null = 
             }
         }
         
-        loadedArchive = path;
+        loadedArchivePath = path;
         currentArchivePassword = acceptedPassword;
         if (elements.dropZone) elements.dropZone.classList.add("loaded");
         const app = document.getElementById("app")!;
@@ -548,8 +590,8 @@ async function loadArchivePreviewInner(path: string, pwAttempt: string | null = 
         document.getElementById("archive-browser")!.hidden = false;
 
         // Update stats initially
-        globalArchiveFiles = files.map(f => ({ ...f, selected: !f.error }));
-        currentDirectory = "";
+        archiveEntries = files.map(f => ({ ...f, selected: !f.error }));
+        archiveDirectory = "";
         if (elements.searchInput) elements.searchInput.value = "";
         
         renderFileList();
@@ -584,6 +626,7 @@ async function loadArchivePreviewInner(path: string, pwAttempt: string | null = 
     }
 }
 
+/** 전체 선택은 archiveEntries에 유지하고, 표시할 행만 검색·폴더 묶기·정렬·페이지 처리한다. */
 function renderFileList(resetPage = true) {
     if (resetPage) currentPage = 0;
     const query = elements.searchInput?.value.trim().normalize("NFC").toLocaleLowerCase() || "";
@@ -593,7 +636,7 @@ function renderFileList(resetPage = true) {
 
     // 1. Calculate global stats
     let selCount = 0, selSize = 0, totalSize = 0, totalCount = 0;
-    globalArchiveFiles.forEach(f => {
+    archiveEntries.forEach(f => {
         // Skip directory entries themselves for counting files
         if (!f.path.endsWith('/') && !f.path.endsWith('\\')) {
             totalCount++;
@@ -613,7 +656,7 @@ function renderFileList(resetPage = true) {
     // 2. Render Breadcrumbs
     if (elements.breadcrumbContainer) {
         elements.breadcrumbContainer.innerHTML = "";
-        const parts = currentDirectory.replace(/\\/g, '/').split('/').filter(p => p);
+        const parts = archiveDirectory.replace(/\\/g, '/').split('/').filter(p => p);
         
         const createCrumb = (text: string, path: string, isLast: boolean) => {
             const span = document.createElement("button");
@@ -625,7 +668,7 @@ function renderFileList(resetPage = true) {
                 span.style.color = "var(--accent-hover)";
                 span.style.textDecoration = "underline";
                 span.onclick = () => {
-                    currentDirectory = path;
+                    archiveDirectory = path;
                     renderFileList();
                 };
             } else {
@@ -652,10 +695,10 @@ function renderFileList(resetPage = true) {
     }
 
     // 3. Process current directory contents
-    const itemsMap = new Map<string, any>();
-    const normCurDir = currentDirectory ? currentDirectory.replace(/\\/g, '/') : "";
+    const itemsMap = new Map<string, ArchiveBrowserItem>();
+    const normCurDir = archiveDirectory ? archiveDirectory.replace(/\\/g, '/') : "";
 
-    globalArchiveFiles.forEach(f => {
+    archiveEntries.forEach(f => {
         const normPath = f.path.replace(/\\/g, '/');
         if (query ? !f.is_dir && normPath.normalize("NFC").toLocaleLowerCase().includes(query) : normPath.startsWith(normCurDir)) {
             const relPath = query ? normPath : normPath.substring(normCurDir.length);
@@ -679,7 +722,7 @@ function renderFileList(resetPage = true) {
                 });
             }
 
-            const item = itemsMap.get(name);
+            const item = itemsMap.get(name)!;
             // Accumulate sizes and counts for all files inside this path
             if (!f.path.endsWith('/') && !f.path.endsWith('\\')) {
                 item.size += (f.size || 0);
@@ -700,7 +743,7 @@ function renderFileList(resetPage = true) {
         upItem.onclick = () => {
             const parts = normCurDir.split('/').filter(p => p);
             parts.pop();
-            currentDirectory = parts.length > 0 ? parts.join('/') + '/' : '';
+            archiveDirectory = parts.length > 0 ? parts.join('/') + '/' : '';
             renderFileList();
         };
         elements.logContainer.appendChild(upItem);
@@ -716,8 +759,8 @@ function renderFileList(resetPage = true) {
         } else if (currentSort.col === "size") {
             result = a.size - b.size;
         } else if (currentSort.col === "compressed") {
-            const compA = a.files.reduce((acc: number, f: any) => acc + (f.compressed_size || 0), 0);
-            const compB = b.files.reduce((acc: number, f: any) => acc + (f.compressed_size || 0), 0);
+            const compA = a.files.reduce((acc, entry) => acc + (entry.compressed_size || 0), 0);
+            const compB = b.files.reduce((acc, entry) => acc + (entry.compressed_size || 0), 0);
             result = compA - compB;
         } else if (currentSort.col === "ext") {
             const extA = a.isDir ? "" : (a.name.split('.').pop() || "");
@@ -743,7 +786,7 @@ function renderFileList(resetPage = true) {
             checkbox.checked = item.selectedFileCount === item.totalFileCount;
             checkbox.indeterminate = item.selectedFileCount > 0 && item.selectedFileCount < item.totalFileCount;
         } else {
-            checkbox.checked = item.files.length > 0 ? item.files.every((f: any) => f.selected) : false;
+            checkbox.checked = item.files.length > 0 ? item.files.every((entry) => entry.selected) : false;
         }
 
         checkbox.onclick = (e) => {
@@ -765,7 +808,7 @@ function renderFileList(resetPage = true) {
                              </div>`;
             info.querySelector('.file-name')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                currentDirectory = item.fullPath;
+                archiveDirectory = item.fullPath;
                 renderFileList();
             });
         } else {
@@ -799,7 +842,7 @@ function renderFileList(resetPage = true) {
                     renderFileList(false);
                 }, 250);
             } else if (e.target !== checkbox && item.isDir) {
-                currentDirectory = item.fullPath;
+                archiveDirectory = item.fullPath;
                 renderFileList();
             }
         });
@@ -808,8 +851,8 @@ function renderFileList(resetPage = true) {
             clearTimeout(singleClickTimer);
             if (item.isDir) return;
             e.stopPropagation();
-            if (archiveActions.busy || isProcessing || !loadedArchive) return;
-            const archivePath = loadedArchive;
+            if (archiveActions.busy || isProcessing || !loadedArchivePath) return;
+            const archivePath = loadedArchivePath;
             const fileObj = item.files[0];
             if (fileObj.error || fileObj.is_link) return;
             const ext = item.name.split('.').pop()?.toLowerCase() || '';
@@ -849,6 +892,7 @@ function renderFileList(resetPage = true) {
                             
                                 elements.viewerModal.style.display = 'flex';
                             
+                                // 엔진 작업은 끝나도 뷰어를 닫을 때까지 사용자 작업의 게이트는 유지한다.
                                 const closed = new Promise<void>(resolve => {
                                     const app = document.getElementById("app")!;
                                     app.inert = true;
@@ -900,7 +944,7 @@ function renderFileList(resetPage = true) {
 
         domItem.addEventListener("keydown", e => {
             if (e.key !== "Enter") return;
-            if (item.isDir) { currentDirectory = item.fullPath; renderFileList(); }
+            if (item.isDir) { archiveDirectory = item.fullPath; renderFileList(); }
             else domItem.dispatchEvent(new MouseEvent("dblclick"));
         });
         elements.logContainer?.appendChild(domItem);
@@ -922,10 +966,13 @@ function renderFileList(resetPage = true) {
     }
 }
 
+// --- 선택 스냅샷을 사용하는 압축 해제와 압축 실행 ---
+
+/** 선택된 최상위 항목이 여럿이면 압축 파일 이름의 폴더를 만들어 풀 위치를 정한다. */
 async function smartExtractArchive() {
     await runArchiveAction(async () => {
-        if (!loadedArchive) return;
-        const snapshot = snapshotExtraction(loadedArchive, currentArchivePassword, globalArchiveFiles);
+        if (!loadedArchivePath) return;
+        const snapshot = snapshotExtraction(loadedArchivePath, currentArchivePassword, archiveEntries);
         if (snapshot.emptySelection) {
             await message(getTranslation("noFilesSelected"), { title: getTranslation("error"), kind: "error" });
             return;
@@ -942,12 +989,12 @@ async function smartExtractArchive() {
 
 async function extractArchive() {
     await runArchiveAction(async () => {
-        if (!loadedArchive) {
+        if (!loadedArchivePath) {
             const selected = await open({ multiple: false, title: getTranslation("selectArchive") });
-            if (selected) await loadArchivePreviewInner(selected);
+            if (selected) await executeArchivePreview(selected);
             return;
         }
-        const snapshot = snapshotExtraction(loadedArchive, currentArchivePassword, globalArchiveFiles);
+        const snapshot = snapshotExtraction(loadedArchivePath, currentArchivePassword, archiveEntries);
         if (snapshot.emptySelection) {
             await message(getTranslation("noFilesSelected"), { title: getTranslation("error"), kind: "error" });
             return;
@@ -958,6 +1005,10 @@ async function extractArchive() {
     });
 }
 
+/**
+ * 호출자가 확보한 선택 스냅샷으로 충돌 확인 → 암호 재시도 → 결과 확인을 이어 간다.
+ * dialog await 뒤에 archiveEntries를 다시 읽으면 사용자가 요청한 대상과 달라질 수 있다.
+ */
 async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) {
     try {
         lastResultPath = destDir;
@@ -991,7 +1042,7 @@ async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) 
                     const validator = async (testPw: string) => {
                         try {
                             report = await attemptExtract(testPw);
-                            if (loadedArchive === snapshot.archivePath) currentArchivePassword = testPw;
+                            if (loadedArchivePath === snapshot.archivePath) currentArchivePassword = testPw;
                             return true;
                         } catch (e: any) {
                             if (String(e) === "PASSWORD_REQUIRED") return false;
@@ -999,7 +1050,7 @@ async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) 
                         }
                     };
                     if (await requestPassword(validator, snapshot.password !== null) === null) {
-                        // Cancellation during password submission may have saved some files.
+                        // 암호 확인 중 실제 해제를 수행하므로, 취소해도 이미 저장된 파일의 결과는 보여 준다.
                         if (report) await showArchiveReport(report, "extract");
                         return;
                     }
@@ -1007,7 +1058,7 @@ async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) 
                     throw err;
                 }
             }
-            // Let password cleanup finish before presenting an awaited result dialog.
+            // 암호창 이벤트/포커스 정리가 끝난 뒤 결과창을 열고, 닫힐 때까지 기다린다.
             if (report) await showArchiveReport(report, "extract");
         } finally {
             setProcessing(false);
@@ -1018,11 +1069,12 @@ async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) 
     }
 }
 
-async function handleDirectCompression(paths: string[]) {
-    await runArchiveAction(() => handleDirectCompressionInner([...paths], compressionOptions()));
+async function startCompression(paths: string[]) {
+    await runArchiveAction(() => executeCompression([...paths], readCompressionOptions()));
 }
 
-function compressionOptions() {
+/** 현재 컨트롤 값을 검증하고 복사한다. 이후 파일/저장 대화상자에서는 이 값을 사용한다. */
+function readCompressionOptions() {
     const password = elements.enablePasswordCb?.checked ? elements.compressPasswordInput?.value || null : null;
     if (elements.enablePasswordCb?.checked && !password) throw new Error(getTranslation("passwordRequired"));
     return {
@@ -1034,7 +1086,8 @@ function compressionOptions() {
     };
 }
 
-async function handleDirectCompressionInner(paths: string[], options: ReturnType<typeof compressionOptions>) {
+/** 게이트를 가진 호출자 전용. 입력/옵션을 받아 저장 위치 선택부터 결과창 닫기까지 완료한다. */
+async function executeCompression(paths: string[], options: ReturnType<typeof readCompressionOptions>) {
     const { format, password, encryptLevel, splitSize, compressionLevel } = options;
     const ext = format;
     
@@ -1074,6 +1127,9 @@ async function handleDirectCompressionInner(paths: string[], options: ReturnType
     }
 }
 
+// --- 암호·충돌 대화상자의 비동기 계약 ---
+
+/** 메모리/외부 미리보기의 읽기를 재시도한다. 사용자 취소는 null, 다른 실패는 호출자에게 전달한다. */
 async function withArchivePassword<T>(read: (password: string | null) => Promise<T>): Promise<T | null> {
     try { return await read(currentArchivePassword); }
     catch (error) { if (String(error) !== "PASSWORD_REQUIRED") throw error; }
@@ -1085,6 +1141,7 @@ async function withArchivePassword<T>(read: (password: string | null) => Promise
     return password === null ? null : result;
 }
 
+/** validator는 단순 문자열 비교가 아니라 실제 아카이브 읽기/해제를 실행할 수 있다. */
 function requestPassword(validator: PasswordValidator, isRetry = false): Promise<string | null> {
     const { passwordModal, unlockPasswordInput, passwordSubmit, passwordCancel, modalErrorMsg } = elements;
     if (!passwordModal || !unlockPasswordInput || !passwordSubmit || !passwordCancel) return Promise.resolve(null);
@@ -1096,6 +1153,7 @@ function requestPassword(validator: PasswordValidator, isRetry = false): Promise
     }, isRetry);
 }
 
+/** 이벤트 핸들러를 정리한 뒤 선택을 반환한다. 반환 문자열은 Rust 충돌 정책과 맞춰야 한다. */
 function requestConflictResolution(conflicts: string[]): Promise<string | null> {
     return new Promise((resolve) => {
         const { conflictModal, conflictMsg, conflictOverwrite, conflictKeep, conflictCancel } = elements;
@@ -1126,6 +1184,12 @@ function requestConflictResolution(conflicts: string[]): Promise<string | null> 
     });
 }
 
+// --- 진행 상태와 완료 보고서 ---
+
+/**
+ * 진행 UI, 타이머, 취소 버튼을 함께 갱신한다. 사용자 작업 게이트의 해제는 담당하지 않는다.
+ * false 뒤에도 결과/미리보기 대화상자가 남아 있으면 archiveActions.busy가 입력을 계속 막는다.
+ */
 function setProcessing(processing: false): void;
 function setProcessing(processing: true, operation: ProcessingOperation, statusLine?: string): void;
 function setProcessing(processing: boolean, operation: ProcessingOperation = "preview", statusLine?: string) {
@@ -1140,7 +1204,7 @@ function setProcessing(processing: boolean, operation: ProcessingOperation = "pr
     updateButtonState(processing || archiveActions.busy);
     const cancelButton = document.getElementById("btn-cancel-operation") as HTMLButtonElement | null;
     if (cancelButton) cancelButton.disabled = !processing;
-    if (!processing) queueMicrotask(() => void handleNextStartupAction());
+    if (!processing) queueMicrotask(() => void processNextStartupAction());
     const { progressContainer, progressFill, progressText, progressStatus, btnReveal } = elements;
 
     if (progressContainer && progressFill && progressText && progressStatus) {
@@ -1208,9 +1272,13 @@ function handleFilenameEvent(filename: string) {
     if (elements.progressFilename) elements.progressFilename.innerText = filename;
 }
 
+/**
+ * 결과 표시뿐 아니라 닫기까지 기다리는 Promise를 반환한다. 반드시 await하여 다음 요청이
+ * 현재 결과를 덮어쓰지 않게 한다. 압축 결과에는 이전 아카이브 목록의 크기를 붙이지 않는다.
+ */
 function showArchiveReport(report: ExtractionReport, operation: "extract" | "compress"): Promise<void> {
     const el = elements;
-    // Stop finished-job visuals without releasing the queue until dismissal.
+    // 엔진 작업이 끝났으므로 진행 표시만 멈춘다. 게이트는 결과창을 닫은 후 해제된다.
     progressLens.setRunning(false);
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = null;
@@ -1333,7 +1401,7 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
 
     const generateTxt = async () => {
         const findSize = (p: string): string => {
-            const f = globalArchiveFiles.find(f => p.endsWith(f.path));
+            const f = archiveEntries.find(f => p.endsWith(f.path));
             return f ? formatBytes(f.size) : '-';
         };
 
@@ -1381,7 +1449,7 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
 
     const generateCsv = async () => {
         const findSize = (p: string): number => {
-            const f = globalArchiveFiles.find(f => p.endsWith(f.path));
+            const f = archiveEntries.find(f => p.endsWith(f.path));
             return f ? f.size : 0;
         };
 
@@ -1409,7 +1477,7 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
     el.reportExportTxt.onclick = operation === "extract" ? generateTxt : null;
     el.reportExportCsv.onclick = operation === "extract" ? generateCsv : null;
 
-    // Await dismissal so a queued Finder/CLI operation cannot replace this result.
+    // 확인/ESC 시 이벤트와 inert를 복구한 뒤 호출자를 재개한다.
     return new Promise<void>(resolve => {
         const close = () => {
             el.reportModal.style.display = "none";
