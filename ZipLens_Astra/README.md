@@ -2,6 +2,8 @@
 
 첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens`입니다. 현재 공개 GitHub 프리뷰는 **2.1.1**입니다.
 
+개발을 처음 시작한다면 [코드 읽기 안내](docs/CODE_GUIDE_KO.md)에서 구조와 작업 흐름을 보고, [기여·업데이트 안내](docs/CONTRIBUTING_KO.md)에서 주석·이름 기준, 샘플 실습, 변경별 검사 방법을 확인하세요. 이 폴더가 현재 앱이며 저장소 루트는 기존 1.x 프로젝트입니다.
+
 ## 2.1.1 공개 프리뷰 — 2026-10-11
 
 앱 이름을 **ZipLens**로 통일하고 정보창에 실제 버전을 한 번만 표시합니다. 사람과 AI가 기본적인 디지털 도구를 지식 공유처럼 자유롭게 사용하며 공존할 수 있기를 바라는 제작 철학을 소개합니다. 무료 사용과 광고 없는 운영을 이어가며, 유용하게 사용한 분은 선택적으로 후원할 수 있습니다. 정보창에는 [Buy Me a Coffee](https://buymeacoffee.com/master_chief)·[Ko-fi](https://ko-fi.com/seederpower)·Bitcoin(BTC) 후원과 앱에 포함된 오프라인 사용법을 모았습니다. Bitcoin은 BlueWallet의 일반 수신 주소를 복사하거나 QR 코드로 사용할 수 있습니다.
@@ -190,6 +192,8 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 **수정본을 배포하시는 분께 부탁드립니다.** 누구나 배우고 개선할 수 있도록 공개한 [원작 ZipLens 프로젝트](https://github.com/SeederPowerDrop/ZipLens)와 원작자 SeederPowerDrop의 위 후원 링크를 수정본의 정보란이나 README에도 남겨 주시면 감사하겠습니다. 이는 지속적인 개발을 위한 **자발적인 협조 요청이며, GPLv3에 추가되는 라이선스 조건이 아닙니다.**
 
 ## English
+
+For maintainers and learners: read the [code guide](docs/CODE_GUIDE_KO.md) and [contribution and update workflow](docs/CONTRIBUTING_KO.md) (in Korean). They cover module boundaries, GUI/CLI flows, naming and comments, disposable samples, and validation commands. The active app is in `ZipLens_Astra/`; the repository root retains the legacy 1.x project.
 
 **Public preview 2.1.1 — October 11, 2026.** The app is now named **ZipLens** (`ZipLens.app`), with the actual version shown once in About. The introduction describes a commitment to making basic digital tools freely available to people and AI, in the spirit of shared knowledge and coexistence. About brings together optional [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) and Bitcoin support, plus a bundled offline user guide. Bitcoin uses the ordinary receiving address from BlueWallet, with copy and QR options. The app remains free and ad-free.
 

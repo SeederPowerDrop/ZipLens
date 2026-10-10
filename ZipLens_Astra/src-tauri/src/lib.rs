@@ -1,4 +1,8 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+//! GUI 부팅, 네이티브 메뉴, Finder 요청 큐와 IPC 등록을 구성합니다.
+//! headless `cli` 명령은 main.rs에서 먼저 처리하므로 이 GUI 초기화를 거치지 않습니다.
+
+// Tauri 초기 템플릿의 연결 확인 명령입니다. 실제 압축 기능은 archive 모듈에 있습니다.
+// 이미 등록된 IPC 이름을 이번 가독성 정리에서 바꾸지 않습니다.
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -18,11 +22,11 @@ struct StartupAction {
     paths: Vec<String>,
 }
 
-/// CLI 인수를 파싱합니다.
+/// 창을 여는 GUI 시작 인수를 파싱합니다. JSON을 반환하는 `cli ...`와 다른 진입점입니다.
 /// 지원 형식:
 ///   ziplens --extract /path/to/archive.zip
 ///   ziplens --compress /path/to/file1 /path/to/file2 ...
-fn parse_startup_args() -> StartupAction {
+fn parse_gui_startup_args() -> StartupAction {
     let args: Vec<String> = std::env::args().skip(1).collect();
 
     if args.is_empty() {
@@ -66,7 +70,8 @@ fn parse_startup_args() -> StartupAction {
     }
 }
 
-// A handshake replaces the old 800 ms sleep, which could lose Finder/CLI open events.
+// 웹뷰가 이벤트를 듣기 전에 도착한 요청도 보관합니다. 프런트엔드는 먼저 listen한 뒤
+// take_startup_actions로 가져가야 합니다. 고정 시간 sleep으로 준비 상태를 추측하지 않습니다.
 struct StartupQueue(std::sync::Mutex<Vec<StartupAction>>);
 #[tauri::command]
 fn take_startup_actions(queue: tauri::State<'_, StartupQueue>) -> Vec<StartupAction> {
@@ -80,12 +85,7 @@ fn set_menu_language(app: tauri::AppHandle, lang: String) -> Result<(), String> 
     let (about, defaults, file, edit) = match lang.as_str() {
         "ko" => ("ZipLens 정보", "기본 압축 앱 설정…", "파일", "편집"),
         "en" => ("About ZipLens", "Default Archive App…", "File", "Edit"),
-        "ja" => (
-            "ZipLens について",
-            "標準の圧縮アプリ…",
-            "ファイル",
-            "編集",
-        ),
+        "ja" => ("ZipLens について", "標準の圧縮アプリ…", "ファイル", "編集"),
         "zh" => ("关于 ZipLens", "默认压缩应用…", "文件", "编辑"),
         "vi" => (
             "Giới thiệu về ZipLens",
@@ -163,8 +163,9 @@ fn queue_startup_action<R: tauri::Runtime>(app: &tauri::AppHandle<R>, action: St
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+/// GUI 서비스의 조립 지점입니다. 새 IPC는 구현뿐 아니라 invoke_handler에도 등록해야 합니다.
 pub fn run() {
-    let startup_action = parse_startup_args();
+    let startup_action = parse_gui_startup_args();
 
     tauri::Builder::default()
         .manage(archive::PreviewSessions::default())

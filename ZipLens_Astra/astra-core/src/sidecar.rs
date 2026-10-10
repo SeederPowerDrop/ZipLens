@@ -1,3 +1,4 @@
+//! 번들 7-Zip을 실행하고 목록·추출 결과를 검증합니다. 자식 프로세스 분리는 sandbox가 아닙니다.
 use crate::{paths, Context, Engine, Entry};
 use std::{
     fs,
@@ -9,6 +10,8 @@ use std::{
 };
 
 const LOG_LIMIT: usize = 32 * 1024 * 1024;
+/// 메모리에 보관하는 로그는 제한해도 파이프는 EOF까지 비웁니다.
+/// 읽기를 먼저 멈추면 자식이 가득 찬 stdout/stderr에서 대기하여 종료되지 않을 수 있습니다.
 pub(crate) fn collect(mut reader: impl Read) -> std::io::Result<(Vec<u8>, bool)> {
     let mut bytes = Vec::new();
     let mut chunk = [0; 8192];
@@ -38,10 +41,12 @@ impl Engine {
             .map_err(|e| format!("Cannot start bundled 7-Zip: {e}"))?;
         let stdout = child.stdout.take().unwrap();
         let stderr = child.stderr.take().unwrap();
+        // 두 파이프를 동시에 비워야 한쪽 출력 때문에 자식이 막히지 않습니다.
         let out = thread::spawn(move || collect(stdout));
         let err = thread::spawn(move || collect(stderr));
         let status = loop {
             if ctx.check().is_err() {
+                // 취소 시 kill 후 wait로 회수합니다. 이 경로에는 ALZ/EGG helper의 시간 제한이 없습니다.
                 let _ = child.kill();
                 break child.wait();
             }

@@ -1,4 +1,5 @@
-//! Never repair hostile paths by deleting `..`: reject them before any writes.
+//! 아카이브 이름과 실제 목적지 경로를 검사합니다. 위험한 `..`를 지워서 복구하지 않고 거부합니다.
+//! 문자열 검사·파일 식별자 검사는 서로 보완하며, 외부 프로세스의 동시 파일 변경을 잠그지는 않습니다.
 use crate::Entry;
 use std::{
     collections::{HashMap, HashSet},
@@ -7,6 +8,7 @@ use std::{
 };
 use unicode_normalization::UnicodeNormalization;
 
+// 경로 철자가 달라도 같은 원본일 수 있습니다. Unix에서는 device + inode로 하드링크 별칭도 식별합니다.
 #[derive(Eq, PartialEq, Hash)]
 enum FileIdentity {
     #[cfg(unix)]
@@ -42,7 +44,9 @@ pub fn same_file(left: &Path, right: &Path) -> std::io::Result<bool> {
     })
 }
 
-/// Input identities survive spelling differences and are checked in O(1) per output.
+/// 원본 아카이브와 알려진 분할 볼륨의 식별자를 보관하여 결과로 덮어쓰는 것을 막습니다.
+/// Unix에서는 대소문자·Unicode 표기·하드링크 별칭이 달라도 같은 파일인지 확인합니다.
+/// 등록 시점의 식별자를 저장하는 것으로, 원본 파일을 잠그거나 변경을 감시하는 기능은 아닙니다.
 pub(crate) struct ProtectedInputs {
     identities: HashSet<FileIdentity>,
 }
@@ -125,6 +129,7 @@ fn volume_family_matches(archive: &Path, candidate: &Path) -> bool {
     false
 }
 
+/// 아카이브 이름을 안전한 상대 경로로 변환합니다. 디스크 존재 여부·링크 목적지는 별도로 검사합니다.
 pub fn relative(name: &str) -> Result<PathBuf, String> {
     let name = name.replace('\\', "/");
     if name.starts_with('/')
@@ -143,6 +148,7 @@ pub fn relative(name: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
+/// 전체 목록의 크기 제한과 macOS에서 모호해질 수 있는 이름·부모 경로 충돌을 검사합니다.
 pub fn validate_entries(entries: &[Entry]) -> Result<(), String> {
     if entries.len() > crate::context::MAX_ENTRIES {
         return Err("Archive has too many entries".into());
@@ -173,7 +179,8 @@ pub fn validate_entries(entries: &[Entry]) -> Result<(), String> {
     Ok(())
 }
 
-/// Links are created last; every target must stay lexically and physically inside the stage.
+/// 링크의 상대 경로가 문자열 해석상 staging 밖으로 나가지 않는지 검사합니다.
+/// 실제 링크 사슬의 도착점 검사는 별도로 필요하며, `Engine`의 staging 검사에서 수행합니다.
 pub fn validate_link(name: &Path, target: &Path) -> Result<(), String> {
     if target.is_absolute() || target.as_os_str().is_empty() {
         return Err("External or empty symbolic link is blocked".into());
@@ -200,10 +207,12 @@ pub fn validate_link(name: &Path, target: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// 끊어진 심볼릭 링크도 이름을 차지하므로 `Path::exists`와 달리 링크 자체를 검사합니다.
 pub fn exists(path: &Path) -> bool {
     fs::symlink_metadata(path).is_ok()
 }
 
+/// root 아래 디렉터리를 차례로 확인·생성합니다. root는 호출자가 이미 검증한 경로여야 합니다.
 pub fn ensure_under(root: &Path, path: &Path) -> Result<(), String> {
     let relative = path
         .strip_prefix(root)
@@ -219,6 +228,7 @@ pub fn ensure_under(root: &Path, path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// 해당 경로가 실제 디렉터리인지 확인하거나 생성합니다. 그 위치의 링크는 따라가지 않습니다.
 pub fn ensure_directory(path: &Path) -> Result<(), String> {
     match fs::symlink_metadata(path) {
         Ok(m) if m.is_dir() && !m.is_symlink() => Ok(()),
@@ -242,6 +252,7 @@ pub fn ensure_directory(path: &Path) -> Result<(), String> {
     }
 }
 
+/// Keep Both 후보 이름을 만듭니다. 이름을 예약하지 않으므로 실제 이동도 충돌을 검사해야 합니다.
 pub fn numbered(path: &Path, n: usize) -> PathBuf {
     if n == 0 {
         return path.to_owned();
@@ -254,15 +265,23 @@ pub fn numbered(path: &Path, n: usize) -> PathBuf {
     path.with_file_name(format!("{stem} ({n}){suffix}"))
 }
 
-/// macOS renamex_np(RENAME_EXCL) closes the exists/rename race for keep-both results.
+/// macOS는 `renamex_np(RENAME_EXCL)`로 충돌 확인과 이동을 한 번에 수행합니다.
+/// 다른 플랫폼의 fallback은 exists→rename 사이 경쟁을 막지 못하므로 같은 보장을 가정하지 않습니다.
 pub fn rename_no_replace(from: &Path, to: &Path) -> std::io::Result<()> {
     #[cfg(target_os = "macos")]
     {
         use std::os::unix::ffi::OsStrExt;
-        let a = std::ffi::CString::new(from.as_os_str().as_bytes())?;
-        let b = std::ffi::CString::new(to.as_os_str().as_bytes())?;
-        let r = unsafe { libc::renamex_np(a.as_ptr(), b.as_ptr(), libc::RENAME_EXCL) };
-        if r != 0 {
+        let source_path = std::ffi::CString::new(from.as_os_str().as_bytes())?;
+        let destination_path = std::ffi::CString::new(to.as_os_str().as_bytes())?;
+        // SAFETY: 두 CString은 호출이 끝날 때까지 살아 있으며 NUL 종료 포인터를 제공합니다.
+        let result = unsafe {
+            libc::renamex_np(
+                source_path.as_ptr(),
+                destination_path.as_ptr(),
+                libc::RENAME_EXCL,
+            )
+        };
+        if result != 0 {
             return Err(std::io::Error::last_os_error());
         }
         Ok(())
