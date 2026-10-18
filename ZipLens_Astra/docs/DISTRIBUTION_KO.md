@@ -1,6 +1,6 @@
 # ZipLens 배포·라이선스 안내
 
-ZipLens는 무료로 제공하며 자발적인 후원을 받는다. 이 문서는 ZipLens 2.1.1의 라이선스, 동봉 자료와 재배포·빌드 절차를 안내한다.
+ZipLens는 무료로 제공하며 자발적인 후원을 받는다. 이 문서는 ZipLens 2.1.2의 라이선스, 동봉 자료와 재배포·빌드 절차를 안내한다.
 
 ## ZipLens 자체 코드와 후원
 
@@ -58,7 +58,7 @@ python3 scripts/package-macos.py --preview
 ## 배포 구분과 지원 범위
 
 - 2.0.1부터 기본 패키징은 Developer ID 인증서와 기존 notarytool 프로필을 요구한다. 공증 승인·티켓 첨부 후 실제 ZIP에서 추출한 앱의 Gatekeeper 검사까지 통과해야 정식 산출물을 생성한다. `--preview`는 별도 `release_build/preview` 폴더에만 저장한다. [실행 문제 진단과 명령](MACOS_LAUNCH_KO.md)
-- 2.1.1의 Apple Silicon 프리뷰는 로컬 ad-hoc 서명을 사용하는 배포 유형이며 Apple Developer ID 서명·공증 완료를 뜻하지 않는다. GitHub의 Latest 표시와 Apple의 서명·공증 여부는 별개다. 각 릴리스에 실제 배포 유형과 검증 결과를 명시한다.
+- 2.1.2의 Apple Silicon 프리뷰는 로컬 ad-hoc 서명을 사용하는 배포 유형이며 Apple Developer ID 서명·공증 완료를 뜻하지 않는다. GitHub의 Latest 표시와 Apple의 서명·공증 여부는 별개다. 각 릴리스에 실제 배포 유형과 검증 결과를 명시한다.
 - Intel Mac 배포를 약속하기 전에 해당 아키텍처로 앱과 보조 프로그램을 빌드하고 실제 동작을 검사한다.
 - 모든 ALZ·EGG·RAR 변종의 호환성을 보증하지 않는다. 안전 한도·지원 방식 및 실행한 검사는 [검증 요약](VALIDATION.md)에 구분해 남긴다.
 - 공식 앱의 후원은 선택 사항이며 앱 사용을 제한하지 않는다. 현재 앱에 광고 SDK나 유료 기능 잠금을 추가하지 않는다.

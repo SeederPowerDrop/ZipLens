@@ -17,8 +17,8 @@ Each guide introduces ZipLens, explains its features and everyday use, and descr
 | Русский | [Обзор и руководство пользователя](ru.md) |
 | العربية | [التعريف بالتطبيق ودليل الاستخدام](ar.md) |
 
-The current downloadable app is the **2.1.1 Apple Silicon preview**. The repository's `main` branch may contain later, **Unreleased** changes. Documentation and source updates do not replace the app already installed on your Mac. Check the [changelog](../../CHANGELOG.md) and the version and scope in the [validation record](../VALIDATION.md).
+The current downloadable app is the **2.1.2 Apple Silicon preview**. The repository's `main` branch may contain later, **Unreleased** changes. Documentation and source updates do not replace the app already installed on your Mac. Check the [changelog](../../CHANGELOG.md) and the version and scope in the [validation record](../VALIDATION.md).
 
 Basic instructions are also bundled with the app under **ⓘ → User guide** and work offline in all ten languages. macOS-owned dialogs follow the system language; detailed archive-engine diagnostics may retain their original language. The interface language does not determine an archive's filename encoding.
 
-[Download 2.1.1](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [Build and format reference](../../README.md) · [AI/CLI reference](../AI_CLI.md) · [한국어 / English detailed guide](../USER_GUIDE_KO_EN.md)
+[Download 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) · [Build and format reference](../../README.md) · [AI/CLI reference](../AI_CLI.md) · [한국어 / English detailed guide](../USER_GUIDE_KO_EN.md)

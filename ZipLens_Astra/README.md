@@ -1,16 +1,20 @@
 # ZipLens
 
-첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens`입니다. 현재 공개 GitHub 프리뷰는 **2.1.1**입니다.
+첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens`입니다. 현재 공개 GitHub 프리뷰는 **2.1.2**입니다.
 
 [10개 언어 소개·기능·사용 설명서](docs/guides/README.md): [한국어](docs/guides/ko.md) · [English](docs/guides/en.md) · [日本語](docs/guides/ja.md) · [简体中文](docs/guides/zh.md) · [Tiếng Việt](docs/guides/vi.md) · [Español](docs/guides/es.md) · [Français](docs/guides/fr.md) · [Deutsch](docs/guides/de.md) · [Русский](docs/guides/ru.md) · [العربية](docs/guides/ar.md)
 
-`main`에는 공개 2.1.1 이후의 **Unreleased(미배포)** 변경이 있을 수 있습니다. 소스를 갱신해도 설치된 앱은 바뀌지 않습니다. [변경 이력](CHANGELOG.md)과 버전·조건을 구분한 [검증 기록](docs/VALIDATION.md)을 확인하세요.
+`main`에는 공개 2.1.2 이후의 **Unreleased(미배포)** 변경이 있을 수 있습니다. 소스를 갱신해도 설치된 앱은 바뀌지 않습니다. [변경 이력](CHANGELOG.md)과 버전·조건을 구분한 [검증 기록](docs/VALIDATION.md)을 확인하세요.
 
 우리가 추구하는 **소프트웨어 기본권**은 누구나 경제적 여건·언어와 관계없이 기본 디지털 도구를 쓰고, 코드를 공부·수정·공유·기여할 수 있어야 한다는 개발 가치입니다. 사람과 AI가 지식을 나누고 함께 배우며 창작하기를 바랍니다. 무료 사용·다국어 지원·GPLv3 공개로 이 제작 철학을 실천합니다. [제작 철학 자세히 보기](../README.md#우리가-추구하는-소프트웨어-기본권)
 
 개발을 처음 시작한다면 [코드 읽기 안내](docs/CODE_GUIDE_KO.md)에서 구조와 작업 흐름을 보고, [기여·업데이트 안내](docs/CONTRIBUTING_KO.md)에서 주석·이름 기준, 샘플 실습, 변경별 검사 방법을 확인하세요. 이 폴더가 현재 앱이며 저장소 루트는 기존 1.x 프로젝트입니다.
 
-## 2.1.1 공개 프리뷰 — 2026-10-11
+## 2.1.2 공개 프리뷰 — 2026-10-18
+
+긴 다국어 버튼과 작은 창의 배치, 결과 보고서와 대량 내보내기, Unicode 이름 충돌 및 잘못된 CLI 입력 처리를 보완했습니다. [2.1.2 업데이트 안내](docs/RELEASE_2.1.2_KO_EN.md)와 [대용량 파일 측정](docs/LARGE_FILE_VALIDATION_2026-10-18.md)에서 이번 배포의 변경·검증 범위를 확인하세요.
+
+## 이전 2.1.1 공개 프리뷰 — 2026-10-11
 
 앱 이름을 **ZipLens**로 통일하고 정보창에 실제 버전을 한 번만 표시합니다. 사람과 AI가 기본적인 디지털 도구를 지식 공유처럼 자유롭게 사용하며 공존할 수 있기를 바라는 제작 철학을 소개합니다. 무료 사용과 광고 없는 운영을 이어가며, 유용하게 사용한 분은 선택적으로 후원할 수 있습니다. 정보창에는 [Buy Me a Coffee](https://buymeacoffee.com/master_chief)·[Ko-fi](https://ko-fi.com/seederpower)·Bitcoin(BTC) 후원과 앱에 포함된 오프라인 사용법을 모았습니다. Bitcoin은 BlueWallet의 일반 수신 주소를 복사하거나 QR 코드로 사용할 수 있습니다.
 
@@ -22,9 +26,9 @@
 "/Applications/ZipLens.app/Contents/MacOS/ziplens" cli extract "/path/to/archive.zip" --destination "/path/to/output"
 ```
 
-공개 2.1.1 앱이나 현재 소스를 빌드한 앱에서 사용할 수 있습니다. 이번 2.1.1에는 GPLv3 적용과 대응 소스 배포를 포함합니다. [2.1.1 업데이트 안내](docs/RELEASE_2.1.1_KO_EN.md) · [사용 설명서](docs/USER_GUIDE_KO_EN.md) · [AI/CLI 사용법과 JSON 계약](docs/AI_CLI.md)
+공개 2.1.2 앱이나 현재 소스를 빌드한 앱에서 사용할 수 있습니다. 2.1.1부터 적용한 GPLv3와 대응 소스 배포를 유지합니다. [2.1.2 업데이트 안내](docs/RELEASE_2.1.2_KO_EN.md) · [사용 설명서](docs/USER_GUIDE_KO_EN.md) · [AI/CLI 사용법과 JSON 계약](docs/AI_CLI.md)
 
-현재 2.1.1 프리뷰는 **한국어, 영어, 일본어, 중국어(간체), 베트남어, 스페인어, 프랑스어, 독일어, 러시아어, 아랍어**를 지원합니다. 앱 화면·압축 설정·정보창·후원 안내·오프라인 사용법·기본 앱 설정·사용자 정의 macOS 메뉴를 번역하며, 아랍어는 오른쪽에서 왼쪽으로 표시합니다. 저장된 언어를 우선 사용하고 처음 실행할 때는 시스템의 선호 언어 중 지원하는 언어를 선택합니다. 지원 언어가 없으면 영어로 표시합니다. macOS 자체 대화상자 버튼과 시스템 제공 메뉴 항목은 운영체제 설정을 따르며, 압축 엔진의 상세 오류 원문은 그대로 표시할 수 있습니다.
+현재 2.1.2 프리뷰는 **한국어, 영어, 일본어, 중국어(간체), 베트남어, 스페인어, 프랑스어, 독일어, 러시아어, 아랍어**를 지원합니다. 앱 화면·압축 설정·정보창·후원 안내·오프라인 사용법·기본 앱 설정·사용자 정의 macOS 메뉴를 번역하며, 아랍어는 오른쪽에서 왼쪽으로 표시합니다. 저장된 언어를 우선 사용하고 처음 실행할 때는 시스템의 선호 언어 중 지원하는 언어를 선택합니다. 지원 언어가 없으면 영어로 표시합니다. macOS 자체 대화상자 버튼과 시스템 제공 메뉴 항목은 운영체제 설정을 따르며, 압축 엔진의 상세 오류 원문은 그대로 표시할 수 있습니다.
 
 메인 화면에서 파일·폴더를 고르거나 끌어 놓으면 압축 파일은 목록을 열고, 일반 파일·폴더·혼합 선택은 새 압축 설정으로 이어집니다. 렌즈 그림을 더블클릭하면 열 가지 렌즈·빛 패턴의 개념도와 설명을 둘러볼 수 있습니다.
 
@@ -54,7 +58,7 @@
 
 <img src="docs/screenshots/archive-preview.jpg" alt="한글 샘플 ZIP의 폴더, 파일, 해제 용량을 확인하고 선택하는 화면" width="800">
 
-2.0.2의 실제 macOS 앱에서 공개용 샘플 자료로 촬영한 화면입니다. 현재 2.1.1의 메인 화면과 정보창을 촬영한 이미지는 아닙니다.
+2.0.2의 실제 macOS 앱에서 공개용 샘플 자료로 촬영한 화면입니다. 현재 2.1.2의 메인 화면과 정보창을 촬영한 이미지는 아닙니다.
 
 ## 이전 2.0.2에서 달라진 점
 
@@ -72,8 +76,8 @@
 
 ## 먼저 보기
 
-- [2.1.1 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 업데이트 안내](docs/RELEASE_2.1.1_KO_EN.md)
-- [2.1.1 사용 설명서 · 한국어 / English](docs/USER_GUIDE_KO_EN.md)
+- [2.1.2 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) · [2.1.2 업데이트 안내](docs/RELEASE_2.1.2_KO_EN.md)
+- [2.1.2 사용 설명서 · 한국어 / English](docs/USER_GUIDE_KO_EN.md)
 - [10개 언어별 소개·기능·사용 설명서](docs/guides/README.md)
 
 - [이전 2.0.3 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) — Apple Silicon용. 로컬 ad-hoc 서명이며 Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
@@ -186,9 +190,9 @@ cargo run --manifest-path astra-core/Cargo.toml --example benchmark --release --
 
 빌드 전에 `scripts/prepare-distribution.py`가 동봉된 공식 7-Zip 배포 파일·소스의 해시와 라이선스 자료를 확인하고, ALZ·EGG 해제 보조 프로그램을 빌드합니다. 라이선스 자료가 누락되거나 의존성 변경 후 갱신되지 않았으면 빌드를 중단합니다. 원본 프로젝트의 의존성이나 빌드 폴더를 공유하지 않습니다. 두 Rust lockfile은 각 명령의 재현성을 위해 유지합니다.
 
-현재 소스를 포장하면 로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.1.1_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.1.1_arm64.zip`입니다. 공개 다운로드는 [2.1.1 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
+현재 소스를 포장하면 로컬 프리뷰 ZIP은 `release_build/preview/ZipLens_2.1.2_arm64-preview.zip`입니다. 서명·공증을 완료한 정식 ZIP의 경로는 `release_build/ZipLens_2.1.2_arm64.zip`입니다. 공개 다운로드는 [2.1.2 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
 
-같은 릴리스의 `ZipLens_2.1.1_source.tar.gz`에는 이 배포본의 전체 자체 소스와 빌드 안내, 실행·빌드에 쓰이는 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브가 포함됩니다. 직접 빌드를 재현할 때 참고하세요. 공개 문서에는 검증 요약을 남기고 개인 작업 기록과 원시 실행 로그는 별도로 비공개 보관합니다.
+같은 릴리스의 `ZipLens_2.1.2_source.tar.gz`에는 이 배포본의 전체 자체 소스와 빌드 안내, 실행·빌드에 쓰이는 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브가 포함됩니다. 직접 빌드를 재현할 때 참고하세요. 공개 문서에는 검증 요약을 남기고 개인 작업 기록과 원시 실행 로그는 별도로 비공개 보관합니다.
 
 ## 라이선스와 후원
 
@@ -204,13 +208,15 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 
 ## English
 
-[Introduction, features and user guides in ten languages](docs/guides/README.md) explain installation, everyday workflows, filename encoding and optional support. The downloadable app is 2.1.1; `main` may contain later **Unreleased** changes, which do not automatically update an installed app.
+[Introduction, features and user guides in ten languages](docs/guides/README.md) explain installation, everyday workflows, filename encoding and optional support. The downloadable app is 2.1.2; `main` may contain later **Unreleased** changes, which do not automatically update an installed app.
 
 Our idea of **basic software rights** is a development value: everyone, regardless of income or language, should be able to use essential digital tools and study, modify, share and contribute to their code. People and AI can share knowledge, learn and create together. See the [project philosophy](../README.md#basic-software-rights-our-guiding-value).
 
 For maintainers and learners: read the [code guide](docs/CODE_GUIDE_KO.md) and [contribution and update workflow](docs/CONTRIBUTING_KO.md) (in Korean). They cover module boundaries, GUI/CLI flows, naming and comments, disposable samples, and validation commands. The active app is in `ZipLens_Astra/`; the repository root retains the legacy 1.x project.
 
-**Public preview 2.1.1 — October 11, 2026.** The app is now named **ZipLens** (`ZipLens.app`), with the actual version shown once in About. The introduction describes a commitment to making basic digital tools freely available to people and AI, in the spirit of shared knowledge and coexistence. About brings together optional [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) and Bitcoin support, plus a bundled offline user guide. Bitcoin uses the ordinary receiving address from BlueWallet, with copy and QR options. The app remains free and ad-free.
+**Public preview 2.1.2 — October 18, 2026.** This update improves long translated controls and small-window layouts, completion reports and large exports, Unicode filename collision checks and invalid CLI input handling. See the [2.1.2 release notes](docs/RELEASE_2.1.2_KO_EN.md) and [large-file validation](docs/LARGE_FILE_VALIDATION_2026-10-18.md).
+
+**Earlier public preview 2.1.1 — October 11, 2026.** The app is now named **ZipLens** (`ZipLens.app`), with the actual version shown once in About. The introduction describes a commitment to making basic digital tools freely available to people and AI, in the spirit of shared knowledge and coexistence. About brings together optional [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) and Bitcoin support, plus a bundled offline user guide. Bitcoin uses the ordinary receiving address from BlueWallet, with copy and QR options. The app remains free and ad-free.
 
 The headless `cli` interface introduced in 2.1.0 remains available for AI agents and terminal automation: `capabilities`, `list`, `extract`, and `compress`. It returns JSON and exit codes, preserves existing files by default, and reports actual output paths. See the [CLI contract and examples](docs/AI_CLI.md). Version 2.1.1 adds GPLv3 licensing and a matching source archive. [2.1.1 release notes](docs/RELEASE_2.1.1_KO_EN.md) · [User guide](docs/USER_GUIDE_KO_EN.md)
 
@@ -236,7 +242,7 @@ These checks ran the same archive engine used by the app through its CLI. A sing
 
 Previous version 2.0.2 gave archive contents more room with a compact toolbar and archive title, grouped search and selection controls, and a separately scrolling file list. Long filenames have full-name hover text, folder breadcrumbs are keyboard-accessible buttons, and changing languages preserves the open archive's name. That update also simplified display transitions after loading. The Finder startup crash fixed in 2.0.1 remains fixed.
 
-The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. The current 2.1.1 preview supports Korean, English, Japanese, Simplified Chinese, Vietnamese, Spanish, French, German, Russian, and Arabic. Saved language preferences take priority; otherwise the app chooses the first supported system language, falling back to English. App controls, About and support copy, the offline user guide, default-app settings, and custom macOS menu titles are localized. OS-provided controls follow macOS, and detailed backend diagnostics may remain in their original language. The screenshots above were captured from the 2.0.2 macOS app with public sample files; they do not depict the updated About window in 2.0.3 or the current 2.1.1 interface and ten languages.
+The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. The current 2.1.2 preview supports Korean, English, Japanese, Simplified Chinese, Vietnamese, Spanish, French, German, Russian, and Arabic. Saved language preferences take priority; otherwise the app chooses the first supported system language, falling back to English. App controls, About and support copy, the offline user guide, default-app settings, and custom macOS menu titles are localized. OS-provided controls follow macOS, and detailed backend diagnostics may remain in their original language. The screenshots above were captured from the 2.0.2 macOS app with public sample files; they do not depict the updated About window in 2.0.3 or the current 2.1.2 interface and ten languages.
 
 **This is an Apple Silicon preview with a local ad-hoc signature, without Apple Developer ID signing or notarization. macOS may still block it from opening.** Intel execution and every archive variant have not been verified. Encrypted EGG filenames/full headers are unsupported, and complete preservation of macOS app-bundle metadata remains unverified. See the [validation history](docs/VALIDATION.md) and [launch diagnosis](docs/MACOS_LAUNCH_KO.md) for details.
 
@@ -249,9 +255,9 @@ npm run tauri build -- --bundles app
 python3 scripts/package-macos.py --preview
 ```
 
-The current source produces `release_build/preview/ZipLens.app` and `release_build/preview/ZipLens_2.1.1_arm64-preview.zip`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.
+The current source produces `release_build/preview/ZipLens.app` and `release_build/preview/ZipLens_2.1.2_arm64-preview.zip`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.
 
-The [2.1.1 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) provides `ZipLens_2.1.1_source.tar.gz` with the complete matching first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build. Public docs retain validation summaries; personal work records and raw run logs are kept separately in a private archive.
+The [2.1.2 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) provides `ZipLens_2.1.2_source.tar.gz` with the complete matching first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build. Public docs retain validation summaries; personal work records and raw run logs are kept separately in a private archive.
 
 ### License and support
 

@@ -6,9 +6,9 @@ ZipLens es una aplicación gratuita y sin anuncios para archivos comprimidos en 
 
 ## Instalación y versión
 
-Descarga `ZipLens_2.1.1_arm64-preview.zip` de la [versión 2.1.1](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1). Cierra versiones anteriores con ⌘Q, extrae con Utilidad de Compresión y conserva `ZipLens.app` completo en Aplicaciones. Respalda la instalación anterior. Comprueba la versión en **ⓘ**.
+Descarga `ZipLens_2.1.2_arm64-preview.zip` de la [versión 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). Cierra versiones anteriores con ⌘Q, extrae con Utilidad de Compresión y conserva `ZipLens.app` completo en Aplicaciones. Respalda la instalación anterior. Comprueba la versión en **ⓘ**.
 
-Esta versión preliminar Apple Silicon tiene firma ad-hoc, sin Apple Developer ID ni notarización; macOS puede bloquearla. No se ha verificado en Intel. La descarga sigue siendo **2.1.1**; `main` puede contener cambios **Unreleased (sin publicar)**. Actualizar fuentes no actualiza la aplicación instalada.
+Esta versión preliminar Apple Silicon tiene firma ad-hoc, sin Apple Developer ID ni notarización; macOS puede bloquearla. No se ha verificado en Intel. La descarga sigue siendo **2.1.2**; `main` puede contener cambios **Unreleased (sin publicar)**. Actualizar fuentes no actualiza la aplicación instalada.
 
 ## Funciones
 

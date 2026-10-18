@@ -2,12 +2,12 @@
 
 압축을 풀기 전에 안을 보고, 필요한 파일만 골라 꺼내는 무료 macOS 압축 앱입니다. 압축은 볼록렌즈에 빛이 모이는 모습으로, 압축 해제는 오목렌즈에서 빛이 퍼지는 모습으로 표현합니다.
 
-**최신 공개 프리뷰: ZipLens 2.1.1 · Apple Silicon Mac용**
-[다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [10개 언어 소개·기능·사용 설명서](ZipLens_Astra/docs/guides/README.md) · [지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
+**최신 공개 프리뷰: ZipLens 2.1.2 · Apple Silicon Mac용**
+[다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) · [2.1.2 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.2_KO_EN.md) · [10개 언어 소개·기능·사용 설명서](ZipLens_Astra/docs/guides/README.md) · [지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
 
 [한국어](ZipLens_Astra/docs/guides/ko.md) · [English](ZipLens_Astra/docs/guides/en.md) · [日本語](ZipLens_Astra/docs/guides/ja.md) · [简体中文](ZipLens_Astra/docs/guides/zh.md) · [Tiếng Việt](ZipLens_Astra/docs/guides/vi.md) · [Español](ZipLens_Astra/docs/guides/es.md) · [Français](ZipLens_Astra/docs/guides/fr.md) · [Deutsch](ZipLens_Astra/docs/guides/de.md) · [Русский](ZipLens_Astra/docs/guides/ru.md) · [العربية](ZipLens_Astra/docs/guides/ar.md)
 
-다운로드 앱은 2.1.1이며 현재 `main`에는 그 이후의 **Unreleased(미배포)** 수정이 있을 수 있습니다. 소스·문서 갱신만으로 설치된 앱은 바뀌지 않습니다. 버전별 차이는 [변경 이력](ZipLens_Astra/CHANGELOG.md), 확인한 조건과 남은 한계는 [검증 기록](ZipLens_Astra/docs/VALIDATION.md)에 정리합니다.
+다운로드 앱은 2.1.2이며 현재 `main`에는 그 이후의 **Unreleased(미배포)** 수정이 있을 수 있습니다. 소스·문서 갱신만으로 설치된 앱은 바뀌지 않습니다. 버전별 차이는 [변경 이력](ZipLens_Astra/CHANGELOG.md), 확인한 조건과 남은 한계는 [검증 기록](ZipLens_Astra/docs/VALIDATION.md)에 정리합니다.
 
 ## 우리가 추구하는 소프트웨어 기본권
 
@@ -17,9 +17,11 @@
 
 코드를 공부하거나 업데이트하려면 [코드 읽기 안내](ZipLens_Astra/docs/CODE_GUIDE_KO.md)와 [기여·검증 절차](ZipLens_Astra/docs/CONTRIBUTING_KO.md)에서 시작하세요. 현재 앱 소스는 `ZipLens_Astra/`에 있습니다.
 
-**2.1.1 프리뷰 — 2026-10-11.** 앱 이름을 `ZipLens`(`ZipLens.app`)로 통일하고, 정보창의 버전 표시·제작 철학·후원·사용법을 정리했습니다. 사람과 AI가 기본적인 디지털 도구를 지식 공유처럼 자유롭게 사용하며 공존할 수 있기를 바랍니다. 무료·광고 없는 앱을 선택적으로 후원할 수 있도록 Buy Me a Coffee, Ko-fi, Bitcoin 수신 주소와 QR 코드를 안내합니다. 오프라인 사용법과 정보창은 10개 언어로 제공합니다.
+**2.1.2 프리뷰 — 2026-10-18.** 긴 다국어 버튼과 작은 창의 배치, 결과 보고서와 대량 내보내기, Unicode 이름 충돌과 잘못된 CLI 입력 처리를 보완했습니다. 새 배포본의 측정 조건과 결과는 [대용량 파일 검증](ZipLens_Astra/docs/LARGE_FILE_VALIDATION_2026-10-18.md)에 구분해 기록합니다.
 
-2.1.0의 AI/CLI 기능과 기존 압축 엔진 개선도 포함합니다. 사람은 앱 화면으로, AI·자동화 도구는 같은 앱의 JSON 명령줄 인터페이스로 압축을 조회·해제·생성할 수 있습니다. [AI/CLI 사용법](ZipLens_Astra/docs/AI_CLI.md). 2.1.1은 GPLv3 적용, 공식 후원 유지, 앱과 함께 제공하는 대응 소스 `ZipLens_2.1.1_source.tar.gz`를 포함합니다. [2.1.1 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)
+**이전 2.1.1 프리뷰 — 2026-10-11.** 앱 이름을 `ZipLens`(`ZipLens.app`)로 통일하고, 정보창의 버전 표시·제작 철학·후원·사용법을 정리했습니다. 사람과 AI가 기본적인 디지털 도구를 지식 공유처럼 자유롭게 사용하며 공존할 수 있기를 바랍니다. 무료·광고 없는 앱을 선택적으로 후원할 수 있도록 Buy Me a Coffee, Ko-fi, Bitcoin 수신 주소와 QR 코드를 안내합니다. 오프라인 사용법과 정보창은 10개 언어로 제공합니다.
+
+2.1.0의 AI/CLI 기능과 기존 압축 엔진 개선도 포함합니다. 사람은 앱 화면으로, AI·자동화 도구는 같은 앱의 JSON 명령줄 인터페이스로 압축을 조회·해제·생성할 수 있습니다. [AI/CLI 사용법](ZipLens_Astra/docs/AI_CLI.md). 2.1.1부터 적용한 GPLv3와 공식 후원을 유지하며, 이번 배포에는 대응 소스 `ZipLens_2.1.2_source.tar.gz`를 함께 제공합니다. [2.1.2 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2)
 
 > 현재 배포본은 로컬 ad-hoc 서명만 적용한 프리뷰로, Apple Developer ID 서명·공증을 완료하지 않았습니다. macOS가 실행을 차단할 수 있으며, Intel Mac 실행은 검증하지 않았습니다. [실행 문제 안내](ZipLens_Astra/docs/MACOS_LAUNCH_KO.md)
 
@@ -67,7 +69,7 @@
 
 <img src="ZipLens_Astra/docs/screenshots/compression-settings.jpg" alt="볼록렌즈와 압축 형식·압축 정도·암호 설정" width="800">
 
-위 스크린샷은 2.0.2 macOS 앱에서 공개용 샘플 자료로 촬영했습니다. 현재 2.1.1의 메인 화면과 정보창을 촬영한 이미지는 아닙니다. [스크린샷 안내](ZipLens_Astra/docs/screenshots/README.md)
+위 스크린샷은 2.0.2 macOS 앱에서 공개용 샘플 자료로 촬영했습니다. 현재 2.1.2의 메인 화면과 정보창을 촬영한 이미지는 아닙니다. [스크린샷 안내](ZipLens_Astra/docs/screenshots/README.md)
 
 ## 2.0 시리즈의 주요 개선
 
@@ -78,17 +80,17 @@
 | 원본 파일 보호 | 기존 폴더 전체를 지우지 않고 검증한 파일만 반영하며, 원본·분할 조각 덮어쓰기와 위험한 경로를 검사합니다. |
 | ZIP 처리 개선 | ZIP 중앙 목록을 재사용해 반복 읽기를 줄입니다. 확인한 동작과 범위는 [검증 기록](ZipLens_Astra/docs/VALIDATION.md)에 정리합니다. |
 | macOS 기본 앱 설정 | 앱에서 확장자를 선택해 Finder의 기본 열기 앱으로 지정할 수 있습니다. |
-| 작업 흐름 정리 | 암호 재입력, 취소, 완료 보고서, Finder에서 보기와 현재 2.1.1의 10개 언어를 지원합니다. |
+| 작업 흐름 정리 | 암호 재입력, 취소, 완료 보고서, Finder에서 보기와 현재 2.1.2의 10개 언어를 지원합니다. |
 
 생성 형식은 **ZIP, 7Z, TAR, TAR.GZ, TAR.ZST**입니다. 열기는 별칭을 포함해 **36개 확장자**를 인식합니다. 모든 형식의 모든 변종을 지원·검증했다는 의미는 아니며, [지원 범위와 한계](ZipLens_Astra/README.md#지원-범위)를 확인해 주세요.
 
 ## 다운로드와 시작
 
-1. [2.1.1 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)에서 `ZipLens_2.1.1_arm64-preview.zip`을 받습니다.
+1. [2.1.2 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2)에서 `ZipLens_2.1.2_arm64-preview.zip`을 받습니다.
 2. 실행 중인 구버전은 ⌘Q로 종료하고, ZIP은 macOS의 아카이브 유틸리티로 풉니다.
 3. `ZipLens.app`을 응용 프로그램 폴더 등 사용할 위치에 둔 뒤 실행합니다. 기존 설치본을 바꾼다면 먼저 백업하세요.
 
-같은 릴리스의 `ZipLens_2.1.1_source.tar.gz`에는 이 앱의 전체 자체 소스와 빌드 안내, 실행·빌드에 쓰이는 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브를 함께 제공합니다. 직접 빌드를 재현할 때 참고하세요. 소스를 수정해 빌드한 앱은 `ZipLens_Astra/release_build/preview/ZipLens.app`에서 확인할 수 있습니다.
+같은 릴리스의 `ZipLens_2.1.2_source.tar.gz`에는 이 앱의 전체 자체 소스와 빌드 안내, 실행·빌드에 쓰이는 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브를 함께 제공합니다. 직접 빌드를 재현할 때 참고하세요. 소스를 수정해 빌드한 앱은 `ZipLens_Astra/release_build/preview/ZipLens.app`에서 확인할 수 있습니다.
 
 소스를 실행하려면 **`ZipLens_Astra` 폴더**에서 시작하세요. 저장소 루트의 기존 1.x 프로젝트는 보존되어 있습니다.
 
@@ -130,9 +132,9 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 
 ZipLens is a free macOS archive app for looking inside archives and extracting just the files you need. Its interface uses a converging convex lens for compression and a diverging concave lens for extraction.
 
-**Current public preview: ZipLens 2.1.1 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 release notes](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [Introduction, features and user guides in 10 languages](ZipLens_Astra/docs/guides/README.md)
+**Current public preview: ZipLens 2.1.2 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) · [2.1.2 release notes](ZipLens_Astra/docs/RELEASE_2.1.2_KO_EN.md) · [Introduction, features and user guides in 10 languages](ZipLens_Astra/docs/guides/README.md)
 
-The downloadable app remains 2.1.1; `main` may include later **Unreleased** fixes. Source and documentation updates do not replace your installed app. See the [changelog](ZipLens_Astra/CHANGELOG.md) and the version, conditions and limits in the [validation record](ZipLens_Astra/docs/VALIDATION.md).
+The downloadable app is 2.1.2; `main` may include later **Unreleased** fixes. Source and documentation updates do not replace your installed app. See the [changelog](ZipLens_Astra/CHANGELOG.md) and the version, conditions and limits in the [validation record](ZipLens_Astra/docs/VALIDATION.md).
 
 ### Basic software rights: our guiding value
 
@@ -142,9 +144,11 @@ We want people and AI to share knowledge, learn and create together. The officia
 
 For studying or updating the current app in `ZipLens_Astra/`, start with the [code reading guide](ZipLens_Astra/docs/CODE_GUIDE_KO.md) and [contribution and validation workflow](ZipLens_Astra/docs/CONTRIBUTING_KO.md) (in Korean).
 
-**Preview 2.1.1 — October 11, 2026.** The app is named `ZipLens` (`ZipLens.app`). About shows the actual version once and brings together the project philosophy, optional Buy Me a Coffee, Ko-fi and Bitcoin support, and a bundled offline user guide in ten languages. The project aims to make basic digital tools freely available to people and AI in the spirit of shared knowledge and coexistence, while keeping the app free and ad-free.
+**Preview 2.1.2 — October 18, 2026.** This update improves long translated controls and small-window layouts, completion reports and large exports, Unicode filename collision checks and invalid CLI input handling. See the [large-file validation record](ZipLens_Astra/docs/LARGE_FILE_VALIDATION_2026-10-18.md) for the new package’s measurement conditions and results.
 
-The AI/CLI interface introduced in 2.1.0 and the existing archive-engine improvements are preserved. People use the app window; AI and automation tools use the same app's JSON command-line interface. See the [CLI documentation](ZipLens_Astra/docs/AI_CLI.md). Version 2.1.1 applies GPLv3 to the app code, retains official support, and supplies the matching `ZipLens_2.1.1_source.tar.gz` source archive alongside the app. [2.1.1 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)
+**Earlier preview 2.1.1 — October 11, 2026.** The app is named `ZipLens` (`ZipLens.app`). About shows the actual version once and brings together the project philosophy, optional Buy Me a Coffee, Ko-fi and Bitcoin support, and a bundled offline user guide in ten languages. The project aims to make basic digital tools freely available to people and AI in the spirit of shared knowledge and coexistence, while keeping the app free and ad-free.
+
+The AI/CLI interface introduced in 2.1.0 and the existing archive-engine improvements are preserved. People use the app window; AI and automation tools use the same app's JSON command-line interface. See the [CLI documentation](ZipLens_Astra/docs/AI_CLI.md). GPLv3 licensing and official support introduced in 2.1.1 remain in place. This release supplies the matching `ZipLens_2.1.2_source.tar.gz` source archive alongside the app. [2.1.2 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2)
 
 The home screen routes selected or dropped archives to browsing, and regular files, folders or mixed selections to compression settings. Double-click its lens illustration to explore ten conceptual lens and beam exhibits with explanations.
 
@@ -171,13 +175,13 @@ In version 2.0.3, the About window began following the selected app language for
 - Archive display is more stable after removing the forced hide-and-redisplay step and simplifying loaded-view animations.
 - Includes the 2.0.1 fix for a startup crash when opening an archive from Finder while the app is closed.
 
-The screenshots above were captured from the actual 2.0.2 macOS app using public sample files: the home screen, archive browser and compression settings. They do not depict the current 2.1.1 home screen or About dialog.
+The screenshots above were captured from the actual 2.0.2 macOS app using public sample files: the home screen, archive browser and compression settings. They do not depict the current 2.1.2 home screen or About dialog.
 
 ### Features and availability
 
-The app includes ALZ/EGG extraction and previews, stronger protection for original files, improved ZIP processing, default archive-app settings in macOS, password retries, cancellation and completion reports. The current 2.1.1 preview provides ten interface languages. It creates ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives, and recognizes 36 file extensions including aliases. Support varies by format and variant; ALZ/EGG creation is not supported.
+The app includes ALZ/EGG extraction and previews, stronger protection for original files, improved ZIP processing, default archive-app settings in macOS, password retries, cancellation and completion reports. The current 2.1.2 preview provides ten interface languages. It creates ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives, and recognizes 36 file extensions including aliases. Support varies by format and variant; ALZ/EGG creation is not supported.
 
-**This preview uses a local ad-hoc signature and has not completed Apple Developer ID signing or notarization. macOS may block it from opening. Intel Mac execution has not been verified.** Download `ZipLens_2.1.1_arm64-preview.zip` from the release page, quit older copies, extract with macOS Archive Utility, and place the app where you want to keep it. The release includes SHA-256 checksums and `ZipLens_2.1.1_source.tar.gz`. This corresponding source archive contains the complete first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build.
+**This preview uses a local ad-hoc signature and has not completed Apple Developer ID signing or notarization. macOS may block it from opening. Intel Mac execution has not been verified.** Download `ZipLens_2.1.2_arm64-preview.zip` from the release page, quit older copies, extract with macOS Archive Utility, and place the app where you want to keep it. The release includes SHA-256 checksums and `ZipLens_2.1.2_source.tar.gz`. This corresponding source archive contains the complete first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build.
 
 ### Building and project history
 

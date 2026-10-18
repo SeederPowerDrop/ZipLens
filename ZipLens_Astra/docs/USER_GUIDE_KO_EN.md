@@ -1,18 +1,18 @@
-# ZipLens 2.1.1 사용 설명서
+# ZipLens 2.1.2 사용 설명서
 
-**갱신: 2026-10-11 · macOS Apple Silicon용 프리뷰**
+**갱신: 2026-10-18 · macOS Apple Silicon용 프리뷰**
 
-**2026-10-18 문서 보완:** [10개 언어별 소개·기능·사용 설명서](guides/README.md)를 추가했습니다. 다운로드 앱은 2.1.1이며 `main`의 미배포 수정은 [변경 이력](../CHANGELOG.md)에서 구분합니다. 설치된 앱은 문서 갱신만으로 바뀌지 않습니다.
+**2026-10-18 문서 보완:** [10개 언어별 소개·기능·사용 설명서](guides/README.md)를 추가했습니다. 다운로드 앱은 2.1.2이며 이후 `main`의 미배포 수정은 [변경 이력](../CHANGELOG.md)에서 구분합니다. 설치된 앱은 문서 갱신만으로 바뀌지 않습니다.
 
 앱 안에서는 상단 **ⓘ → 사용 가이드**에서 인터넷 연결 없이 같은 기본 사용법을 열 수 있습니다. 내장 가이드는 한국어·영어·일본어·중국어(간체)·베트남어·스페인어·프랑스어·독일어·러시아어·아랍어를 지원합니다. 이 문서는 한국어와 영어로 설치부터 CLI까지 정리합니다.
 
-[2.1.1 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [업데이트 안내](RELEASE_2.1.1_KO_EN.md) · [English](#english)
+[2.1.2 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) · [업데이트 안내](RELEASE_2.1.2_KO_EN.md) · [English](#english)
 
 ## 설치와 업데이트
 
-1. 릴리스의 `ZipLens_2.1.1_arm64-preview.zip`을 받습니다. 공부·수정·빌드에 필요한 대응 소스는 같은 릴리스의 `ZipLens_2.1.1_source.tar.gz`입니다. 이 배포본의 전체 자체 소스와 빌드 안내, 실행·빌드 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브를 포함합니다.
+1. 릴리스의 `ZipLens_2.1.2_arm64-preview.zip`을 받습니다. 공부·수정·빌드에 필요한 대응 소스는 같은 릴리스의 `ZipLens_2.1.2_source.tar.gz`입니다. 이 배포본의 전체 자체 소스와 빌드 안내, 실행·빌드 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브를 포함합니다.
 2. 작업을 마친 뒤 실행 중인 구버전을 ⌘Q로 종료합니다. ZIP을 macOS 아카이브 유틸리티로 풀고 **`ZipLens.app` 전체**를 응용 프로그램 폴더 등 계속 사용할 위치에 둡니다.
-3. 기존 앱을 교체할 때는 먼저 백업합니다. 앱을 열고 **ⓘ**에서 버전 `2.1.1`을 확인하세요. 이전 앱은 `ZipLens 2.0.app`이라는 이름일 수 있습니다.
+3. 기존 앱을 교체할 때는 먼저 백업합니다. 앱을 열고 **ⓘ**에서 버전 `2.1.2`를 확인하세요. 이전 앱은 `ZipLens 2.0.app`이라는 이름일 수 있습니다.
 
 이 배포본은 **Apple Developer ID 서명·Apple 공증을 완료하지 않은 ad-hoc 서명 프리뷰**입니다. macOS가 실행을 차단할 수 있으며 Intel Mac 실행은 검증하지 않았습니다. 실행이 막히면 [실행 문제 안내](MACOS_LAUNCH_KO.md)를 확인하세요.
 
@@ -88,17 +88,17 @@ CLI의 암호는 `--password-stdin`으로 전달하며 현재 CLI에는 분할 �
 
 ## English
 
-### ZipLens 2.1.1 user guide
+### ZipLens 2.1.2 user guide
 
-**Updated October 11, 2026 · macOS Apple Silicon preview**
+**Updated October 18, 2026 · macOS Apple Silicon preview**
 
-**Documentation update, October 18, 2026:** [Introduction, features and guides in ten languages](guides/README.md) are now available. The downloadable app remains 2.1.1; see the [changelog](../CHANGELOG.md) for unreleased source changes. Documentation updates do not replace your installed app.
+**Documentation update, October 18, 2026:** [Introduction, features and guides in ten languages](guides/README.md) are now available. The downloadable app is 2.1.2; see the [changelog](../CHANGELOG.md) for unreleased source changes. Documentation updates do not replace your installed app.
 
 Open **ⓘ → User guide** for basic instructions without an internet connection. The bundled guide supports Korean, English, Japanese, Simplified Chinese, Vietnamese, Spanish, French, German, Russian and Arabic.
 
 ### Install or update
 
-Download **ZipLens_2.1.1_arm64-preview.zip** from the [2.1.1 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1). The same release provides **ZipLens_2.1.1_source.tar.gz** for studying, modifying and building the app, including its complete matching first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies. Finish ongoing work and quit an older copy with ⌘Q. Extract with macOS Archive Utility and place the complete **`ZipLens.app`** in Applications or another permanent location. Back up an older installation before replacing it, then confirm version `2.1.1` in About. Older copies may be named `ZipLens 2.0.app`.
+Download **ZipLens_2.1.2_arm64-preview.zip** from the [2.1.2 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). The same release provides **ZipLens_2.1.2_source.tar.gz** for studying, modifying and building the app, including its complete matching first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies. Finish ongoing work and quit an older copy with ⌘Q. Extract with macOS Archive Utility and place the complete **`ZipLens.app`** in Applications or another permanent location. Back up an older installation before replacing it, then confirm version `2.1.2` in About. Older copies may be named `ZipLens 2.0.app`.
 
 This is an **ad-hoc signed preview without Apple Developer ID signing or notarization**. macOS may block it from opening. Intel Mac execution has not been verified.
 
