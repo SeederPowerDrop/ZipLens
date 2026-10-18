@@ -2,6 +2,8 @@
 
 **갱신: 2026-10-11 · macOS Apple Silicon용 프리뷰**
 
+**2026-10-18 문서 보완:** [10개 언어별 소개·기능·사용 설명서](guides/README.md)를 추가했습니다. 다운로드 앱은 2.1.1이며 `main`의 미배포 수정은 [변경 이력](../CHANGELOG.md)에서 구분합니다. 설치된 앱은 문서 갱신만으로 바뀌지 않습니다.
+
 앱 안에서는 상단 **ⓘ → 사용 가이드**에서 인터넷 연결 없이 같은 기본 사용법을 열 수 있습니다. 내장 가이드는 한국어·영어·일본어·중국어(간체)·베트남어·스페인어·프랑스어·독일어·러시아어·아랍어를 지원합니다. 이 문서는 한국어와 영어로 설치부터 CLI까지 정리합니다.
 
 [2.1.1 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [업데이트 안내](RELEASE_2.1.1_KO_EN.md) · [English](#english)
@@ -48,6 +50,10 @@
 
 **균형**으로 시작하고 필요에 따라 **빠르게** 또는 **최대 압축**을 선택하세요. 최대 압축은 더 오래 걸릴 수 있으며 용량 감소는 파일 종류에 따라 다릅니다. ALZ·EGG는 열기와 해제만 지원합니다. 전체 지원 확장자와 제한은 [앱 README](../README.md#지원-범위)에 있습니다.
 
+ZIP 생성 암호는 출력 가능한 ASCII(영문·숫자·기호)를 사용합니다. 한글 등 Unicode 암호가 필요하면 7Z를 선택하세요. 파일명이나 기존 압축 파일을 해제할 때 입력하는 암호에 같은 언어 제한을 적용한다는 뜻은 아닙니다.
+
+화면 언어와 파일명 인코딩은 별개입니다. UTF-8과 유효한 ZIP Unicode 경로 정보를 지원하지만, 인코딩 표시 없는 구형 ZIP은 한국어 CP949 호환 방식으로 해석합니다. 무태그 Shift-JIS/CP932·GBK·CP437 이름은 항상 자동 복원할 수 없으므로, 필요하면 제작자에게 UTF-8 ZIP이나 7Z로 다시 만들어 달라고 요청하세요. 압축 해제는 텍스트 내용의 인코딩을 변환하지 않습니다. [검증한 조건과 한계](VALIDATION.md)
+
 ## 언어와 기본 앱 설정
 
 언어는 창 위에서 바꿉니다. 저장한 선택을 우선 사용하며 처음 실행할 때 지원하는 시스템 언어를 선택합니다. 지원 언어가 없으면 영어로 표시합니다. 운영체제 자체 창과 일부 압축 엔진 오류의 언어는 다를 수 있습니다.
@@ -86,6 +92,8 @@ CLI의 암호는 `--password-stdin`으로 전달하며 현재 CLI에는 분할 �
 
 **Updated October 11, 2026 · macOS Apple Silicon preview**
 
+**Documentation update, October 18, 2026:** [Introduction, features and guides in ten languages](guides/README.md) are now available. The downloadable app remains 2.1.1; see the [changelog](../CHANGELOG.md) for unreleased source changes. Documentation updates do not replace your installed app.
+
 Open **ⓘ → User guide** for basic instructions without an internet connection. The bundled guide supports Korean, English, Japanese, Simplified Chinese, Vietnamese, Spanish, French, German, Russian and Arabic.
 
 ### Install or update
@@ -115,6 +123,10 @@ Drop or select regular files or folders to open compression settings, choose a f
 The app creates **ZIP, 7Z, TAR, TAR.GZ and TAR.ZST**. ZIP and 7Z support passwords and split archives in the GUI. ZIP uses AES-256 by default; 7Z also encrypts its file list when a password is set. TAR only bundles files. TAR variants do not offer password or split options. ALZ and EGG can be opened and extracted, but not created.
 
 Start with **Balanced**. **Fast** prioritizes speed, while **Maximum** may reduce size further and take longer. Results depend on the source files.
+
+ZIP creation passwords require printable ASCII characters. Choose 7Z for accented letters or other Unicode passwords. This does not impose the same restriction on filenames or passwords entered when extracting existing archives.
+
+Interface language and filename encoding are separate. UTF-8 and valid ZIP Unicode-path metadata are supported; untagged old ZIP names use a Korean CP949-compatible fallback. Untagged Shift-JIS/CP932, GBK or CP437 names cannot always be recovered automatically. If necessary, ask the creator to remake the archive as UTF-8 ZIP or 7Z. Extraction does not convert text-file contents to another encoding. See the [validation conditions and limits](VALIDATION.md).
 
 ### Language and default app
 

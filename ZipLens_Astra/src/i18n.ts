@@ -43,6 +43,7 @@ const englishTranslations = {
   btnCompressFolder: "Create Archive",
   splitPlaceholder: "Split Archive (e.g. 10m, 2g)",
   setPassword: "Set Password (Optional)",
+  zipPasswordHint: "ZIP passwords: use English letters, numbers and symbols. Choose 7Z for a password in another language.",
   passwordPlaceholder: "Set password...",
   aes256: "AES-256 (Recommended)",
   zipCrypto: "ZipCrypto",
@@ -166,6 +167,7 @@ export const translations = {
     btnCompressFolder: "새로 압축",
     splitPlaceholder: "분할 압축 (예: 10m, 2g)",
     setPassword: "비밀번호 설정 (선택사항)",
+    zipPasswordHint: "ZIP 비밀번호에는 영문, 숫자, 기호를 사용하세요. 다른 언어의 비밀번호는 7Z 형식을 선택하세요.",
     passwordPlaceholder: "비밀번호 설정...",
     aes256: "AES-256 (권장)",
     zipCrypto: "ZipCrypto",
@@ -284,6 +286,7 @@ export const translations = {
     btnCompressFolder: "フォルダーを圧縮",
     splitPlaceholder: "分割圧縮 (例: 10m, 2g)",
     setPassword: "パスワード設定 (任意)",
+    zipPasswordHint: "ZIPのパスワードには英字・数字・記号を使用してください。他の言語のパスワードには7Z形式を選んでください。",
     passwordPlaceholder: "パスワードを設定...",
     aes256: "AES-256 (推奨)",
     zipCrypto: "ZipCrypto",
@@ -401,6 +404,7 @@ export const translations = {
     btnCompressFolder: "压缩文件夹",
     splitPlaceholder: "分卷压缩 (例如: 10m, 2g)",
     setPassword: "设置密码 (可选)",
+    zipPasswordHint: "ZIP 密码请使用英文字母、数字和符号。其他语言的密码请选择 7Z 格式。",
     passwordPlaceholder: "设置密码...",
     aes256: "AES-256 (推荐)",
     zipCrypto: "ZipCrypto",
@@ -518,6 +522,7 @@ export const translations = {
     btnCompressFolder: "Tạo tệp nén",
     splitPlaceholder: "Chia tệp nén (ví dụ: 10m, 2g)",
     setPassword: "Đặt mật khẩu (không bắt buộc)",
+    zipPasswordHint: "Mật khẩu ZIP: dùng chữ cái tiếng Anh, chữ số và ký hiệu. Chọn 7Z nếu muốn dùng mật khẩu bằng ngôn ngữ khác.",
     passwordPlaceholder: "Đặt mật khẩu…",
     aes256: "AES-256 (khuyên dùng)",
     zipCrypto: "ZipCrypto",
@@ -635,6 +640,7 @@ export const translations = {
     btnCompressFolder: "Comprimir Carpeta",
     splitPlaceholder: "Dividir Archivo (ej. 10m, 2g)",
     setPassword: "Establecer Contraseña (Opcional)",
+    zipPasswordHint: "Contraseñas ZIP: usa letras inglesas, números y símbolos. Elige 7Z para una contraseña en otro idioma.",
     passwordPlaceholder: "Establecer contraseña...",
     aes256: "AES-256 (Recomendado)",
     zipCrypto: "ZipCrypto",
@@ -752,6 +758,7 @@ export const translations = {
     btnCompressFolder: "Compresser le dossier",
     splitPlaceholder: "Diviser l'archive (ex: 10m, 2g)",
     setPassword: "Définir un mot de passe (Facultatif)",
+    zipPasswordHint: "Mots de passe ZIP : utilisez des lettres anglaises, des chiffres et des symboles. Choisissez 7Z pour un mot de passe dans une autre langue.",
     passwordPlaceholder: "Définir un mot de passe...",
     aes256: "AES-256 (Recommandé)",
     zipCrypto: "ZipCrypto",
@@ -869,6 +876,7 @@ export const translations = {
     btnCompressFolder: "Archiv erstellen",
     splitPlaceholder: "Archiv aufteilen (z. B. 10m, 2g)",
     setPassword: "Passwort festlegen (optional)",
+    zipPasswordHint: "ZIP-Passwörter: Verwenden Sie englische Buchstaben, Zahlen und Symbole. Wählen Sie 7Z für ein Passwort in einer anderen Sprache.",
     passwordPlaceholder: "Passwort festlegen…",
     aes256: "AES-256 (empfohlen)",
     zipCrypto: "ZipCrypto",
@@ -986,6 +994,7 @@ export const translations = {
     btnCompressFolder: "Создать архив",
     splitPlaceholder: "Разбить архив на части (например, 10m, 2g)",
     setPassword: "Задать пароль (необязательно)",
+    zipPasswordHint: "Пароли ZIP: используйте английские буквы, цифры и символы. Для пароля на другом языке выберите 7Z.",
     passwordPlaceholder: "Задайте пароль…",
     aes256: "AES-256 (рекомендуется)",
     zipCrypto: "ZipCrypto",
@@ -1103,6 +1112,7 @@ export const translations = {
     btnCompressFolder: "ضغط مجلد",
     splitPlaceholder: "تقسيم الأرشيف (مثال: 10m, 2g)",
     setPassword: "تعيين كلمة مرور (اختياري)",
+    zipPasswordHint: "لكلمات مرور ZIP، استخدم الحروف الإنجليزية والأرقام والرموز. اختر 7Z لكلمة مرور بلغة أخرى.",
     passwordPlaceholder: "تعيين كلمة المرور...",
     aes256: "AES-256 (موصى به)",
     zipCrypto: "ZipCrypto",
@@ -1287,6 +1297,7 @@ function updateDOM() {
     el('btn-cancel-operation', getTranslation('cancelOperation'));
     el('compression-level-label', getTranslation('compressionLevel'));
     el('compression-source-label', getTranslation('compressionSource'));
+    el('zip-password-hint', getTranslation('zipPasswordHint'));
     el('split-option-none', getTranslation('noSplit'));
     elAttr('format-select', 'aria-label', getTranslation('archiveFormat'));
     elAttr('compression-level', 'aria-label', getTranslation('compressionLevel'));

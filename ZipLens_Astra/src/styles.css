@@ -172,6 +172,8 @@ body {
 /* Premium Floating Pill Toolbar */
 .floating-toolbar {
   display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 6px;
   align-items: center;
   padding: 6px 8px;
@@ -195,6 +197,9 @@ body {
 
 .toolbar-btn {
   display: flex;
+  /* Wrap whole actions by their translated width before shrinking their labels. */
+  flex: 0 1 auto;
+  max-width: 100%;
   align-items: center;
   gap: 8px;
   padding: 8px 16px 8px 12px;
@@ -206,15 +211,20 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  min-width: auto;
-  height: 36px;
+  min-width: 0;
+  min-height: 36px;
+  height: auto;
+  white-space: normal;
 }
+
+.toolbar-btn > span { min-width: 0; overflow-wrap: anywhere; }
 
 .btn-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px; height: 24px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: rgba(255,255,255,0.05);
   transition: all 0.25s ease;
@@ -425,7 +435,8 @@ body {
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
-  padding: 10px 36px 10px 16px;
+  padding-block: 10px;
+  padding-inline: 16px 36px;
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -449,7 +460,7 @@ body {
 
 .select-icon {
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   top: 50%;
   transform: translateY(-50%);
   width: 16px;
@@ -539,13 +550,18 @@ button.primary:hover {
 }
 
 /* Password Input Overrides */
+.password-input-wrapper {
+  position: relative;
+  min-width: 0;
+}
+
 .password-input-wrapper .custom-input {
-  padding-right: 40px;
+  padding-inline-end: 40px;
 }
 
 .pwd-toggle-btn {
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -635,7 +651,7 @@ button.primary:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-right: 16px;
+  margin-inline-end: 16px;
   font-weight: 500;
 }
 
@@ -774,7 +790,7 @@ button.primary:hover {
 .file-checkbox {
   accent-color: var(--accent-color);
   cursor: pointer;
-  margin-right: 8px;
+  margin-inline-end: 8px;
 }
 
 /* Loaded State Styling Overrides */
@@ -817,7 +833,7 @@ button.primary:hover {
 }
 
 .drop-zone.loaded .drop-text-wrapper {
-  text-align: left;
+  text-align: start;
   min-width: 0;
 }
 
@@ -917,10 +933,14 @@ button.primary:hover {
 .selection-actions {
   display: flex;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  max-width: 100%;
   gap: 4px;
 }
 
 .selection-actions .toggle-btn {
+  /* Preserve each translated label's intrinsic width instead of equal flex shares. */
+  flex: 0 0 auto;
   height: 28px;
   min-width: 0;
   padding: 4px 8px;
@@ -960,7 +980,7 @@ button.primary:hover {
   border-radius: 4px;
   font-size: 10px;
   font-weight: 700;
-  margin-right: 8px;
+  margin-inline-end: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: inline-block;
@@ -983,7 +1003,7 @@ button.primary:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 12px;
+  margin-inline-end: 12px;
 }
 
 .file-size-column {
@@ -996,6 +1016,8 @@ button.primary:hover {
 }
 
 @media (max-width: 680px) {
+  .floating-toolbar { border-radius: var(--radius-md); }
+  .toolbar-separator { display: none; }
   #app[data-archive-loaded="true"] .main-content { padding: 8px 10px 10px; }
   #app[data-archive-loaded="true"] .toolbar-btn { padding-inline: 8px; font-size: 12px; }
   #app[data-archive-loaded="true"] .floating-toolbar { gap: 2px; }
@@ -1043,6 +1065,9 @@ button.primary:hover {
   margin-bottom: 8px;
 }
 
+.compression-password-hint { margin-top: 8px; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.compression-password-hint[hidden] { display: none; }
+
 .custom-input {
   flex: 2;
   appearance: none;
@@ -1073,7 +1098,8 @@ button.primary:hover {
 }
 
 .small-select {
-  padding: 10px 30px 10px 12px;
+  padding-block: 10px;
+  padding-inline: 12px 30px;
 }
 
 /* Modal Overlay */
@@ -1250,6 +1276,10 @@ button.primary:hover {
   border-radius: 20px;
   padding: 36px 32px;
   width: 380px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1260,7 +1290,15 @@ button.primary:hover {
   animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Long translations scroll within the sheet instead of compressing its controls. */
+.modern-modal > * { flex-shrink: 0; max-width: 100%; }
+.report-content-box { width: 100%; min-width: 0; }
+#conflict-msg { white-space: pre-line; }
+#viewer-title { min-width: 0; overflow-wrap: anywhere; }
+#viewer-close { flex: 0 0 auto; }
+
 .modern-icon {
+  flex-shrink: 0;
   width: 56px;
   height: 56px;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.1));
@@ -1313,6 +1351,9 @@ button.primary:hover {
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
   transition: all 0.2s ease;
 }
 
@@ -1350,7 +1391,7 @@ button.primary:hover {
 
 /* Astra: bounded list rendering and accessible progress for large archives. */
 .astra-compression-settings { display:flex; gap:12px; margin-top:12px; }
-.astra-compression-settings label { flex:1; font-size:11px; color:var(--text-muted); }
+.astra-compression-settings label { flex:1; min-width:0; font-size:11px; color:var(--text-muted); }
 .astra-compression-settings select { width:100%; margin-top:5px; }
 #btn-cancel-operation { align-self:flex-end; margin:0 0 8px auto; }
 #compress-password-group { display:none; }

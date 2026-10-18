@@ -3,7 +3,17 @@
 압축을 풀기 전에 안을 보고, 필요한 파일만 골라 꺼내는 무료 macOS 압축 앱입니다. 압축은 볼록렌즈에 빛이 모이는 모습으로, 압축 해제는 오목렌즈에서 빛이 퍼지는 모습으로 표현합니다.
 
 **최신 공개 프리뷰: ZipLens 2.1.1 · Apple Silicon Mac용**
-[다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [사용 설명서](ZipLens_Astra/docs/USER_GUIDE_KO_EN.md) · [지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
+[다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [10개 언어 소개·기능·사용 설명서](ZipLens_Astra/docs/guides/README.md) · [지원 형식·빌드](ZipLens_Astra/README.md) · [English](#english)
+
+[한국어](ZipLens_Astra/docs/guides/ko.md) · [English](ZipLens_Astra/docs/guides/en.md) · [日本語](ZipLens_Astra/docs/guides/ja.md) · [简体中文](ZipLens_Astra/docs/guides/zh.md) · [Tiếng Việt](ZipLens_Astra/docs/guides/vi.md) · [Español](ZipLens_Astra/docs/guides/es.md) · [Français](ZipLens_Astra/docs/guides/fr.md) · [Deutsch](ZipLens_Astra/docs/guides/de.md) · [Русский](ZipLens_Astra/docs/guides/ru.md) · [العربية](ZipLens_Astra/docs/guides/ar.md)
+
+다운로드 앱은 2.1.1이며 현재 `main`에는 그 이후의 **Unreleased(미배포)** 수정이 있을 수 있습니다. 소스·문서 갱신만으로 설치된 앱은 바뀌지 않습니다. 버전별 차이는 [변경 이력](ZipLens_Astra/CHANGELOG.md), 확인한 조건과 남은 한계는 [검증 기록](ZipLens_Astra/docs/VALIDATION.md)에 정리합니다.
+
+## 우리가 추구하는 소프트웨어 기본권
+
+누구나 경제적 여건이나 사용 언어와 관계없이 기본적인 디지털 도구를 사용하고, 그 코드를 공부·수정·공유하며 개발에 기여할 수 있기를 바랍니다. ZipLens는 이 **소프트웨어 기본권**을 개발의 지향점으로 삼습니다. 무료 사용·다국어 지원·공개 소스·기여 기회로 이 가치를 실천합니다.
+
+사람과 AI가 지식을 나누고 함께 배우며 창작할 수 있는 환경을 만들고 싶습니다. 공식 앱은 무료이며 후원은 선택입니다. 소스는 GPLv3로 공개하고, 수정본에 원작과 원작자 후원 링크를 남겨 달라는 부탁은 자발적인 협조 요청으로 유지합니다. [라이선스와 후원](#라이선스와-후원)
 
 코드를 공부하거나 업데이트하려면 [코드 읽기 안내](ZipLens_Astra/docs/CODE_GUIDE_KO.md)와 [기여·검증 절차](ZipLens_Astra/docs/CONTRIBUTING_KO.md)에서 시작하세요. 현재 앱 소스는 `ZipLens_Astra/`에 있습니다.
 
@@ -68,7 +78,7 @@
 | 원본 파일 보호 | 기존 폴더 전체를 지우지 않고 검증한 파일만 반영하며, 원본·분할 조각 덮어쓰기와 위험한 경로를 검사합니다. |
 | ZIP 처리 개선 | ZIP 중앙 목록을 재사용해 반복 읽기를 줄입니다. 확인한 동작과 범위는 [검증 기록](ZipLens_Astra/docs/VALIDATION.md)에 정리합니다. |
 | macOS 기본 앱 설정 | 앱에서 확장자를 선택해 Finder의 기본 열기 앱으로 지정할 수 있습니다. |
-| 작업 흐름 정리 | 암호 재입력, 취소, 완료 보고서, Finder에서 보기와 7개 언어를 지원합니다. |
+| 작업 흐름 정리 | 암호 재입력, 취소, 완료 보고서, Finder에서 보기와 현재 2.1.1의 10개 언어를 지원합니다. |
 
 생성 형식은 **ZIP, 7Z, TAR, TAR.GZ, TAR.ZST**입니다. 열기는 별칭을 포함해 **36개 확장자**를 인식합니다. 모든 형식의 모든 변종을 지원·검증했다는 의미는 아니며, [지원 범위와 한계](ZipLens_Astra/README.md#지원-범위)를 확인해 주세요.
 
@@ -120,7 +130,15 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 
 ZipLens is a free macOS archive app for looking inside archives and extracting just the files you need. Its interface uses a converging convex lens for compression and a diverging concave lens for extraction.
 
-**Current public preview: ZipLens 2.1.1 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 release notes](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [User guide](ZipLens_Astra/docs/USER_GUIDE_KO_EN.md)
+**Current public preview: ZipLens 2.1.1 for Apple Silicon.** [Download](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 release notes](ZipLens_Astra/docs/RELEASE_2.1.1_KO_EN.md) · [Introduction, features and user guides in 10 languages](ZipLens_Astra/docs/guides/README.md)
+
+The downloadable app remains 2.1.1; `main` may include later **Unreleased** fixes. Source and documentation updates do not replace your installed app. See the [changelog](ZipLens_Astra/CHANGELOG.md) and the version, conditions and limits in the [validation record](ZipLens_Astra/docs/VALIDATION.md).
+
+### Basic software rights: our guiding value
+
+Everyone, regardless of income or language, should be able to use essential digital tools, study and modify their code, share improvements and contribute. We call this aspiration **basic software rights**. We put this development value into practice through free use, multiple languages, open source and participation.
+
+We want people and AI to share knowledge, learn and create together. The official app remains free, donations are optional, and the source uses GPLv3. Keeping the original project and author support links in modified distributions is a voluntary request. See [License and support](#license-and-support).
 
 For studying or updating the current app in `ZipLens_Astra/`, start with the [code reading guide](ZipLens_Astra/docs/CODE_GUIDE_KO.md) and [contribution and validation workflow](ZipLens_Astra/docs/CONTRIBUTING_KO.md) (in Korean).
 
@@ -157,7 +175,7 @@ The screenshots above were captured from the actual 2.0.2 macOS app using public
 
 ### Features and availability
 
-The 2.0 series adds ALZ/EGG extraction and previews, stronger protection for original files, improved ZIP processing, default archive-app settings in macOS, password retries, cancellation, completion reports and seven interface languages. It creates ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives, and recognizes 36 file extensions including aliases. Support varies by format and variant; ALZ/EGG creation is not supported.
+The app includes ALZ/EGG extraction and previews, stronger protection for original files, improved ZIP processing, default archive-app settings in macOS, password retries, cancellation and completion reports. The current 2.1.1 preview provides ten interface languages. It creates ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives, and recognizes 36 file extensions including aliases. Support varies by format and variant; ALZ/EGG creation is not supported.
 
 **This preview uses a local ad-hoc signature and has not completed Apple Developer ID signing or notarization. macOS may block it from opening. Intel Mac execution has not been verified.** Download `ZipLens_2.1.1_arm64-preview.zip` from the release page, quit older copies, extract with macOS Archive Utility, and place the app where you want to keep it. The release includes SHA-256 checksums and `ZipLens_2.1.1_source.tar.gz`. This corresponding source archive contains the complete first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build.
 
