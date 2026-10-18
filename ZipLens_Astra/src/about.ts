@@ -1,4 +1,5 @@
 import type { LanguageCode } from "./i18n";
+import { getUserGuideUrl } from "./guide-navigation";
 
 interface AboutCopy {
     title: string;
@@ -258,10 +259,13 @@ export function updateAboutIntroduction(lang: LanguageCode) {
     document.getElementById("about-kofi-link")?.setAttribute("aria-label", `${copy.support} — Ko-fi`);
     document.getElementById("about-bitcoin-toggle")?.setAttribute("aria-label", `${copy.support} — BlueWallet · Bitcoin (BTC)`);
     document.getElementById("about-bitcoin-qr")?.setAttribute("alt", copy.bitcoinQr);
-    const userGuide = document.getElementById("about-user-guide");
-    if (userGuide) {
-        userGuide.textContent = copy.userGuide;
-        userGuide.title = copy.userGuideHint;
+    for (const id of ["about-user-guide", "home-user-guide"]) {
+        const userGuide = document.getElementById(id);
+        if (userGuide) {
+            userGuide.textContent = copy.userGuide;
+            userGuide.title = copy.userGuideHint;
+            userGuide.setAttribute("href", getUserGuideUrl(lang));
+        }
     }
     const licenses = document.getElementById("about-licenses");
     if (licenses) {

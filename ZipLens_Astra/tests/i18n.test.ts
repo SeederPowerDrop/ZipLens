@@ -12,7 +12,8 @@ const appInfoUrl = moduleUrl(compile('../src/app-info.ts').replace(
   'import appConfig from "../src-tauri/tauri.conf.json";', `const appConfig = ${JSON.stringify(appConfig)};`
 ));
 const { APP_DISPLAY_NAME } = await import(appInfoUrl);
-const aboutUrl = moduleUrl(compile('../src/about.ts'));
+const guideNavigationUrl = moduleUrl(compile('../src/guide-navigation.ts'));
+const aboutUrl = moduleUrl(compile('../src/about.ts').replace('from "./guide-navigation"', `from "${guideNavigationUrl}"`));
 const { supportedLanguages, translations, resolveLanguage, setLanguage, getCurrentLang, getTranslation } =
   await import(moduleUrl(compile('../src/i18n.ts')
     .replace('from "./app-info"', `from "${appInfoUrl}"`)

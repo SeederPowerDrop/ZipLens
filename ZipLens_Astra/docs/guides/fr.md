@@ -1,47 +1,52 @@
-# ZipLens : présentation, fonctions et guide d’utilisation
+# ZipLens 2.1.3 — Présentation et guide d’utilisation
 
-[Toutes les langues](README.md) · Mise à jour : 18 octobre 2026
+[Langues](README.md) · [Télécharger le DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.3/ZipLens_2.1.3_arm64-preview.dmg) · [Version, sources et sommes de contrôle](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3)
 
-ZipLens, de SeederPowerDrop, est une application macOS gratuite, sans publicité. Examinez une archive et extrayez les fichiers nécessaires. Les lentilles symbolisent compression et extraction.
+<img src="../screenshots/2.1.3/compression-fr.png" alt="Application réelle : options de compression en français" width="640">
 
-## Installation et version
-
-Téléchargez `ZipLens_2.1.2_arm64-preview.zip` depuis la [version 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). Quittez l’ancienne version avec ⌘Q, décompressez avec Utilitaire d’archive et placez `ZipLens.app` dans Applications. Sauvegardez l’ancienne installation. Vérifiez la version dans **ⓘ**.
-
-Cette préversion Apple Silicon est signée ad-hoc, sans Apple Developer ID ni notarisation ; macOS peut la bloquer. L’exécution sur Intel n’est pas vérifiée. Le téléchargement reste **2.1.2** ; `main` peut contenir des modifications **Unreleased (non publiées)**. Les sources ne mettent pas à jour l’application installée.
+**Consultez le contenu avant l’extraction et choisissez seulement les fichiers utiles.** ZipLens est une application macOS gratuite et sans publicité, créée par SeederPowerDrop. Des lentilles illustrent la compression et l’extraction.
 
 ## Fonctions
 
-- Créez des **ZIP, 7Z, TAR, TAR.GZ et TAR.ZST**. ZIP/7Z proposent mot de passe et découpage dans l’interface. ZIP utilise AES-256 par défaut ; 7Z avec mot de passe chiffre aussi les noms. TAR regroupe seulement ; ses variantes n’offrent ni mot de passe ni découpage. Pour créer un ZIP, utilisez un mot de passe ASCII imprimable ; choisissez 7Z pour les accents ou autres caractères Unicode.
-- Parcourez, recherchez, sélectionnez, annulez et consultez les résultats. Les images/textes compatibles de moins de **20 MiB** s’affichent dans l’application ; les autres sont extraits temporairement puis ouverts avec leur application par défaut. L’aperçu textuel décode uniquement UTF-8 ; si un ancien encodage rend le texte illisible, extrayez-le et ouvrez-le dans un éditeur compatible : ce problème d’affichage est distinct de la préservation des octets d’origine lors de l’extraction.
-- Extrayez d’autres formats, dont ALZ et EGG. Toutes les variantes ne sont pas garanties : voir les [limites](../../README.md#지원-범위).
-- Automatisez avec la [CLI JSON](../AI_CLI.md) de la même application. Elle ne propose pas la création d’archives découpées.
+- Parcourir les dossiers, rechercher des noms, sélectionner des fichiers et prévisualiser les petites images compatibles et le texte UTF-8.
+- Créer des archives **ZIP, 7Z, TAR, TAR.GZ et TAR.ZST**. L’interface propose mot de passe et découpage pour ZIP/7Z. ALZ/EGG servent uniquement à l’extraction.
+- Gérer les conflits de noms, annuler une tâche et consulter les chemins de sortie réels et les erreurs.
+- Dix langues d’interface, guides GitHub et automatisation par la [CLI JSON](../AI_CLI.md) de la même application, sans clé d’API d’IA supplémentaire.
 
-## Ouvrir et extraire
+## Installation avec le DMG
 
-1. Déposez une archive dans la fenêtre ou utilisez **Ouvrir**. Une sélection composée uniquement d’archives ouvre la première avec un message.
-2. Parcourez les dossiers, recherchez et sélectionnez tout ou certains fichiers. Double-cliquez pour prévisualiser ou ouvrir.
-3. Lancez l’extraction, choisissez la destination et saisissez le mot de passe demandé. L’extraction automatique enregistre près de l’original ; plusieurs éléments sélectionnés à la racine créent un dossier au nom de l’archive.
-4. Traitez les noms identiques, puis vérifiez chemins réels et erreurs. Une annulation ou un échec peut laisser des fichiers déjà terminés. Gardez toutes les parties d’une archive découpée ensemble et ouvrez la première.
+1. Terminez les tâches, quittez les anciennes versions avec **⌘Q**, puis ouvrez le DMG.
+2. Copiez **ZipLens.app en entier dans Applications**. Sauvegardez l’ancienne installation avant de la remplacer.
+3. Lancez la copie installée, vérifiez **2.1.3** dans **ⓘ**, puis éjectez le volume DMG.
 
-## Créer une archive
+Il s’agit d’une **préversion Apple Silicon signée ad-hoc, sans notarisation Apple**. Un DMG ne remplace pas la notarisation : macOS peut bloquer le lancement. Le fonctionnement sur tous les autres Mac n’est pas garanti et l’exécution sur Intel n’a pas été vérifiée. Pour autoriser manuellement une application dont vous jugez la provenance fiable, suivez les [instructions officielles d’Apple](https://support.apple.com/102445). [Vérifications du DMG, du téléchargement et de l’installation](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 
-Déposez ou sélectionnez fichiers/dossiers, réglez format et options, compressez la sélection puis nommez l’archive et choisissez sa destination. Mélanger archives et fichiers ordinaires crée aussi une archive. Le bouton de création convient également. Essayez le niveau équilibré : rapide privilégie le temps, maximal peut être plus lent. Des photos ou vidéos déjà compressées peuvent peu diminuer.
+## Utilisation courante
 
-## Langue et informations
+1. **Extraire :** Déposez ou ouvrez une archive, parcourez et sélectionnez les éléments, puis choisissez l’extraction et le dossier de destination. Saisissez le mot de passe si nécessaire.
+2. **Compresser :** Déposez ou sélectionnez des fichiers/dossiers, choisissez format, options, nom et destination. Commencez par le réglage équilibré ; photos et vidéos déjà compressées peuvent peu diminuer.
+3. **Vérifier :** Consultez les chemins réels et les erreurs. Une annulation ou un échec peut laisser les fichiers déjà terminés. Réunissez toutes les parties d’une archive découpée et ouvrez la première.
 
-Changez la langue en haut ; l’arabe se lit de droite à gauche. Les dialogues macOS suivent le système et certains messages techniques restent dans une autre langue. Le réglage d’application par défaut modifie l’ouverture dans Finder, pas sa commande Compresser.
+Changez de langue en haut de la fenêtre. **ⓘ → Guide d’utilisation / Aide** ouvre le guide de la langue choisie sur GitHub `main` et nécessite internet. Si le navigateur ne peut pas être lancé, le guide de base intégré s’affiche. Une erreur réseau après l’ouverture du navigateur ne déclenche pas automatiquement ce repli. **ⓘ** contient aussi les licences, le soutien facultatif et l’adresse/QR Bitcoin.
 
-**ⓘ** réunit auteur, version, guide hors ligne et soutien facultatif. Le bouton des licences ouvre leur dossier dans Finder. Adresse Bitcoin et QR sont également disponibles.
+## Mesures antérieures : moteur 2.1.2
 
-## Noms et performances
+Ces résultats proviennent de la **CLI 2.1.2, le 18 octobre 2026** ; ils ne constituent pas une nouvelle mesure de 2.1.3. Machine : Apple M3, 24 GiB, macOS 15.7.5 ; niveau de compression 6.
 
-Langue de l’interface et encodage des noms sont distincts. UTF-8 et les métadonnées ZIP Unicode valides sont pris en charge. Les anciens ZIP sans indication utilisent une interprétation compatible avec le coréen CP949. Shift-JIS/CP932, GBK ou CP437 non déclarés ne sont pas toujours identifiables. Demandez si nécessaire un ZIP UTF-8 ou un 7Z au créateur. Changer la langue ne répare pas les noms ; extraire ne traduit pas le contenu et n’en modifie pas l’encodage.
+| Données | Résultat observé |
+|---|---|
+| Un fichier de 4 GiB + 64 MiB, environ 4,36 Go | ZIP 2.1.2 : médianes de 64,9 s en compression et 8,5 s en extraction ; deux répétitions par opération |
+| 10 000 fichiers de 4 KiB ; six répétitions supplémentaires par version | Médiane d’extraction : **0,722 s avec 2.1.1 → 0,815 s avec 2.1.2** |
+| Échantillon mixte de 512 MiB, compression 7Z | Maximum RSS de l’arbre de processus échantillonné toutes les 100 ms : environ **1,71 GiB** |
 
-La vitesse dépend du format, du nombre de fichiers, du niveau et du stockage. Le [registre de validation](../VALIDATION.md) précise les limites, sans garantir toute archive sans erreur.
+Les **40 cycles complets réunissent 14 cycles de 2.1.1 et 26 de 2.1.2**. Noms, tailles et SHA-256 concordaient, et les originaux étaient conservés. La médiane d’extraction des petits fichiers était supérieure de 12,8 % ; les plages se chevauchent et la cause reste indéterminée. Nous ne revendiquons pas un gain universel. Le RSS échantillonné peut manquer de brefs pics ou compter deux fois des pages partagées. [Résultats et limites](../LARGE_FILE_VALIDATION_2026-10-18.md)
 
-## Liberté, contributions et soutien
+## Limites
 
-Les **droits fondamentaux liés au logiciel** expriment notre valeur de développement : chacun, quels que soient ses revenus ou sa langue, devrait pouvoir utiliser les outils numériques essentiels et étudier, modifier, partager leur code et y contribuer. Personnes et IA peuvent partager le savoir, apprendre et créer ensemble.
+Les mots de passe de création ZIP doivent utiliser l’ASCII imprimable ; choisissez 7Z pour Unicode. La langue de l’interface ne détermine pas l’encodage des noms. UTF-8 et les métadonnées Unicode valides sont pris en charge ; les anciens ZIP sans indication utilisent un repli compatible CP949, qui ne restitue pas toujours CP932, GBK ou CP437. Demandez un ZIP UTF-8 ou un 7Z si nécessaire. L’aperçu texte utilise UTF-8 ; l’extraction ne change pas l’encodage du contenu. Les dialogues système suivent macOS. Toutes les variantes et tous les Mac n’ont pas été testés. [Formats](../../README.md#지원-범위)
 
-Le code propre utilise [GPL-3.0-only](../../LICENSE) ; les composants externes conservent leurs licences. Toute contribution est bienvenue. [Buy Me a Coffee](https://buymeacoffee.com/master_chief) et [Ko-fi](https://ko-fi.com/seederpower) sont facultatifs. Merci de conserver les liens vers le projet et le soutien à l’auteur dans vos modifications : cette demande volontaire n’ajoute aucune condition à la GPL.
+## Droits fondamentaux liés au logiciel et soutien facultatif
+
+Chacun, quels que soient ses revenus ou sa langue, devrait pouvoir utiliser les outils numériques essentiels et étudier, modifier, partager leur code et y contribuer. Ces **droits fondamentaux liés au logiciel** guident le projet : des personnes et des IA partageant les connaissances, apprenant et créant ensemble.
+
+Le code propre à ZipLens est sous [GPL-3.0-only](../../LICENSE) ; les licences tierces sont conservées. Le soutien officiel par [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) et Bitcoin est facultatif. Merci de conserver les liens vers le projet original et le soutien à l’auteur dans les versions modifiées : c’est une **demande volontaire, pas une condition supplémentaire de la GPL**.

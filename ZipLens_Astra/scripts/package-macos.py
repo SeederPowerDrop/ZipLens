@@ -162,7 +162,130 @@ def verify_archive(app, archive, preview):
             run(['spctl', '--assess', '--type', 'execute', '--verbose=4', str(extracted)])
 
 
-def publish_outputs(app, archive, release, result):
+def installation_readme(app_name, version, preview):
+    notice = ('This preview is not signed with Apple Developer ID or notarized. '
+              'macOS may block it from opening.\n'
+              '이 프리뷰는 Apple Developer ID 서명·공증을 완료하지 않아 macOS가 실행을 차단할 수 있습니다.\n'
+              if preview else '')
+    return (f'ZipLens {version} — Install / 설치\n\n'
+            f'1. Finish any archive operations and quit older ZipLens copies.\n'
+            f'2. Drag {app_name} onto the Applications shortcut.\n'
+            f'   Replace an existing copy only if you intend to update it.\n'
+            f'3. Eject this disk image, then open {app_name} from Applications.\n\n'
+            f'1. 진행 중인 압축 작업을 마치고 이전 ZipLens를 종료하세요.\n'
+            f'2. {app_name}을 Applications 바로가기로 끌어다 놓으세요.\n'
+            f'   기존 설치본을 업데이트하려는 경우에만 교체하세요.\n'
+            f'3. 디스크 이미지를 추출한 뒤 응용 프로그램에서 {app_name}을 여세요.\n\n'
+            f'{notice}\nHelp / 도움말: https://github.com/SeederPowerDrop/ZipLens\n')
+
+
+def create_disk_image(app, image, stage, version, preview):
+    """Build a read-only drag-install image from an already verified app."""
+    contents = stage / 'disk-image-contents'
+    contents.mkdir()
+    # Preserve the app's extended attributes and notarization ticket. The only
+    # intentional symlink is the conventional root-level Applications shortcut.
+    run(['ditto', '--rsrc', '--extattr', str(app), str(contents / app.name)])
+    (contents / 'Applications').symlink_to('/Applications', target_is_directory=True)
+    readme = installation_readme(app.name, version, preview).encode('utf-8')
+    (contents / 'README.txt').write_bytes(readme)
+    run(['hdiutil', 'create', '-fs', 'HFS+', '-format', 'UDZO', '-volname',
+         f'ZipLens {version}', '-srcfolder', str(contents), str(image)])
+    return readme
+
+
+def notarize_disk_image(image, identity, identifier, profile):
+    """The signed image is a separate notarization target from the enclosed app."""
+    run(['codesign', '--force', '--sign', identity, '--timestamp',
+         '--identifier', f'{identifier}.dmg', str(image)])
+    run(['codesign', '--verify', '--strict', str(image)])
+    response = json.loads(run(['xcrun', 'notarytool', 'submit', str(image),
+                               '--keychain-profile', profile, '--wait', '--output-format', 'json']))
+    if response.get('status') != 'Accepted' or not response.get('id'):
+        raise RuntimeError(f"Disk image notarization was not accepted: {response.get('status', 'missing status')} "
+                           f"(submission {response.get('id', 'unknown')}). Inspect its notarytool log.")
+    run(['xcrun', 'stapler', 'staple', str(image)])
+    run(['xcrun', 'stapler', 'validate', str(image)])
+    run(['codesign', '--verify', '--strict', str(image)])
+    run(['spctl', '--assess', '--type', 'open', '--context', 'context:primary-signature',
+         '--verbose=4', str(image)])
+    return response['id']
+
+
+def verify_disk_image_app(expected, actual):
+    """Reject altered bytes, modes, directories, or unexpected app symlinks."""
+    if not actual.is_dir() or actual.is_symlink():
+        raise RuntimeError('Disk image app is missing or is a symlink')
+    paths = [actual, *actual.rglob('*')]
+    if any(path.is_symlink() for path in paths):
+        raise RuntimeError('Unexpected symlink inside disk image app')
+    def directories(folder):
+        return {path.relative_to(folder).as_posix(): stat.S_IMODE(path.stat().st_mode)
+                for path in [folder, *folder.rglob('*')] if path.is_dir()}
+    if fingerprint(expected) != fingerprint(actual) or directories(expected) != directories(actual):
+        raise RuntimeError('Disk image app differs in contents or POSIX permissions')
+
+
+def detach_disk_image(mountpoint):
+    """Retry a busy test mount, but never hide failure or delete a mounted tree."""
+    try:
+        run(['hdiutil', 'detach', str(mountpoint)])
+    except RuntimeError:
+        try:
+            run(['hdiutil', 'detach', '-force', str(mountpoint)])
+        except RuntimeError as error:
+            raise RuntimeError(f'Cannot detach verification image at {mountpoint}; '
+                               'temporary files were retained for safe manual cleanup') from error
+
+
+def verify_disk_image(app, image, readme, preview):
+    """Mount the final image read-only and check a Finder-style installation copy."""
+    run(['hdiutil', 'verify', str(image)])
+    if run(['hdiutil', 'imageinfo', '-format', str(image)]) != 'UDZO':
+        raise RuntimeError('Disk image must use the read-only compressed UDZO format')
+    temporary = Path(tempfile.mkdtemp(prefix='ziplens-dmg-verify-'))
+    mountpoint = temporary / 'mounted'
+    mountpoint.mkdir()
+    attached = False
+    try:
+        response = run(['hdiutil', 'attach', '-readonly', '-nobrowse', '-noautoopen',
+                        '-mountpoint', str(mountpoint), '-plist', str(image)])
+        attached = True
+        entities = plistlib.loads(response.encode('utf-8')).get('system-entities', [])
+        mounted = [entity.get('mount-point') for entity in entities if entity.get('mount-point')]
+        # macOS tempfile paths can use /var while hdiutil reports /private/var.
+        # Accept that filesystem alias, but still require exactly our one mount.
+        if (len(mounted) != 1 or not isinstance(mounted[0], str)
+                or Path(mounted[0]).resolve() != mountpoint.resolve()):
+            raise RuntimeError('Disk image did not mount at the requested verification path')
+        applications = mountpoint / 'Applications'
+        if not applications.is_symlink() or os.readlink(applications) != '/Applications':
+            raise RuntimeError('Disk image Applications shortcut must point to /Applications')
+        instructions = mountpoint / 'README.txt'
+        if instructions.is_symlink() or not instructions.is_file() or instructions.read_bytes() != readme:
+            raise RuntimeError('Disk image installation instructions are missing or changed')
+        visible_names = {path.name for path in mountpoint.iterdir() if not path.name.startswith('.')}
+        if visible_names != {app.name, 'Applications', 'README.txt'}:
+            raise RuntimeError('Unexpected visible items in disk image')
+        mounted_app = mountpoint / app.name
+        verify_disk_image_app(app, mounted_app)
+        run(['codesign', '--verify', '--deep', '--strict', str(mounted_app)])
+        installed = temporary / 'installed' / app.name
+        run(['ditto', '--rsrc', '--extattr', str(mounted_app), str(installed)])
+        verify_disk_image_app(app, installed)
+        run(['codesign', '--verify', '--deep', '--strict', str(installed)])
+        if not preview:
+            run(['xcrun', 'stapler', 'validate', str(installed)])
+            run(['spctl', '--assess', '--type', 'execute', '--verbose=4', str(installed)])
+    finally:
+        # An attach error can still leave a mounted volume. If detach fails,
+        # retain this directory: recursively deleting a live mount is unsafe.
+        if attached or mountpoint.is_mount():
+            detach_disk_image(mountpoint)
+        shutil.rmtree(temporary)
+
+
+def publish_outputs(app, archive, image, release, result):
     """Prepare every output before replacing the previous local package."""
     release.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='.package-export-', dir=release) as temporary:
@@ -178,12 +301,16 @@ def publish_outputs(app, archive, release, result):
         run(['codesign', '--verify', '--deep', '--strict', str(staged_app)])
         if not result['preview']:
             run(['xcrun', 'stapler', 'validate', str(staged_app)])
-        shutil.copyfile(archive, pending / archive.name)
-        if hashlib.sha256((pending / archive.name).read_bytes()).hexdigest() != result['archive_sha256']:
-            raise RuntimeError('Release ZIP copy differs from the verified archive')
-        (pending / 'SHA256SUMS.txt').write_text(f"{result['archive_sha256']}  {archive.name}\n")
+        checksums = []
+        for source, digest_key in [(archive, 'archive_sha256'), (image, 'dmg_sha256')]:
+            shutil.copyfile(source, pending / source.name)
+            digest = hashlib.sha256((pending / source.name).read_bytes()).hexdigest()
+            if digest != result[digest_key]:
+                raise RuntimeError(f'Release {source.suffix} copy differs from the verified artifact')
+            checksums.append(f'{digest}  {source.name}\n')
+        (pending / 'SHA256SUMS.txt').write_text(''.join(checksums))
         (pending / 'packaging-result.json').write_text(json.dumps(result, indent=2) + '\n')
-        names = [app.name, archive.name, 'SHA256SUMS.txt', 'packaging-result.json']
+        names = [app.name, archive.name, image.name, 'SHA256SUMS.txt', 'packaging-result.json']
         replaced = []
         try:
             for name in names:
@@ -250,6 +377,11 @@ def main(arguments=None):
         archive = stage / archive_name
         create_zip(app, archive)
         verify_archive(app, archive, options.preview)
+        image = stage / archive_name.replace('.zip', '.dmg')
+        readme = create_disk_image(app, image, stage, config['version'], options.preview)
+        image_submission_id = (None if options.preview else notarize_disk_image(
+            image, identity, config['identifier'], options.notary_profile))
+        verify_disk_image(app, image, readme, options.preview)
         result = {
             'architecture': architecture,
             'preview': options.preview,
@@ -263,6 +395,20 @@ def main(arguments=None):
             'official_7zip_input_sha256': provenance['sha256_binary'],
             'archive_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
             'archive_bytes': archive.stat().st_size,
+            'primary_download_name': image.name,
+            'dmg_name': image.name,
+            'dmg_sha256': hashlib.sha256(image.read_bytes()).hexdigest(),
+            'dmg_bytes': image.stat().st_size,
+            'dmg_signature': ('unsigned disk image; enclosed app uses local ad-hoc signature' if options.preview
+                              else 'Developer ID Application; secure timestamp'),
+            'dmg_notarized': not options.preview,
+            'dmg_notarization_submission_id': image_submission_id,
+            'dmg_stapled_ticket_verified': not options.preview,
+            'dmg_gatekeeper_assessment': 'not assessed (local preview)' if options.preview else 'accepted',
+            'dmg_readonly_udzo_verified': True,
+            'dmg_mount_and_install_copy_verified': True,
+            'dmg_applications_symlink_verified': True,
+            'dmg_mounted_and_copied_app_signature_verified': True,
             'signature': ('local ad-hoc; not Developer ID; not notarized' if options.preview
                           else 'Developer ID Application; hardened runtime; secure timestamp'),
             'notarized': not options.preview,
@@ -274,7 +420,7 @@ def main(arguments=None):
             'zip_extracted_signature_verified': True,
             'legacy_helper_architecture_and_prepared_bytes_verified': True,
         }
-        publish_outputs(app, archive, release, result)
+        publish_outputs(app, archive, image, release, result)
         print(json.dumps(result, indent=2))
 
 

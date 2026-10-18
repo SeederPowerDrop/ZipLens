@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { open, message, save } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow, LogicalSize, currentMonitor } from "@tauri-apps/api/window";
 import { join, dirname } from "@tauri-apps/api/path";
-import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
+import { revealItemInDir, openPath, openUrl } from "@tauri-apps/plugin-opener";
 import { formatBytes, formatTime, escapeHTML } from "./utils";
 import { elements, updateButtonState } from "./ui";
 import { archiveStem, snapshotExtraction, type ExtractionSnapshot } from "./archive-model";
@@ -17,6 +17,7 @@ import { setLanguage, getTranslation, getCurrentLang, resolveLanguage, supported
 import { copyBitcoinAddress, getAboutLicenseError } from "./about";
 import { APP_DISPLAY_NAME } from "./app-info";
 import { updateUserGuide } from "./user-guide";
+import { createGuideOpener } from "./guide-navigation";
 
 import { initFileAssociations, isFileAssociationsOpen, openFileAssociations } from "./file-associations";
 import "./file-associations.css";
@@ -272,17 +273,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // About Modal Listeners
     const userGuide = document.getElementById("user-guide-dialog") as HTMLDialogElement | null;
-    const guideLink = document.getElementById("about-user-guide");
-    if (guideLink && userGuide) {
-        guideLink.onclick = event => {
-            event.preventDefault();
-            updateUserGuide(getCurrentLang());
+    const guideLinks = ["home-user-guide", "about-user-guide"]
+        .map(id => document.getElementById(id)).filter((link): link is HTMLElement => link !== null);
+    const openGuide = createGuideOpener({
+        getLanguage: getCurrentLang,
+        openUrl,
+        setBusy: busy => guideLinks.forEach(link => {
+            link.setAttribute("aria-busy", String(busy));
+            link.setAttribute("aria-disabled", String(busy));
+        }),
+        showOfflineGuide: (language, notice) => {
+            if (!userGuide) throw new Error("The bundled user guide is unavailable.");
+            updateUserGuide(language, notice);
             if (!userGuide.open) userGuide.showModal();
             const content = document.getElementById("user-guide-content");
             if (content) content.scrollTop = 0;
+        },
+    });
+    for (const guideLink of guideLinks) {
+        guideLink.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation(); // The home link sits inside the file-selection drop zone.
+            void openGuide().catch(error => {
+                console.error("Could not show the user guide", error);
+                void message(String(error), { title: getTranslation("error"), kind: "error" })
+                    .catch(dialogError => console.error("Could not show guide error", dialogError));
+            });
         };
-        document.getElementById("user-guide-close")?.addEventListener("click", () => userGuide.close());
     }
+    document.getElementById("user-guide-close")?.addEventListener("click", () => userGuide?.close());
     const bitcoinToggle = document.getElementById("about-bitcoin-toggle");
     const bitcoinPanel = document.getElementById("about-bitcoin");
     if (bitcoinToggle && bitcoinPanel) {

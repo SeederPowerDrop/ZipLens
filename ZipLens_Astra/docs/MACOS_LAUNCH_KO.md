@@ -1,5 +1,7 @@
 # macOS 다운로드 앱 실행 문제
 
+현재 **2.1.3 DMG 프리뷰**의 배포 유형과 실제 설치 검사는 [2.1.3 설치 검증](INSTALLATION_VALIDATION_2.1.3_KO_EN.md)을 먼저 확인하세요. 아래 2.0.0 분석은 과거 문제 기록입니다. DMG로 포장해도 Apple 공증이 추가되는 것은 아닙니다.
+
 ## 2026-09-13 진단
 
 GitHub에서 받은 `ZipLens_2.0.0_arm64.zip`을 직접 검사했습니다.
@@ -43,7 +45,7 @@ python3 scripts/package-macos.py \
   --notary-profile "YOUR_NOTARY_PROFILE"
 ```
 
-프리뷰는 `release_build/preview`, 정식 배포는 `release_build`에 앱·ZIP·체크섬·검증 기록을 각각 저장합니다. 환경 변수 `ZIPLENS_SIGNING_IDENTITY`, `ZIPLENS_NOTARY_PROFILE`로 같은 값을 지정할 수도 있습니다. 프리뷰 생성이 기존 정식 결과물을 덮어쓰지 않습니다.
+프리뷰는 `release_build/preview`, 정식 배포는 `release_build`에 앱·DMG·ZIP·체크섬·검증 기록을 각각 저장합니다. 환경 변수 `ZIPLENS_SIGNING_IDENTITY`, `ZIPLENS_NOTARY_PROFILE`로 같은 값을 지정할 수도 있습니다. 프리뷰 생성이 기존 정식 결과물을 덮어쓰지 않습니다.
 
 ## 기존 다운로드 파일 확인
 

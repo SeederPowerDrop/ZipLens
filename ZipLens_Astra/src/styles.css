@@ -94,6 +94,17 @@ body {
   -webkit-app-region: drag;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   position: relative;
+  /* Window controls keep their physical positions when the UI language changes. */
+  direction: ltr;
+}
+
+.titlebar-controls {
+  direction: ltr;
+}
+
+/* The fixed button row does not change Arabic labels or the native menu direction. */
+html[dir="rtl"] .titlebar-controls > * {
+  direction: rtl;
 }
 
 .titlebar-title {
@@ -386,6 +397,11 @@ body {
 .home-input-button:disabled { opacity: 0.45; cursor: default; }
 .home-input-button:focus-visible, .drop-zone:focus-visible, .compression-change-button:focus-visible { outline: 2px solid #b8ccff; outline-offset: 4px; }
 .drop-zone.loaded .home-input-actions { display: none; }
+/* Let the main pane scroll instead of shrinking and clipping the home's controls. */
+.drop-zone:not(.loaded) { flex-shrink: 0; }
+.home-user-guide { position: relative; z-index: 2; margin-top: 12px; color: #b8ccff; font-size: 12px; text-align: center; text-decoration: underline; }
+.home-user-guide:focus-visible { outline: 2px solid #b8ccff; outline-offset: 4px; }
+.drop-zone.loaded .home-user-guide { display: none; }
 
 .compression-selection {
   padding: 12px 14px;
@@ -410,6 +426,13 @@ body {
   padding: 16px;
   margin-bottom: 16px;
   animation: fadeIn 0.3s ease;
+}
+
+/* Native WebKit must not retain an invisible fade layer when this panel reopens. */
+#app[data-composing="true"] .compression-options-panel {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
 
 .select-group {

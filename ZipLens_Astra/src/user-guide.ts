@@ -445,7 +445,7 @@ const guides = {
     },
 } satisfies Record<LanguageCode, UserGuide>;
 
-export function updateUserGuide(lang: LanguageCode): void {
+export function updateUserGuide(lang: LanguageCode, fallbackNotice?: string): void {
     const dialog = document.getElementById("user-guide-dialog");
     const title = document.getElementById("user-guide-title");
     const content = document.getElementById("user-guide-content");
@@ -480,5 +480,13 @@ export function updateUserGuide(lang: LanguageCode): void {
     projectLink.textContent = copy.projectLink;
     linkParagraph.append(projectLink);
     sections[sections.length - 1].append(linkParagraph);
-    content.replaceChildren(...sections);
+    if (fallbackNotice) {
+        const notice = document.createElement("p");
+        notice.id = "user-guide-fallback-notice";
+        notice.setAttribute("role", "status");
+        notice.textContent = fallbackNotice;
+        content.replaceChildren(notice, ...sections);
+    } else {
+        content.replaceChildren(...sections);
+    }
 }

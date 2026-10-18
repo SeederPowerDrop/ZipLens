@@ -15,17 +15,20 @@ await mkdir(output, { recursive: true });
 const browser = await webkit.launch({ headless: true });
 const languages = (process.env.LAYOUT_LANGUAGES || 'ko,en,ja,zh,vi,es,fr,de,ru,ar').split(',');
 const widths = (process.env.LAYOUT_WIDTHS || '800,480').split(',').map(Number);
+const motion = process.env.LAYOUT_MOTION || 'reduce';
+assert.ok(['reduce', 'no-preference'].includes(motion), 'LAYOUT_MOTION must be reduce or no-preference');
+const panelOnly = process.env.LAYOUT_PANEL_ONLY === '1';
 const results = [];
 const failures = [];
 try {
   for (const width of widths) for (const lang of languages) {
-    const page = await browser.newPage({ viewport: { width, height: 600 }, reducedMotion: 'reduce' });
+    const page = await browser.newPage({ viewport: { width, height: 600 }, reducedMotion: motion });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.setDefaultTimeout(8000);
     await page.addInitScript(() => {
       const callbacks = new Map(); let id = 0;
-      window.__layout = { calls: [], open: [], encrypted: false };
+      window.__layout = { calls: [], open: [], encrypted: false, browserFailure: false };
       const names = ['한글-日本語-中文-résumé-العربية-📦.txt', 'Deutsch_Русский_Tiếng Việt_ñ.txt'];
       window.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener() {} };
       window.__TAURI_INTERNALS__ = {
@@ -43,6 +46,9 @@ try {
             case 'plugin:window|current_monitor': return null;
             case 'plugin:dialog|open': return window.__layout.open.shift() ?? null;
             case 'plugin:dialog|message': return;
+            case 'plugin:opener|open_url':
+              if (window.__layout.browserFailure) throw new Error('Simulated browser launch failure');
+              return;
             case 'inspect_input_paths': return args.paths.map(path => ({ path, isDirectory: false }));
             case 'preview_archive':
               if (window.__layout.encrypted && args.password !== 'test-password') throw 'PASSWORD_REQUIRED';
@@ -90,19 +96,87 @@ try {
       const record = { width, lang, state, ...measurements };
       results.push(record);
       if (measurements.issues.length) failures.push(record);
-      if (['de', 'ru', 'ar'].includes(lang) && ['home', 'compression', 'about', 'guide', 'preview', 'report'].includes(state)) {
+      if ((panelOnly || ['de', 'ru', 'ar'].includes(lang)) &&
+          (state.startsWith('compression') || ['home', 'about', 'guide', 'preview', 'report'].includes(state))) {
         await page.screenshot({ path: resolve(output, `${lang}-${width}-${state}.png`) });
       }
       assert.equal(measurements.lang, lang);
       assert.equal(measurements.dir, lang === 'ar' ? 'rtl' : 'ltr');
     };
+    const checkCompressionVisibility = async () => {
+      await page.locator('#format-select').scrollIntoViewIfNeeded();
+      const rendering = await page.locator('#compression-options').evaluate(panel => {
+        const style = getComputedStyle(panel);
+        const hiddenAncestors = [];
+        for (let element = panel; element; element = element.parentElement) {
+          const ancestorStyle = getComputedStyle(element);
+          if (ancestorStyle.display === 'none' || ancestorStyle.visibility !== 'visible' || Number(ancestorStyle.opacity) < 0.99) {
+            hiddenAncestors.push(element.id || element.tagName);
+          }
+        }
+        const control = document.getElementById('format-select');
+        const box = control.getBoundingClientRect();
+        const hit = document.elementFromPoint((box.left + box.right) / 2, (box.top + box.bottom) / 2);
+        return {
+          display: style.display, opacity: style.opacity, transform: style.transform,
+          animationName: style.animationName, hiddenAncestors,
+          homeDisplay: getComputedStyle(document.getElementById('drop-zone')).display,
+          controlInViewport: box.top >= 0 && box.bottom <= innerHeight,
+          controlHit: !!hit && (hit === control || control.contains(hit)),
+        };
+      });
+      assert.equal(rendering.display, 'block');
+      assert.equal(rendering.opacity, '1');
+      assert.equal(rendering.transform, 'none');
+      assert.equal(rendering.animationName, 'none', 'the active compression panel must not retain a fade animation');
+      assert.deepEqual(rendering.hiddenAncestors, [], 'no ancestor may make compression controls transparent or hidden');
+      assert.equal(rendering.homeDisplay, 'none', 'the home card must not reserve space while composing');
+      assert.equal(rendering.controlInViewport, true);
+      assert.equal(rendering.controlHit, true);
+    };
     try {
       await page.goto(process.env.LAYOUT_URL || 'http://127.0.0.1:1420/');
       await page.waitForFunction(() => !!document.getElementById('btn-about')?.onclick);
       await page.selectOption('#lang-select', lang);
+      if (panelOnly) {
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          await page.click('#btn-compress');
+          await page.locator('#enable-password-cb').setChecked(attempt % 2 === 1);
+          await checkCompressionVisibility();
+          await check(`compression-repeat-${attempt}`);
+          await page.click('#btn-cancel-compress');
+          assert.equal(await page.locator('#compression-options').isVisible(), false);
+        }
+        assert.deepEqual(errors, []);
+        continue;
+      }
+      const homeCard = await page.locator('#drop-zone').evaluate(card => ({ clientHeight: card.clientHeight, scrollHeight: card.scrollHeight }));
+      assert.ok(homeCard.scrollHeight <= homeCard.clientHeight + 1, 'the home card must not internally clip its controls');
+      await page.locator('#home-user-guide').scrollIntoViewIfNeeded();
+      const homeGuideVisible = await page.locator('#home-user-guide').evaluate(link => {
+        const box = link.getBoundingClientRect();
+        if (box.top < 0 || box.bottom > innerHeight) return false;
+        for (let parent = link.parentElement; parent; parent = parent.parentElement) {
+          if (['hidden', 'clip', 'auto', 'scroll'].includes(getComputedStyle(parent).overflowY)) {
+            const bounds = parent.getBoundingClientRect();
+            if (box.top < bounds.top - 1 || box.bottom > bounds.bottom + 1) return false;
+          }
+        }
+        const hit = document.elementFromPoint((box.left + box.right) / 2, (box.top + box.bottom) / 2);
+        return !!hit && (hit === link || link.contains(hit));
+      });
+      assert.equal(homeGuideVisible, true, 'home help must be readable and clickable after normal pane scrolling');
       await check('home');
+      const guideUrl = `https://github.com/SeederPowerDrop/ZipLens/blob/main/ZipLens_Astra/docs/guides/${lang}.md`;
+      await page.click('#home-user-guide');
+      await page.waitForFunction(() => document.getElementById('home-user-guide')?.getAttribute('aria-busy') === 'false');
+      assert.equal(await page.locator('#home-user-guide').getAttribute('href'), guideUrl);
+      assert.deepEqual(await page.evaluate(() => window.__layout.calls.filter(call => call.command === 'plugin:opener|open_url').map(call => call.args.url)), [guideUrl]);
+      assert.equal(await page.locator('#user-guide-dialog').evaluate(dialog => dialog.open), false);
+      assert.equal(await page.evaluate(() => window.__layout.calls.some(call => call.command === 'plugin:dialog|open')), false, 'help must not bubble into file selection');
       await page.click('#btn-compress');
       await page.locator('#enable-password-cb').check();
+      await checkCompressionVisibility();
       await check('compression');
       await page.click('#btn-cancel-compress');
       await page.click('#btn-about');
@@ -111,9 +185,19 @@ try {
       assert.equal(await page.locator('#about-modal').getAttribute('lang'), lang);
       assert.equal(await page.locator('#about-bitcoin-address').inputValue(), 'BC1QUEUAX3FJP77NZUKF732AEWVFE0YVS9ZPKUMLTV');
       await page.click('#about-user-guide');
+      await page.waitForFunction(() => document.getElementById('about-user-guide')?.getAttribute('aria-busy') === 'false');
+      assert.equal(await page.locator('#about-user-guide').getAttribute('href'), guideUrl);
+      assert.deepEqual(await page.evaluate(() => window.__layout.calls.filter(call => call.command === 'plugin:opener|open_url').map(call => call.args.url)), [guideUrl, guideUrl]);
+      assert.equal(await page.locator('#user-guide-dialog').evaluate(dialog => dialog.open), false);
+      await page.evaluate(() => { window.__layout.browserFailure = true; });
+      await page.click('#about-user-guide');
+      await page.locator('#user-guide-dialog').waitFor({ state: 'visible' });
       await check('guide', '#user-guide-dialog');
       assert.equal(await page.locator('#user-guide-dialog').getAttribute('lang'), lang === 'zh' ? 'zh-Hans' : lang);
+      assert.ok((await page.locator('#user-guide-fallback-notice').textContent()).trim().length > 20);
+      assert.equal(await page.locator('#about-user-guide').getAttribute('aria-busy'), 'false');
       await page.click('#user-guide-close');
+      await page.evaluate(() => { window.__layout.browserFailure = false; });
       await page.click('#about-licenses');
       assert.ok(await page.evaluate(() => window.__layout.calls.some(call => call.command === 'open_license_folder')));
       await page.click('#about-close');
@@ -147,6 +231,6 @@ try {
     } finally { await page.close(); }
   }
 } finally { await browser.close(); }
-await writeFile(resolve(output, 'results.json'), JSON.stringify({ engine: 'Playwright WebKit', ipc: 'mocked', results, failures }, null, 2) + '\n');
+await writeFile(resolve(output, 'results.json'), JSON.stringify({ engine: 'Playwright WebKit', ipc: 'mocked', motion, scope: panelOnly ? 'compression-repeat' : 'full-ui', results, failures }, null, 2) + '\n');
 console.log(JSON.stringify({ states: results.length, failures: failures.length, output }));
 if (failures.length) { console.error(JSON.stringify(failures, null, 2)); process.exitCode = 1; }
