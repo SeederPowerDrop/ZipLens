@@ -6,9 +6,9 @@ ZipLens 是 SeederPowerDrop 开发的免费、无广告 macOS 压缩工具。你
 
 ## 安装与版本
 
-从 [2.1.1 发布页面](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)下载 `ZipLens_2.1.1_arm64-preview.zip`。完成当前操作，用 ⌘Q 退出旧版，再用 macOS 归档实用工具解压，将完整的 `ZipLens.app` 放入“应用程序”。替换已有安装前先备份，并在 **ⓘ** 中核对版本。
+从 [2.1.2 发布页面](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2)下载 `ZipLens_2.1.2_arm64-preview.zip`。完成当前操作，用 ⌘Q 退出旧版，再用 macOS 归档实用工具解压，将完整的 `ZipLens.app` 放入“应用程序”。替换已有安装前先备份，并在 **ⓘ** 中核对版本。
 
-这是 Apple Silicon 预览版，仅使用 ad-hoc 签名，尚未完成 Apple Developer ID 签名和公证，macOS 可能阻止启动。Intel Mac 上的运行尚未验证。可下载的应用仍为 **2.1.1**；`main` 分支可能包含 **Unreleased（尚未发布）**的修复。更新源码或文档不会自动更新已安装的应用。
+这是 Apple Silicon 预览版，仅使用 ad-hoc 签名，尚未完成 Apple Developer ID 签名和公证，macOS 可能阻止启动。Intel Mac 上的运行尚未验证。可下载的应用仍为 **2.1.2**；`main` 分支可能包含 **Unreleased（尚未发布）**的修复。更新源码或文档不会自动更新已安装的应用。
 
 ## 功能说明
 

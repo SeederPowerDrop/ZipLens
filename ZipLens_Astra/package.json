@@ -2,7 +2,7 @@
   "name": "ziplens-astra",
   "private": true,
   "license": "GPL-3.0-only",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite",

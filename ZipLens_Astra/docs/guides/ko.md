@@ -6,9 +6,9 @@ ZipLens는 SeederPowerDrop이 만든 무료·광고 없는 macOS 압축 앱입�
 
 ## 설치와 버전 확인
 
-[2.1.1 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1)에서 `ZipLens_2.1.1_arm64-preview.zip`을 받습니다. 진행 중인 작업을 마치고 구버전을 ⌘Q로 종료한 뒤 macOS 아카이브 유틸리티로 풉니다. `ZipLens.app` 전체를 응용 프로그램 폴더에 두세요. 기존 설치본을 교체할 때는 먼저 백업하고, **ⓘ**에서 버전을 확인합니다.
+[2.1.2 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2)에서 `ZipLens_2.1.2_arm64-preview.zip`을 받습니다. 진행 중인 작업을 마치고 구버전을 ⌘Q로 종료한 뒤 macOS 아카이브 유틸리티로 풉니다. `ZipLens.app` 전체를 응용 프로그램 폴더에 두세요. 기존 설치본을 교체할 때는 먼저 백업하고, **ⓘ**에서 버전을 확인합니다.
 
-Apple Silicon용 ad-hoc 서명 프리뷰이며 Apple Developer ID 서명·공증은 완료하지 않았습니다. macOS가 실행을 차단할 수 있고 Intel Mac 실행은 검증하지 않았습니다. 다운로드 앱은 **2.1.1**이며 `main`에는 **Unreleased(미배포)** 수정이 있을 수 있습니다. 소스·문서 갱신만으로 설치된 앱이 바뀌지는 않습니다.
+Apple Silicon용 ad-hoc 서명 프리뷰이며 Apple Developer ID 서명·공증은 완료하지 않았습니다. macOS가 실행을 차단할 수 있고 Intel Mac 실행은 검증하지 않았습니다. 다운로드 앱은 **2.1.2**이며 `main`에는 **Unreleased(미배포)** 수정이 있을 수 있습니다. 소스·문서 갱신만으로 설치된 앱이 바뀌지는 않습니다.
 
 ## 주요 기능
 

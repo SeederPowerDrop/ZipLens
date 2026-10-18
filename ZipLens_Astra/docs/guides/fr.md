@@ -6,9 +6,9 @@ ZipLens, de SeederPowerDrop, est une application macOS gratuite, sans publicité
 
 ## Installation et version
 
-Téléchargez `ZipLens_2.1.1_arm64-preview.zip` depuis la [version 2.1.1](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1). Quittez l’ancienne version avec ⌘Q, décompressez avec Utilitaire d’archive et placez `ZipLens.app` dans Applications. Sauvegardez l’ancienne installation. Vérifiez la version dans **ⓘ**.
+Téléchargez `ZipLens_2.1.2_arm64-preview.zip` depuis la [version 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). Quittez l’ancienne version avec ⌘Q, décompressez avec Utilitaire d’archive et placez `ZipLens.app` dans Applications. Sauvegardez l’ancienne installation. Vérifiez la version dans **ⓘ**.
 
-Cette préversion Apple Silicon est signée ad-hoc, sans Apple Developer ID ni notarisation ; macOS peut la bloquer. L’exécution sur Intel n’est pas vérifiée. Le téléchargement reste **2.1.1** ; `main` peut contenir des modifications **Unreleased (non publiées)**. Les sources ne mettent pas à jour l’application installée.
+Cette préversion Apple Silicon est signée ad-hoc, sans Apple Developer ID ni notarisation ; macOS peut la bloquer. L’exécution sur Intel n’est pas vérifiée. Le téléchargement reste **2.1.2** ; `main` peut contenir des modifications **Unreleased (non publiées)**. Les sources ne mettent pas à jour l’application installée.
 
 ## Fonctions
 

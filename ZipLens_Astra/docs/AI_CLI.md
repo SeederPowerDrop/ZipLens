@@ -2,7 +2,7 @@
 
 2.1.0부터 동일한 macOS 앱을 사람과 AI가 함께 사용할 수 있습니다. 사람은 기존 창을 열고, 터미널 실행 권한이 있는 AI는 앱 실행 파일의 `cli` 명령을 호출합니다. CLI는 Tauri 창을 만들기 전에 실행되어 대화상자 없이 종료합니다. 별도의 AI 서비스나 API 키가 필요하지 않습니다.
 
-이 안내는 **ZipLens 2.1.1** 기준입니다. CLI는 2.1.0부터 지원하며, 아래 예시는 `ZipLens.app`의 기본 설치 경로를 사용합니다. 다른 위치에 설치했다면 실제 앱 경로에 맞게 바꾸세요. 배포 파일과 해당 버전의 소스는 [GitHub 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases)에서 확인할 수 있습니다.
+이 안내는 **ZipLens 2.1.2** 기준입니다. CLI는 2.1.0부터 지원하며, 아래 예시는 `ZipLens.app`의 기본 설치 경로를 사용합니다. 다른 위치에 설치했다면 실제 앱 경로에 맞게 바꾸세요. 배포 파일과 해당 버전의 소스는 [GitHub 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases)에서 확인할 수 있습니다.
 
 ## 빠른 시작
 

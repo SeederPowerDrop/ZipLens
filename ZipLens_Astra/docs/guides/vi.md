@@ -6,9 +6,9 @@ ZipLens là ứng dụng nén tệp miễn phí, không quảng cáo dành cho m
 
 ## Cài đặt
 
-Tải `ZipLens_2.1.1_arm64-preview.zip` từ [bản phát hành 2.1.1](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1). Hoàn tất công việc, thoát bản cũ bằng ⌘Q, giải nén bằng Archive Utility của macOS rồi đặt nguyên `ZipLens.app` vào Applications. Sao lưu bản cũ trước khi thay thế. Kiểm tra phiên bản tại **ⓘ**.
+Tải `ZipLens_2.1.2_arm64-preview.zip` từ [bản phát hành 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). Hoàn tất công việc, thoát bản cũ bằng ⌘Q, giải nén bằng Archive Utility của macOS rồi đặt nguyên `ZipLens.app` vào Applications. Sao lưu bản cũ trước khi thay thế. Kiểm tra phiên bản tại **ⓘ**.
 
-Bản xem trước cho Apple Silicon chỉ có chữ ký ad-hoc, chưa được ký bằng Apple Developer ID hoặc công chứng; macOS có thể chặn mở. Chưa xác minh trên Intel Mac. Bản tải về vẫn là **2.1.1**; nhánh `main` có thể chứa thay đổi **Unreleased (chưa phát hành)**. Cập nhật mã nguồn không cập nhật ứng dụng đã cài.
+Bản xem trước cho Apple Silicon chỉ có chữ ký ad-hoc, chưa được ký bằng Apple Developer ID hoặc công chứng; macOS có thể chặn mở. Chưa xác minh trên Intel Mac. Bản tải về vẫn là **2.1.2**; nhánh `main` có thể chứa thay đổi **Unreleased (chưa phát hành)**. Cập nhật mã nguồn không cập nhật ứng dụng đã cài.
 
 ## Tính năng
 
