@@ -75,6 +75,15 @@ fn has_zip_extension(path: &Path) -> bool {
     )
 }
 
+fn require_regular_archive(path: &Path) -> Result<(), String> {
+    // Opening a FIFO can block before a decoder can observe cancellation. Follow
+    // symlinks so ordinary archive aliases still work, but reject special files.
+    if !fs::metadata(path).map_err(|e| e.to_string())?.is_file() {
+        return Err("Archive input must be a regular file.".into());
+    }
+    Ok(())
+}
+
 impl Engine {
     /// 목록을 읽고 위험하거나 모호한 경로를 거릅니다. 파일 내용 전체의 무결성 검사는 아닙니다.
     pub fn preview(
@@ -84,6 +93,7 @@ impl Engine {
         ctx: &Context,
     ) -> Result<Vec<Entry>, String> {
         ctx.check()?;
+        require_regular_archive(path)?;
         let prepared = self.prepare_stream(path, ctx)?;
         self.preview_prepared(path, prepared.as_ref(), password, ctx)
     }
@@ -135,6 +145,7 @@ impl Engine {
     ) -> Result<ExtractReport, String> {
         // 1. 원본 식별자를 보관하고 목록·선택을 검증합니다. 분할 볼륨도 덮어쓰지 않아야 합니다.
         let archive = fs::canonicalize(&request.archive).map_err(|e| e.to_string())?;
+        require_regular_archive(&archive)?;
         let mut protected_inputs = paths::ProtectedInputs::new(&archive)?;
         let prepared = self.prepare_stream(&archive, context)?;
         let prepared_input = prepared
@@ -261,6 +272,8 @@ impl Engine {
         ctx: &Context,
     ) -> Result<Vec<u8>, String> {
         paths::relative(name)?;
+        ctx.check()?;
+        require_regular_archive(archive)?;
         if has_zip_extension(archive) && zip_engine::native_supported(archive, ctx)? {
             return zip_engine::read_entry(archive, name, password, ctx);
         }

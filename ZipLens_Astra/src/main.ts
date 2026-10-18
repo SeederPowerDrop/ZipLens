@@ -6,9 +6,10 @@ import { join, dirname } from "@tauri-apps/api/path";
 import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
 import { formatBytes, formatTime, escapeHTML } from "./utils";
 import { elements, updateButtonState } from "./ui";
-import { archiveStem, csvCell, snapshotExtraction, type ExtractionSnapshot } from "./archive-model";
+import { archiveStem, snapshotExtraction, type ExtractionSnapshot } from "./archive-model";
 import { classifyInputPaths, type InputPath } from "./input-routing";
 import { ArchiveActionGate } from "./action-session";
+import { buildReportRows, formatReportTxt, formatReportCsv, reportDisplayItems, type ExtractionReport } from "./report-model";
 import { showPasswordDialog } from "./password-dialog";
 import { LensScene, type ProcessingOperation } from "./lens-scene";
 import { HomeLensExplorer } from "./lens-explorer";
@@ -96,13 +97,6 @@ async function runArchiveAction(action: () => Promise<void>): Promise<void> {
     });
 }
 
-// Rust의 직렬화 형식과 맞춘 IPC 응답이다. snake_case 필드는 서버와 함께 변경해야 한다.
-interface ExtractionReport {
-    success_files: string[];
-    failed_files: [string, string][];
-    output_paths: string[];
-    cancelled: boolean;
-}
 interface ArchiveProgress { percent: number | null; processed_bytes: number; total_bytes: number; filename: string; }
 
 let currentSort: { col: "name" | "size" | "compressed" | "ext", asc: boolean } = { col: "name", asc: true };
@@ -1051,7 +1045,7 @@ async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) 
                     };
                     if (await requestPassword(validator, snapshot.password !== null) === null) {
                         // 암호 확인 중 실제 해제를 수행하므로, 취소해도 이미 저장된 파일의 결과는 보여 준다.
-                        if (report) await showArchiveReport(report, "extract");
+                        if (report) await showArchiveReport(report, "extract", conflictResolution === "overwrite");
                         return;
                     }
                 } else {
@@ -1059,7 +1053,7 @@ async function executeExtraction(snapshot: ExtractionSnapshot, destDir: string) 
                 }
             }
             // 암호창 이벤트/포커스 정리가 끝난 뒤 결과창을 열고, 닫힐 때까지 기다린다.
-            if (report) await showArchiveReport(report, "extract");
+            if (report) await showArchiveReport(report, "extract", conflictResolution === "overwrite");
         } finally {
             setProcessing(false);
         }
@@ -1276,7 +1270,7 @@ function handleFilenameEvent(filename: string) {
  * 결과 표시뿐 아니라 닫기까지 기다리는 Promise를 반환한다. 반드시 await하여 다음 요청이
  * 현재 결과를 덮어쓰지 않게 한다. 압축 결과에는 이전 아카이브 목록의 크기를 붙이지 않는다.
  */
-function showArchiveReport(report: ExtractionReport, operation: "extract" | "compress"): Promise<void> {
+function showArchiveReport(report: ExtractionReport, operation: "extract" | "compress", sourceNamesPreserved = true): Promise<void> {
     const el = elements;
     // 엔진 작업이 끝났으므로 진행 표시만 멈춘다. 게이트는 결과창을 닫은 후 해제된다.
     progressLens.setRunning(false);
@@ -1307,7 +1301,8 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
             .replace("{count}", String(report.success_files.length))
             .replace("{errors}", String(report.failed_files.length));
         
-        report.failed_files.forEach(([path, err]: [string, string]) => {
+        const failedDisplay = reportDisplayItems(report.failed_files);
+        failedDisplay.items.forEach(([path, err]: [string, string]) => {
             const li = document.createElement("li");
             const fname = path.split(/[\/\\]/).pop() || path;
             const ext = fname.match(/\.([^.]+)$/)?.[1]?.toUpperCase() || '-';
@@ -1317,6 +1312,12 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
             li.style.paddingBottom = "8px";
             el.reportFailedList.appendChild(li);
         });
+        if (failedDisplay.hiddenCount) {
+            const li = document.createElement("li");
+            li.innerText = getTranslation("moreFiles").replace("{count}", String(failedDisplay.hiddenCount));
+            li.style.opacity = "0.6";
+            el.reportFailedList.appendChild(li);
+        }
     } else {
         el.reportFailedSection.style.display = "none";
         el.reportIcon.style.removeProperty("color");
@@ -1333,9 +1334,8 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
     
     if (report.success_files.length > 0) {
         el.reportSuccessSection.style.display = "block";
-        const maxDisplay = 50;
-        const toShow = report.success_files.slice(0, maxDisplay);
-        toShow.forEach((path: string) => {
+        const successDisplay = reportDisplayItems(report.success_files);
+        successDisplay.items.forEach((path: string) => {
             const li = document.createElement("li");
             const fname = path.split(/[\/\\]/).pop() || path;
             const ext = fname.match(/\.([^.]+)$/)?.[1]?.toUpperCase() || '-';
@@ -1343,9 +1343,9 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
             li.style.marginBottom = "4px";
             el.reportSuccessList.appendChild(li);
         });
-        if (report.success_files.length > maxDisplay) {
+        if (successDisplay.hiddenCount) {
             const li = document.createElement("li");
-            li.innerText = getTranslation("moreFiles").replace("{count}", String(report.success_files.length - maxDisplay));
+            li.innerText = getTranslation("moreFiles").replace("{count}", String(successDisplay.hiddenCount));
             li.style.opacity = "0.6";
             el.reportSuccessList.appendChild(li);
         }
@@ -1400,42 +1400,9 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
     }
 
     const generateTxt = async () => {
-        const findSize = (p: string): string => {
-            const f = archiveEntries.find(f => p.endsWith(f.path));
-            return f ? formatBytes(f.size) : '-';
-        };
+        const rows = buildReportRows(report, archiveEntries, sourceNamesPreserved);
+        const content = formatReportTxt(report, rows, APP_DISPLAY_NAME, new Date().toLocaleString(getCurrentLang()), getTranslation);
 
-        let content = `=== ${APP_DISPLAY_NAME} · ${getTranslation("extractionReport")} ===\n`;
-        content += `${getTranslation("date")}: ${new Date().toLocaleString(getCurrentLang())}\n`;
-        content += `${getTranslation("status")}: ${getTranslation(report.cancelled ? "cancelled" : report.failed_files.length > 0 ? "error" : "success")}\n`;
-        content += `${getTranslation("successFiles")}: ${report.success_files.length}\n`;
-        content += `${getTranslation("failedFiles")}: ${report.failed_files.length}\n`;
-        content += "=".repeat(40) + "\n\n";
-        
-        if (report.failed_files.length > 0) {
-            content += `--- ${getTranslation("failedFiles")} ---\n\n`;
-            report.failed_files.forEach(([path, err]: [string, string], idx: number) => {
-                const fname = path.split(/[\/\\]/).pop() || path;
-                const ext = fname.match(/\.([^.]+)$/)?.[1]?.toUpperCase() || '-';
-                const size = findSize(path);
-                content += `${idx + 1}. ${fname}\n`;
-                content += `   ${getTranslation("extension")}: ${ext}\n`;
-                content += `   ${getTranslation("size")}: ${size}\n`;
-                content += `   ${getTranslation("fullPath")}: ${path}\n`;
-                content += `   ${getTranslation("error")}: ${err}\n\n`;
-            });
-        }
-        
-        if (report.success_files.length > 0) {
-            content += `--- ${getTranslation("successFiles")} ---\n\n`;
-            report.success_files.forEach((path: string, idx: number) => {
-                const fname = path.split(/[\/\\]/).pop() || path;
-                const ext = fname.match(/\.([^.]+)$/)?.[1]?.toUpperCase() || '-';
-                const size = findSize(path);
-                content += `${idx + 1}. [${ext}] ${fname} (${size}) — ${path}\n`;
-            });
-        }
-        
         const filePath = await save({ filters: [{ name: "TXT", extensions: ["txt"] }], title: getTranslation("saveReportTxt") });
         if (filePath) {
             try {
@@ -1448,19 +1415,8 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
     };
 
     const generateCsv = async () => {
-        const findSize = (p: string): number => {
-            const f = archiveEntries.find(f => p.endsWith(f.path));
-            return f ? f.size : 0;
-        };
-
-        let content = "\uFEFF" + (["status", "sortName", "extension", "size", "fullPath", "error"] as const)
-            .map(key => csvCell(getTranslation(key))).join(",") + "\n";
-        const csvRow = (status: string, path: string, error = "") => {
-            const name = path.split(/[/\\]/).pop() || path;
-            content += [status, name, name.split('.').pop() || '', formatBytes(findSize(path)), path, error].map(csvCell).join(',') + "\n";
-        };
-        report.failed_files.forEach(([path, error]) => csvRow(getTranslation("failed"), path, error));
-        report.success_files.forEach(path => csvRow(getTranslation("success"), path));
+        const rows = buildReportRows(report, archiveEntries, sourceNamesPreserved);
+        const content = formatReportCsv(rows, getTranslation);
 
         const filePath = await save({ filters: [{ name: "CSV", extensions: ["csv"] }], title: getTranslation("saveReportCsv") });
         if (filePath) {
