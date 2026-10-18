@@ -1,6 +1,6 @@
 # ZipLens 배포·라이선스 안내
 
-ZipLens는 무료로 제공하며 자발적인 후원을 받는다. 이 문서는 ZipLens 2.1.2의 라이선스, 동봉 자료와 재배포·빌드 절차를 안내한다.
+ZipLens는 무료로 제공하며 자발적인 후원을 받는다. 이 문서는 ZipLens 2.1.3의 라이선스, 동봉 자료와 재배포·빌드 절차를 안내한다.
 
 ## ZipLens 자체 코드와 후원
 
@@ -37,7 +37,7 @@ RAR·ALZ·EGG 파일 **생성**은 구현하지 않는다. 특히 unRAR 유래 �
 - `7zip/`: 실제 동봉 버전의 원본 저작권·라이선스, LGPL 전문, 공식 26.03 소스 압축 파일, 출처와 SHA-256, 빌드·교체 안내.
 - `third-party/`: 버전·출처·라이선스 목록, 원문, MPL 해당 소스 압축 파일.
 
-7-Zip과 MPL 구성요소의 소스 제공을 앞으로 응답할 서면 약속에만 의존하지 않고 **배포 앱 안에 해당 소스를 직접 포함**했다. ZipLens 자체의 대응 소스는 위 배포 절차에 따라 별도로 제공한다. 앱을 ZIP으로 배포하거나 다른 경로로 재배포할 때 이 폴더의 필수 고지와 소스를 보존한다. 7-Zip 실행 코드와 소스는 변경하지 않았다. 앱 묶음의 무결성을 위해 추가하는 로컬 ad-hoc 서명은 실행 파일 바이트를 바꾸므로, 공식 입력 해시와 서명 후 해시를 구분해 기록한다. 이는 Developer ID 서명·공증을 대신하지 않는다. 출처·해시는 `sidecar-provenance.json`에 기록한다.
+7-Zip과 MPL 구성요소의 소스 제공을 앞으로 응답할 서면 약속에만 의존하지 않고 **배포 앱 안에 해당 소스를 직접 포함**했다. ZipLens 자체의 대응 소스는 위 배포 절차에 따라 별도로 제공한다. 앱을 DMG·ZIP으로 배포하거나 다른 경로로 재배포할 때 이 폴더의 필수 고지와 소스를 보존한다. 7-Zip 실행 코드와 소스는 변경하지 않았다. 앱 묶음의 무결성을 위해 추가하는 로컬 ad-hoc 서명은 실행 파일 바이트를 바꾸므로, 공식 입력 해시와 서명 후 해시를 구분해 기록한다. 이는 Developer ID 서명·공증을 대신하지 않는다. 출처·해시는 `sidecar-provenance.json`에 기록한다.
 
 ZipLens 자체 코드의 GPLv3 적용과 제3자 구성요소의 라이선스는 구별한다. 오픈소스 원문에 포함된 출처·면책·추가 안내도 보존한다. SDK에서 유래한 선언 등 upstream이 명시한 법적 불확실성을 라이선스 배지만 보고 해결되었다고 표현하지 않는다.
 
@@ -49,7 +49,7 @@ ZipLens 자체 코드의 GPLv3 적용과 제3자 구성요소의 라이선스는
 python3 scripts/generate-third-party-notices.py
 python3 scripts/generate-third-party-notices.py --check
 python3 scripts/prepare-distribution.py
-# Tauri release 빌드 후 로컬 프리뷰 ZIP 생성
+# Tauri release 빌드 후 로컬 프리뷰 DMG·ZIP 생성
 python3 scripts/package-macos.py --preview
 ```
 
@@ -58,7 +58,7 @@ python3 scripts/package-macos.py --preview
 ## 배포 구분과 지원 범위
 
 - 2.0.1부터 기본 패키징은 Developer ID 인증서와 기존 notarytool 프로필을 요구한다. 공증 승인·티켓 첨부 후 실제 ZIP에서 추출한 앱의 Gatekeeper 검사까지 통과해야 정식 산출물을 생성한다. `--preview`는 별도 `release_build/preview` 폴더에만 저장한다. [실행 문제 진단과 명령](MACOS_LAUNCH_KO.md)
-- 2.1.2의 Apple Silicon 프리뷰는 로컬 ad-hoc 서명을 사용하는 배포 유형이며 Apple Developer ID 서명·공증 완료를 뜻하지 않는다. GitHub의 Latest 표시와 Apple의 서명·공증 여부는 별개다. 각 릴리스에 실제 배포 유형과 검증 결과를 명시한다.
+- 2.1.3의 Apple Silicon 프리뷰는 로컬 ad-hoc 서명을 사용하는 배포 유형이며 Apple Developer ID 서명·공증 완료를 뜻하지 않는다. GitHub의 Latest 표시와 Apple의 서명·공증 여부는 별개다. 각 릴리스에 실제 배포 유형과 검증 결과를 명시한다.
 - Intel Mac 배포를 약속하기 전에 해당 아키텍처로 앱과 보조 프로그램을 빌드하고 실제 동작을 검사한다.
 - 모든 ALZ·EGG·RAR 변종의 호환성을 보증하지 않는다. 안전 한도·지원 방식 및 실행한 검사는 [검증 요약](VALIDATION.md)에 구분해 남긴다.
 - 공식 앱의 후원은 선택 사항이며 앱 사용을 제한하지 않는다. 현재 앱에 광고 SDK나 유료 기능 잠금을 추가하지 않는다.

@@ -1,47 +1,52 @@
-# ZipLens: Einführung, Funktionen und Bedienung
+# ZipLens 2.1.3 — Einführung und Bedienung
 
-[Alle Sprachen](README.md) · Aktualisiert am 18. Oktober 2026
+[Sprachen](README.md) · [DMG herunterladen](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.3/ZipLens_2.1.3_arm64-preview.dmg) · [Version, Quelltext und Prüfsummen](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3)
 
-ZipLens ist eine kostenlose, werbefreie Archiv-App für macOS von SeederPowerDrop. Sehen Sie sich ein Archiv vor dem Entpacken an und wählen Sie nur benötigte Dateien. Die Linsen zeigen gebündeltes Licht beim Komprimieren und aufgefächertes Licht beim Entpacken.
+<img src="../screenshots/2.1.3/home-ko.png" alt="Echte App: koreanischer Startbildschirm" width="640">
 
-## Installation und Version
-
-Laden Sie `ZipLens_2.1.2_arm64-preview.zip` von der [Version 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2) herunter. Beenden Sie laufende Arbeiten, schließen Sie ältere Versionen mit ⌘Q und entpacken Sie mit dem Archivierungsprogramm von macOS. Legen Sie die vollständige `ZipLens.app` in Programme ab. Sichern Sie eine vorhandene Installation vor dem Ersetzen. Prüfen Sie die Version unter **ⓘ**.
-
-Diese Apple-Silicon-Vorschau ist ad-hoc signiert, ohne Apple-Developer-ID-Signatur oder Notarisierung; macOS kann sie blockieren. Intel-Ausführung ist ungeprüft. Der Download bleibt **2.1.2**; `main` kann **Unreleased (unveröffentlichte)** Änderungen enthalten. Quelltext- oder Dokumentationsänderungen aktualisieren keine installierte App.
+**Erst den Inhalt ansehen, dann nur die benötigten Dateien entpacken.** ZipLens ist eine kostenlose, werbefreie macOS-App von SeederPowerDrop. Linsen veranschaulichen das Komprimieren und Entpacken.
 
 ## Funktionen
 
-- Erstellen Sie **ZIP, 7Z, TAR, TAR.GZ und TAR.ZST**. ZIP/7Z bieten Passwort und Aufteilung in der Oberfläche. ZIP nutzt standardmäßig AES-256; passwortgeschützte 7Z verschlüsseln auch Dateinamen. TAR bündelt nur; TAR-Varianten bieten weder Passwort noch Aufteilung. ZIP-Passwörter müssen aus druckbaren ASCII-Zeichen bestehen; für Umlaute oder andere Unicode-Zeichen wählen Sie 7Z.
-- Ordner durchsuchen, Namen suchen, Dateien auswählen, abbrechen und Ergebnisse prüfen. Unterstützte Bilder/Texte unter **20 MiB** erscheinen in der App; andere Dateien werden vorübergehend entpackt und mit ihrer Standard-App geöffnet. Die Textvorschau liest nur UTF-8; erscheint älter kodierter Text fehlerhaft, entpacken Sie ihn und öffnen Sie ihn in einem passenden Editor—dieses Anzeigeproblem ist von der Erhaltung der ursprünglichen Bytes beim Entpacken zu unterscheiden.
-- Weitere Formate wie ALZ und EGG lassen sich entpacken. Erkannte Endungen garantieren nicht jede Variante: siehe [Formatgrenzen](../../README.md#지원-범위).
-- Automatisieren Sie mit der [JSON-CLI](../AI_CLI.md) derselben App. Die CLI erstellt keine mehrteiligen Archive.
+- Ordner durchsuchen, Namen suchen, Einträge auswählen sowie unterstützte kleine Bilder und UTF-8-Text vorab ansehen.
+- **ZIP, 7Z, TAR, TAR.GZ und TAR.ZST** erstellen. Die Oberfläche bietet für ZIP/7Z Passwörter und Aufteilung in Teile. ALZ/EGG werden nur entpackt.
+- Namenskonflikte behandeln, Aufgaben abbrechen und tatsächliche Ausgabepfade sowie Fehler prüfen.
+- Zehn Oberflächensprachen, GitHub-Anleitungen und Automatisierung über die [JSON-CLI](../AI_CLI.md) derselben App. Kein zusätzlicher KI-API-Schlüssel nötig.
 
-## Öffnen und entpacken
+## Mit der DMG installieren
 
-1. Ziehen Sie ein Archiv ins Fenster oder wählen Sie **Öffnen**. Bei einer Auswahl nur aus mehreren Archiven öffnet sich das erste mit einem Hinweis.
-2. Navigieren, suchen und markieren Sie alle oder einzelne Dateien. Ein Doppelklick zeigt eine Vorschau oder öffnet die Datei.
-3. Starten Sie das Entpacken, wählen Sie das Ziel und geben Sie bei Aufforderung ein Passwort ein. Automatisches Entpacken speichert neben dem Original; mehrere ausgewählte Elemente auf oberster Ebene erzeugen einen Ordner mit dem Archivnamen.
-4. Entscheiden Sie bei Namenskonflikten und prüfen Sie tatsächliche Pfade sowie Fehler. Nach Abbruch oder Fehler können fertige Dateien verbleiben. Halten Sie bei mehrteiligen Archiven alle Teile zusammen und öffnen Sie den ersten.
+1. Laufende Aufgaben beenden, alte Versionen mit **⌘Q** schließen und die DMG öffnen.
+2. Die **vollständige ZipLens.app nach Programme kopieren**. Eine vorhandene Installation vor dem Ersetzen sichern.
+3. Die kopierte App starten, unter **ⓘ** die Version **2.1.3** prüfen und das DMG-Volume auswerfen.
 
-## Archiv erstellen
+Dies ist eine **ad-hoc signierte Apple-Silicon-Vorschau ohne Apple-Notarisierung**. Eine DMG ersetzt keine Notarisierung; macOS kann den Start blockieren. Der Betrieb auf jedem anderen Mac ist nicht garantiert, die Ausführung auf Intel ist ungeprüft. Eine manuelle Freigabe für eine App aus einer von Ihnen als vertrauenswürdig eingestuften Quelle beschreibt [Apple offiziell](https://support.apple.com/102445). [Prüfung von DMG, Download und Installation](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 
-Ziehen oder wählen Sie Dateien/Ordner, legen Sie Format und Optionen fest, komprimieren Sie die Auswahl und wählen Sie Name sowie Ziel. Gemischte Auswahlen aus Archiven und normalen Dateien erzeugen ebenfalls ein neues Archiv. Alternativ beginnen Sie über die Schaltfläche zum Erstellen. Starten Sie mit Ausgewogen. Schnell bevorzugt kurze Laufzeiten; Maximal kann länger dauern. Bereits komprimierte Fotos oder Videos werden möglicherweise kaum kleiner.
+## Im Alltag
 
-## Sprache und Informationen
+1. **Entpacken:** Archiv ablegen oder öffnen, Einträge durchsuchen und auswählen, dann Entpacken und einen Zielordner wählen. Bei Bedarf das Passwort eingeben.
+2. **Komprimieren:** Dateien/Ordner ablegen oder auswählen, Format, Optionen, Namen und Ziel festlegen. Mit der ausgewogenen Einstellung beginnen; bereits komprimierte Fotos oder Videos werden eventuell kaum kleiner.
+3. **Ergebnis prüfen:** Tatsächliche Pfade und Fehler ansehen. Nach Abbruch oder Fehler können bereits fertiggestellte Dateien bleiben. Alle Teile eines aufgeteilten Archivs zusammen ablegen und den ersten öffnen.
 
-Wechseln Sie oben die Sprache; Arabisch läuft von rechts nach links. macOS-Dialoge folgen dem System, technische Fehler können anderssprachig bleiben. Die Standard-App-Einstellung ändert das Öffnen im Finder, nicht dessen Komprimieren-Befehl.
+Die Sprache oben im Fenster wählen. **ⓘ → Anleitung / Hilfe** öffnet die Anleitung der gewählten Sprache auf GitHub `main` im Browser und benötigt Internet. Kann der Browser nicht gestartet werden, erscheint die integrierte Basisanleitung. Ein Netzwerkfehler nach dem Browserstart löst diesen Ersatz nicht automatisch aus. Unter **ⓘ** stehen außerdem Lizenzen, freiwillige Unterstützung sowie Bitcoin-Adresse und QR-Code.
 
-**ⓘ** enthält Autor, Version, Offline-Anleitung und freiwillige Unterstützung. Die Schaltfläche für Open-Source-Lizenzen öffnet deren Ordner im Finder. Auch Bitcoin-Adresse und QR-Code finden Sie dort.
+## Frühere Messungen: Engine 2.1.2
 
-## Dateinamen und Leistung
+Diese Werte stammen aus **CLI-Tests von 2.1.2 am 18. Oktober 2026**, nicht aus neuen 2.1.3-Messungen. Umgebung: Apple M3, 24 GiB, macOS 15.7.5; Kompressionsstufe 6.
 
-Oberflächensprache und Namenskodierung sind unabhängig. UTF-8 sowie gültige ZIP-Unicode-Pfadmetadaten werden unterstützt. Alte ZIP-Namen ohne Kennzeichnung werden mit einer koreanischen CP949-kompatiblen Interpretation gelesen. Unmarkiertes Shift-JIS/CP932, GBK oder CP437 lässt sich nicht immer erkennen. Bitten Sie gegebenenfalls um ein UTF-8-ZIP oder 7Z. Sprachwechsel reparieren keine Namen; Entpacken übersetzt keine Inhalte und ändert keine Textkodierung.
+| Eingabe | Beobachtung |
+|---|---|
+| Eine Datei mit 4 GiB + 64 MiB, etwa 4,36 GB | ZIP 2.1.2: Median 64,9 s Komprimieren / 8,5 s Entpacken; jeweils zwei Durchläufe |
+| 10.000 Dateien à 4 KiB; je sechs zusätzliche Durchläufe | Entpack-Median: **0,722 s mit 2.1.1 → 0,815 s mit 2.1.2** |
+| Gemischte 512-MiB-Probe, 7Z-Komprimierung | Alle 100 ms erfasstes RSS-Maximum des Prozessbaums: etwa **1,71 GiB** |
 
-Geschwindigkeit hängt von Format, Dateianzahl, Stufe und Speicher ab. Die [Prüfaufzeichnungen](../VALIDATION.md) beschreiben Bedingungen und Grenzen, keine Garantie für fehlerfreie Verarbeitung jedes Archivs.
+Die **40 vollständigen Durchläufe umfassen 14 mit 2.1.1 und 26 mit 2.1.2**. Namen, Größen und SHA-256 stimmten überein; Originale blieben erhalten. Bei kleinen Dateien lag der Entpack-Median rund 12,8 % höher. Die Bereiche überlappen, die Ursache ist ungeklärt. Eine allgemeine Beschleunigung wird nicht behauptet. RSS-Stichproben können kurze Spitzen verpassen oder gemeinsam genutzte Seiten mehrfach zählen. [Messwerte und Grenzen](../LARGE_FILE_VALIDATION_2026-10-18.md)
 
-## Softwarefreiheit, Beiträge und Unterstützung
+## Grenzen
 
-**Grundlegende Softwarerechte** sind unser Entwicklungswert: Jeder Mensch soll unabhängig von Einkommen oder Sprache grundlegende digitale Werkzeuge nutzen und ihren Code studieren, ändern, teilen und mitgestalten können. Menschen und KI können Wissen teilen, gemeinsam lernen und gestalten.
+ZIP-Erstellung erfordert druckbare ASCII-Passwörter; für Unicode-Passwörter 7Z wählen. Oberflächensprache und Dateinamenkodierung sind unabhängig. UTF-8 und gültige Unicode-Pfadmetadaten werden unterstützt. Alte ZIPs ohne Kennzeichnung nutzen eine CP949-kompatible Interpretation; CP932, GBK oder CP437 lassen sich nicht immer rekonstruieren. Bei Bedarf UTF-8-ZIP oder 7Z anfordern. Die Textvorschau nutzt UTF-8; Entpacken ändert die Inhaltskodierung nicht. Systemdialoge folgen macOS. Nicht jede Archivvariante und jeder Mac wurden geprüft. [Formatübersicht](../../README.md#지원-범위)
 
-Eigener Code verwendet [GPL-3.0-only](../../LICENSE); Fremdkomponenten behalten ihre Lizenzen. Beiträge sind willkommen. [Buy Me a Coffee](https://buymeacoffee.com/master_chief) und [Ko-fi](https://ko-fi.com/seederpower) sind freiwillig. Bitte behalten Sie in veränderten Versionen Links zum Originalprojekt und zur Unterstützung des Autors bei; dies ist keine zusätzliche GPL-Bedingung.
+## Grundlegende Rechte bei Software und freiwillige Unterstützung
+
+Alle Menschen sollten unabhängig von Einkommen und Sprache grundlegende digitale Werkzeuge nutzen sowie ihren Code studieren, ändern, teilen und verbessern können. Diese **grundlegenden Rechte bei Software** leiten das Projekt: Menschen und KI sollen Wissen teilen, gemeinsam lernen und gestalten.
+
+Eigener Code steht unter [GPL-3.0-only](../../LICENSE); fremde Lizenzen bleiben erhalten. Offizielle Unterstützung über [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) und Bitcoin ist freiwillig. Bitte behalten Sie in verteilten Änderungen Links zum Originalprojekt und zur Unterstützung des Autors bei. Das ist eine **freiwillige Bitte, keine zusätzliche GPL-Bedingung**.

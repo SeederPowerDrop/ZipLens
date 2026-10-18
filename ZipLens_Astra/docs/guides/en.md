@@ -1,47 +1,52 @@
-# ZipLens: introduction, features and user guide
+# ZipLens 2.1.3 — Introduction and user guide
 
-[All languages](README.md) · Updated October 18, 2026
+[Languages](README.md) · [Download DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.3/ZipLens_2.1.3_arm64-preview.dmg) · [Release, source and checksums](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3)
 
-ZipLens is a free, ad-free macOS archive app by SeederPowerDrop. Look inside an archive before extracting it, then choose only the files you need. Lens illustrations represent compression and extraction.
+<img src="../screenshots/2.1.3/about-en.png" alt="Actual app: English About window" width="640">
 
-## Install and check the version
-
-Download `ZipLens_2.1.2_arm64-preview.zip` from the [2.1.2 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). Quit older copies with ⌘Q, extract with macOS Archive Utility and keep the entire `ZipLens.app` in Applications. Back up an existing installation before replacing it. Check the version under **ⓘ**.
-
-This Apple Silicon preview is ad-hoc signed, without Apple Developer ID signing or notarization; macOS may block it. Intel execution is unverified. The downloadable app remains **2.1.2**; `main` may include **Unreleased** fixes. Source updates do not update installed apps.
+**Look inside before extracting, then choose only the files you need.** ZipLens is a free, ad-free macOS app by SeederPowerDrop. Lens illustrations represent compression and extraction.
 
 ## Features
 
-- Create **ZIP, 7Z, TAR, TAR.GZ and TAR.ZST**. ZIP/7Z support passwords and splitting through the GUI. ZIP defaults to AES-256; password-protected 7Z also encrypts filenames. TAR only bundles files; TAR variants have no password or split options. ZIP creation passwords require printable ASCII; choose 7Z for accented letters or other Unicode characters.
-- Browse folders, search names, select entries, cancel work and review results. Supported image/text previews are smaller than **20 MiB**; other files open through their default app after temporary extraction. Text previews decode UTF-8 only; if legacy-encoded content looks garbled, extract it and open it in an editor supporting that encoding—this display issue is separate from preserving the original bytes during extraction.
-- Open additional formats, including ALZ and EGG, for extraction. Not every variant is supported. See [format limits](../../README.md#지원-범위).
-- Automate with the app’s JSON CLI; see the [CLI reference](../AI_CLI.md). GUI split creation is not a CLI option.
+- Browse folders, search names, select entries and preview supported small images and UTF-8 text.
+- Create **ZIP, 7Z, TAR, TAR.GZ and TAR.ZST**. ZIP/7Z offer password and split options in the GUI. ALZ/EGG are extraction-only.
+- Handle filename conflicts, cancel operations and review actual output paths and errors.
+- Ten interface languages, GitHub guides and automation through the same app’s [JSON CLI](../AI_CLI.md). No separate AI API key is required.
 
-## Open and extract
+## Install from DMG
 
-1. Drop an archive onto the window or choose **Open / Choose files**. Selecting only multiple archives opens the first with a notice.
-2. Browse folders, search and select all entries or individual checkboxes. Double-click a file to preview or open it.
-3. Choose **Extract Archive**, a destination and, if requested, a password. **Smart Extract** saves beside the archive and creates an archive-named folder for several selected top-level items.
-4. Resolve filename conflicts deliberately and check the completion report's actual paths and errors. Cancellation or failure can leave already completed files. For split archives, keep all parts together and open the first.
+1. Finish ongoing work, quit older copies with **⌘Q**, then open the DMG above.
+2. Copy the **entire ZipLens.app to Applications**. Back up an existing installation before replacing it.
+3. Launch the copied app, check **2.1.3** under **ⓘ**, then eject the DMG volume.
 
-## Create an archive
+This is an **ad-hoc signed, unnotarized Apple Silicon preview**. A DMG does not replace Apple notarization; macOS may block launch. Operation on every other Mac is not guaranteed, and Intel execution is unverified. For a user-approved exception for an app whose source you trust, follow [Apple’s official instructions](https://support.apple.com/102445). [Actual DMG, download and installation checks](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 
-Drop or select files/folders, choose a format and options, then **Compress selected items** and a destination. Mixed archives and ordinary files also create a new archive. Alternatively use **Create Archive → Select and compress**. Start with **Balanced**; **Fast** favors speed and **Maximum** may take longer. Already compressed photos or videos may shrink little.
+## Everyday use
 
-## Language and About
+1. **Extract:** Drop or open an archive, browse and select entries, then choose extraction and a destination. Enter a password if requested.
+2. **Compress:** Drop or select files/folders, choose a format and options, then an output name and destination. Start with Balanced; already compressed photos and videos may shrink little.
+3. **Review:** Check actual output paths and failures. Cancellation or failure can leave files already completed. Keep every split-archive part together and open the first.
 
-Choose a language at the top. Arabic reads right to left. System dialogs follow macOS; engine diagnostics may use another language. **Default archive app** sets Finder opening associations, not its Compress command.
+Change language at the top. **ⓘ → User guide / Help** opens the selected language’s GitHub `main` guide in a browser and requires internet access. If the browser cannot be launched, the bundled basic guide is shown. A network error after the browser opens does not trigger that fallback automatically. Licenses, optional support and the Bitcoin address/QR are also under **ⓘ**.
 
-**ⓘ** contains the author, version, offline guide and optional support. **Open-source licenses** opens the bundled license folder in Finder. Bitcoin address-copy and QR controls are also in About.
+## Earlier performance measurements: 2.1.2
 
-## Filenames and performance
+These are **October 18, 2026 engine/CLI results for 2.1.2**, not a 2.1.3 rerun. Environment: Apple M3, 24 GiB, macOS 15.7.5, compression level 6.
 
-Interface language and filename encoding are separate. UTF-8 and valid ZIP Unicode-path metadata are supported; untagged legacy ZIP names use a Korean CP949-compatible fallback. Untagged Shift-JIS/CP932, GBK or CP437 names cannot always be inferred. Ask the creator to remake an archive as UTF-8 ZIP or 7Z when needed. Changing the UI language does not repair its names. Extraction does not translate file contents or change a text file's encoding.
+| Input | Observation |
+|---|---|
+| One 4 GiB + 64 MiB file, about 4.36 GB | 2.1.2 ZIP median: 64.9 s compression / 8.5 s extraction; two runs each |
+| 10,000 × 4 KiB files; six follow-up runs per app | Extraction median: **0.722 s in 2.1.1 → 0.815 s in 2.1.2** |
+| 512 MiB mixed corpus, 7Z compression | Peak process-tree RSS sampled every 100ms: about **1.71 GiB** |
 
-Speed depends on format, file count, compression level and storage. See the [validation record](../VALIDATION.md) for conditions and limits; it is not a guarantee of error-free operation on every archive.
+The **40 round trips comprise 14 on 2.1.1 and 26 on 2.1.2**, with matching names, sizes and SHA-256 and unchanged originals. The small-file extraction median was about 12.8% higher, with overlapping ranges and an unresolved cause. We do not claim a universal speedup. RSS samples can miss short peaks or double-count shared pages. [Full results and limits](../LARGE_FILE_VALIDATION_2026-10-18.md)
 
-## Software freedom, contribution and support
+## Limits
 
-Our idea of **basic software rights** is a development value: everyone, regardless of income or language, should be able to use basic digital tools and study, modify, share and contribute to their code. People and AI can share knowledge, learn and create together.
+ZIP creation passwords require printable ASCII; choose 7Z for Unicode passwords. Interface language does not determine filename encoding. UTF-8 and valid Unicode-path metadata are supported, but untagged old ZIPs use a CP949-compatible fallback; CP932, GBK and CP437 names cannot always be recovered. Ask for UTF-8 ZIP or 7Z if needed. Text previews decode UTF-8; extraction does not change the original content’s encoding. OS dialogs follow system settings. Not every archive variant or Mac has been tested. [Format reference](../../README.md#지원-범위)
 
-ZipLens's own code uses [GPL-3.0-only](../../LICENSE); third-party licenses remain separate. Contributions are welcome. [Buy Me a Coffee](https://buymeacoffee.com/master_chief) and [Ko-fi](https://ko-fi.com/seederpower) support is optional. Please retain the original project and author support links in distributed modifications; this is a voluntary request, not an additional GPL condition.
+## Basic software rights and optional support
+
+Everyone, regardless of income or language, should be able to use basic digital tools and study, modify, share and contribute to their code. Our guiding value of **basic software rights** includes people and AI sharing knowledge, learning and creating together.
+
+ZipLens’s own code is [GPL-3.0-only](../../LICENSE); third-party licenses remain separate. Official [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) and Bitcoin support are optional. Please retain the original project and author support links in modified distributions as a **voluntary request, not an additional GPL condition**.

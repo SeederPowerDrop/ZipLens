@@ -63,6 +63,10 @@ class ReleasePackagingTests(unittest.TestCase):
         self.notary_status = 'Accepted'
         self.gatekeeper_error = False
         self.profile_error = False
+        self.dmg_notary_status = 'Accepted'
+        self.dmg_mutation = None
+        self.dmg_mountpoints = []
+        self.dmg_tickets = set()
         self.commands = []
         self.mock_run = Mock(side_effect=self.run_tool)
         self.namespace_patch = patch.dict(namespace, {'ROOT': self.directory, 'run': self.mock_run})
@@ -79,6 +83,21 @@ class ReleasePackagingTests(unittest.TestCase):
         self.commands.append(command)
         if command[0] == 'ditto':
             return real_run(command)
+        # Unit tests model disk-image contents with a real metadata-preserving
+        # ZIP. Real hdiutil format/mount verification remains a packaging gate;
+        # these doubles exercise failure handling without requiring a disk mount.
+        if command[:2] == ['hdiutil', 'create']:
+            source = command[command.index('-srcfolder') + 1]
+            return real_run(['ditto', '-c', '-k', '--rsrc', '--extattr', source, command[-1]])
+        if command[:2] == ['hdiutil', 'imageinfo']:
+            return 'UDZO'
+        if command[:2] == ['hdiutil', 'attach']:
+            mountpoint = Path(command[command.index('-mountpoint') + 1])
+            self.dmg_mountpoints.append(mountpoint)
+            real_run(['ditto', '-x', '-k', '--rsrc', '--extattr', command[-1], str(mountpoint)])
+            if self.dmg_mutation:
+                self.dmg_mutation(mountpoint)
+            return plistlib.dumps({'system-entities': [{'mount-point': str(mountpoint)}]}).decode()
         if command[0] == 'lipo':
             return 'arm64'
         if command[0] == 'security':
@@ -88,11 +107,17 @@ class ReleasePackagingTests(unittest.TestCase):
                 raise RuntimeError('No Keychain password item found for profile')
             return '{"history": []}'
         if command[:3] == ['xcrun', 'notarytool', 'submit']:
-            return json.dumps({'id': 'test-submission-id', 'status': self.notary_status})
+            image = Path(command[3]).suffix == '.dmg'
+            return json.dumps({'id': 'test-dmg-submission-id' if image else 'test-submission-id',
+                               'status': self.dmg_notary_status if image else self.notary_status})
         if command[:3] == ['xcrun', 'stapler', 'staple']:
-            (Path(command[-1]) / 'Contents/stapled-ticket.txt').write_text('test ticket')
+            if Path(command[-1]).suffix == '.dmg':
+                self.dmg_tickets.add(command[-1])
+            else:
+                (Path(command[-1]) / 'Contents/stapled-ticket.txt').write_text('test ticket')
         if command[:3] == ['xcrun', 'stapler', 'validate']:
-            if not (Path(command[-1]) / 'Contents/stapled-ticket.txt').is_file():
+            if (command[-1] not in self.dmg_tickets
+                    and not (Path(command[-1]) / 'Contents/stapled-ticket.txt').is_file()):
                 raise RuntimeError('Missing test notarization ticket')
         if command[0] == 'spctl' and self.gatekeeper_error:
             raise RuntimeError('Gatekeeper rejected app')
@@ -166,11 +191,12 @@ class ReleasePackagingTests(unittest.TestCase):
         result = self.package(self.public_arguments())
         signing = [command for command in self.commands if command[:2] == ['codesign', '--force']]
         self.assertEqual([Path(command[-1]).name for command in signing],
-                         ['7zz', 'ziplens-legacy', 'ZipLens Test.app'])
+                         ['7zz', 'ziplens-legacy', 'ZipLens Test.app', 'ZipLens_2.0.0_arm64.dmg'])
         for command in signing:
             self.assertIn(self.certificate, command)
             self.assertIn('--timestamp', command)
-            self.assertIn('runtime', command)
+            if Path(command[-1]).suffix != '.dmg':
+                self.assertIn('runtime', command)
             self.assertNotIn('--deep', command)
         submit_index = next(index for index, command in enumerate(self.commands)
                             if command[:3] == ['xcrun', 'notarytool', 'submit'])
@@ -198,7 +224,16 @@ class ReleasePackagingTests(unittest.TestCase):
             self.assertEqual((self.directory / 'legal/ziplens/NOTICE.txt').read_bytes(),
                              zipped.read(prefix + 'NOTICE.txt'))
         checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
-        self.assertEqual(f'{checksum}  {archive.name}\n', (self.release / 'SHA256SUMS.txt').read_text())
+        image = self.release / result['dmg_name']
+        self.assertEqual(f'{checksum}  {archive.name}\n{result["dmg_sha256"]}  {image.name}\n',
+                         (self.release / 'SHA256SUMS.txt').read_text())
+        self.assertEqual(hashlib.sha256(image.read_bytes()).hexdigest(), result['dmg_sha256'])
+        self.assertEqual(image.name, result['primary_download_name'])
+        self.assertTrue(result['dmg_notarized'])
+        self.assertTrue(result['dmg_stapled_ticket_verified'])
+        self.assertEqual('test-dmg-submission-id', result['dmg_notarization_submission_id'])
+        self.assertEqual('accepted', result['dmg_gatekeeper_assessment'])
+        self.assertTrue(any('context:primary-signature' in command for command in self.commands))
 
     def test_invalid_or_pending_notarization_leaves_previous_release_untouched(self):
         for status in ['Invalid', 'In Progress', None]:
@@ -223,6 +258,12 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertFalse(result['stapled_ticket_verified'])
         self.assertEqual('not assessed (local preview)', result['gatekeeper_assessment'])
         self.assertEqual('ZipLens_2.0.0_arm64-preview.zip', result['archive_name'])
+        self.assertEqual('ZipLens_2.0.0_arm64-preview.dmg', result['primary_download_name'])
+        self.assertFalse(result['dmg_notarized'])
+        self.assertFalse(result['dmg_stapled_ticket_verified'])
+        self.assertEqual('not assessed (local preview)', result['dmg_gatekeeper_assessment'])
+        self.assertTrue(result['dmg_mount_and_install_copy_verified'])
+        self.assertTrue(result['dmg_applications_symlink_verified'])
         self.assertTrue((self.release / 'preview' / result['archive_name']).is_file())
         self.assertFalse((self.release / 'packaging-result.json').exists())
         self.assertFalse(any(command[0] in ['security', 'xcrun', 'spctl'] for command in self.commands))
@@ -247,8 +288,188 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertTrue((preview_folder / 'ZipLens Test.app').is_dir())
         self.assertFalse((preview_folder / 'ZipLens Test.app/Contents/stapled-ticket.txt').exists())
         checksum = hashlib.sha256((preview_folder / preview['archive_name']).read_bytes()).hexdigest()
-        self.assertEqual(f"{checksum}  {preview['archive_name']}\n",
+        self.assertEqual(f"{checksum}  {preview['archive_name']}\n"
+                         f"{preview['dmg_sha256']}  {preview['dmg_name']}\n",
                          (preview_folder / 'SHA256SUMS.txt').read_text())
+
+    def assert_images_detached(self):
+        for mountpoint in self.dmg_mountpoints:
+            self.assertTrue(any(command[:2] == ['hdiutil', 'detach']
+                                and command[-1] == str(mountpoint) for command in self.commands))
+            self.assertFalse(mountpoint.parent.exists())
+
+    def test_disk_image_rejects_wrong_shortcut_or_changed_instructions_and_detaches(self):
+        def change_link(folder):
+            (folder / 'Applications').unlink()
+            (folder / 'Applications').symlink_to('/tmp')
+        def replace_link_with_directory(folder):
+            (folder / 'Applications').unlink()
+            (folder / 'Applications').mkdir()
+        def change_readme(folder):
+            (folder / 'README.txt').write_text('Incorrect instructions')
+        for mutation in [change_link, replace_link_with_directory, change_readme]:
+            with self.subTest(mutation=mutation.__name__):
+                self.dmg_mutation = mutation
+                with self.assertRaisesRegex(RuntimeError, 'shortcut|instructions'):
+                    namespace['main'](['--preview'])
+                self.assert_release_unchanged()
+                self.assert_images_detached()
+
+    def test_disk_image_rejects_altered_app_bytes_modes_or_symlinks_and_detaches(self):
+        def change_bytes(folder):
+            (folder / self.source.name / 'Contents/MacOS/ziplens').write_bytes(b'changed')
+        def change_mode(folder):
+            (folder / self.source.name / 'Contents/MacOS/ziplens').chmod(0o644)
+        def change_symlink(folder):
+            binary = folder / self.source.name / 'Contents/MacOS/ziplens'
+            binary.unlink()
+            binary.symlink_to(self.source / 'Contents/MacOS/ziplens')
+        for mutation in [change_bytes, change_mode, change_symlink]:
+            with self.subTest(mutation=mutation.__name__):
+                self.dmg_mutation = mutation
+                with self.assertRaisesRegex(RuntimeError, 'contents or POSIX permissions|symlink'):
+                    namespace['main'](['--preview'])
+                self.assert_release_unchanged()
+                self.assert_images_detached()
+
+    def test_disk_image_copy_failure_or_invalid_signature_detaches_and_preserves_release(self):
+        original = self.mock_run.side_effect
+        for failure in ['copy', 'signature']:
+            with self.subTest(failure=failure):
+                def fail_install(command):
+                    if 'ziplens-dmg-verify-' in command[-1] and '/installed/' in command[-1]:
+                        if failure == 'copy' and command[0] == 'ditto':
+                            original(command)
+                            (Path(command[-1]) / 'Contents/MacOS/ziplens').chmod(0o644)
+                            return ''
+                        if failure == 'signature' and command[:2] == ['codesign', '--verify']:
+                            raise RuntimeError('Copied app signature is invalid')
+                    return original(command)
+                self.mock_run.side_effect = fail_install
+                with self.assertRaisesRegex(RuntimeError, 'POSIX permissions|signature is invalid'):
+                    namespace['main'](['--preview'])
+                self.assert_release_unchanged()
+                self.assert_images_detached()
+
+    def test_invalid_image_checksum_or_writable_format_prevents_mount_and_publication(self):
+        original = self.mock_run.side_effect
+        for failure in ['checksum', 'format']:
+            with self.subTest(failure=failure):
+                def reject_image(command):
+                    if command[:2] == ['hdiutil', 'verify'] and failure == 'checksum':
+                        raise RuntimeError('Disk image checksum failed')
+                    if command[:2] == ['hdiutil', 'imageinfo'] and failure == 'format':
+                        return 'UDRW'
+                    return original(command)
+                self.mock_run.side_effect = reject_image
+                with self.assertRaisesRegex(RuntimeError, 'checksum failed|read-only compressed'):
+                    namespace['main'](['--preview'])
+                self.assert_release_unchanged()
+                self.assertEqual([], self.dmg_mountpoints)
+
+    def test_malformed_mount_response_still_detaches(self):
+        original = self.mock_run.side_effect
+        def malformed_response(command):
+            result = original(command)
+            return 'invalid plist' if command[:2] == ['hdiutil', 'attach'] else result
+        self.mock_run.side_effect = malformed_response
+        with self.assertRaises(plistlib.InvalidFileException):
+            namespace['main'](['--preview'])
+        self.assert_release_unchanged()
+        self.assert_images_detached()
+
+    def test_canonical_mount_alias_is_accepted(self):
+        original = self.mock_run.side_effect
+        alias = self.directory / 'mount-alias'
+        def report_equivalent_path(command):
+            result = original(command)
+            if command[:2] == ['hdiutil', 'attach']:
+                requested = Path(command[command.index('-mountpoint') + 1])
+                alias.symlink_to(requested, target_is_directory=True)
+                self.assertNotEqual(str(alias), str(requested))
+                self.assertEqual(alias.resolve(), requested.resolve())
+                return plistlib.dumps({'system-entities': [{'mount-point': str(alias)}]}).decode()
+            return result
+        self.mock_run.side_effect = report_equivalent_path
+        self.assertTrue(self.package(['--preview'])['dmg_mount_and_install_copy_verified'])
+        self.assert_images_detached()
+
+    def test_unrelated_or_multiple_mounts_are_rejected_even_with_a_valid_alias(self):
+        original = self.mock_run.side_effect
+        other = self.directory / 'unrelated-mount'
+        other.mkdir()
+        for multiple in [False, True]:
+            with self.subTest(multiple=multiple):
+                def report_wrong_mount(command):
+                    result = original(command)
+                    if command[:2] == ['hdiutil', 'attach']:
+                        requested = Path(command[command.index('-mountpoint') + 1])
+                        entities = [{'mount-point': str(other)}]
+                        if multiple:
+                            entities.insert(0, {'mount-point': str(requested.resolve())})
+                        return plistlib.dumps({'system-entities': entities}).decode()
+                    return result
+                self.mock_run.side_effect = report_wrong_mount
+                with self.assertRaisesRegex(RuntimeError, 'requested verification path'):
+                    namespace['main'](['--preview'])
+                self.assert_release_unchanged()
+                self.assert_images_detached()
+                self.assertTrue(other.is_dir())
+
+    def test_busy_mount_retries_detach_before_publishing(self):
+        original = self.mock_run.side_effect
+        def busy_once(command):
+            if command[:2] == ['hdiutil', 'detach'] and '-force' not in command:
+                raise RuntimeError('Resource busy')
+            return original(command)
+        self.mock_run.side_effect = busy_once
+        self.package(['--preview'])
+        self.assertTrue(any(command[:3] == ['hdiutil', 'detach', '-force'] for command in self.commands))
+        self.assert_images_detached()
+
+    def test_failed_detach_retains_mount_directory_and_prevents_publication(self):
+        original = self.mock_run.side_effect
+        def cannot_detach(command):
+            if command[:2] == ['hdiutil', 'detach']:
+                raise RuntimeError('Resource busy')
+            return original(command)
+        self.mock_run.side_effect = cannot_detach
+        try:
+            with self.assertRaisesRegex(RuntimeError, 'temporary files were retained'):
+                namespace['main'](['--preview'])
+            self.assert_release_unchanged()
+            self.assertTrue(self.dmg_mountpoints[-1].exists())
+        finally:
+            # These are simulated mounts, so the test can safely remove its tree.
+            for mountpoint in self.dmg_mountpoints:
+                shutil.rmtree(mountpoint.parent)
+
+    def test_image_notary_or_gatekeeper_rejection_does_not_fall_back_to_preview(self):
+        original = self.mock_run.side_effect
+        for failure in ['notary', 'assessment']:
+            with self.subTest(failure=failure):
+                self.dmg_notary_status = 'Invalid' if failure == 'notary' else 'Accepted'
+                def reject_assessment(command):
+                    if command[0] == 'spctl' and command[-1].endswith('.dmg') and failure == 'assessment':
+                        raise RuntimeError('Gatekeeper rejected disk image')
+                    return original(command)
+                self.mock_run.side_effect = reject_assessment
+                with self.assertRaisesRegex(RuntimeError, 'Disk image notarization|rejected disk image'):
+                    namespace['main'](self.public_arguments())
+                self.assert_release_unchanged()
+                self.assertFalse((self.release / 'preview').exists())
+
+    def test_late_disk_image_publication_failure_rolls_back_every_output(self):
+        real_rename = os.rename
+        def fail_image_publish(source, destination):
+            destination = Path(destination)
+            if destination.parent == self.release and destination.suffix == '.dmg':
+                raise OSError('Simulated image publication failure')
+            return real_rename(source, destination)
+        with patch.object(os, 'rename', side_effect=fail_image_publish):
+            with self.assertRaisesRegex(OSError, 'publication failure'):
+                namespace['main'](self.public_arguments())
+        self.assert_release_unchanged()
 
     def test_roundtrip_rejects_changed_bytes_or_lost_executable_permissions(self):
         archive = self.directory / 'broken.zip'

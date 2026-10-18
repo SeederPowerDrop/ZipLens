@@ -12,7 +12,8 @@ const appInfoUrl = moduleUrl(compile('../src/app-info.ts').replace(
   'import appConfig from "../src-tauri/tauri.conf.json";', `const appConfig = ${JSON.stringify(appConfig)};`
 ));
 const { APP_DISPLAY_NAME } = await import(appInfoUrl);
-const aboutUrl = moduleUrl(compile('../src/about.ts'));
+const guideNavigationUrl = moduleUrl(compile('../src/guide-navigation.ts'));
+const aboutUrl = moduleUrl(compile('../src/about.ts').replace('from "./guide-navigation"', `from "${guideNavigationUrl}"`));
 const { copyBitcoinAddress, getAboutLicenseError } = await import(aboutUrl);
 const { updateUserGuide } = await import(moduleUrl(compile('../src/user-guide.ts')));
 // Exercise the real app-language entry point, including its About update hook.
@@ -111,7 +112,7 @@ function fixture(options: {
   clipboard?: { writeText(text: string): Promise<void> };
   execCopy?: () => boolean;
 } = {}) {
-  const ids = ['about-modal', 'about-introduction', 'about-title', 'about-app-name', 'about-user-guide', 'btn-about',
+  const ids = ['about-modal', 'about-introduction', 'about-title', 'about-app-name', 'about-user-guide', 'home-user-guide', 'btn-about',
     'about-close', 'about-close-x', 'about-support-label', 'about-licenses', 'about-licenses-hint',
     'about-dedication', 'about-dedication-prefix', 'about-support-title', 'about-support-message', 'about-kofi-link',
     'about-bitcoin-hint', 'about-bitcoin-address-label', 'about-bitcoin-address', 'about-bitcoin-qr',
@@ -146,6 +147,7 @@ function fixture(options: {
   address.value = html.slice(html.indexOf(addressTag) + addressTag.length).split('</textarea>')[0];
   loadAttributes(nodes.get('about-bitcoin-qr')!, openingTag('img', 'about-bitcoin-qr'));
   loadAttributes(nodes.get('about-user-guide')!, openingTag('a', 'about-user-guide'));
+  loadAttributes(nodes.get('home-user-guide')!, openingTag('a', 'home-user-guide'));
   const root = new Element();
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
   const previousNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
@@ -192,11 +194,15 @@ test('the app language selects one About introduction and localizes its controls
       assert.equal(ui.get('about-close-x').attributes.get('aria-label'), close);
       assert.equal(ui.get('about-app-name').textContent, APP_DISPLAY_NAME);
       assert.equal(ui.document.title, APP_DISPLAY_NAME);
-      assert.equal(ui.get('about-user-guide').textContent, guide);
-      assert.ok(ui.get('about-user-guide').title.trim().length > 0);
-      if (lang !== 'ko') assert.doesNotMatch(ui.get('about-user-guide').title, /[가-힣]/);
-      assert.equal(ui.get('about-user-guide').attributes.get('href'), '#user-guide-dialog');
-      assert.equal(ui.get('about-user-guide').attributes.get('aria-controls'), 'user-guide-dialog');
+      for (const id of ['about-user-guide', 'home-user-guide']) {
+        assert.equal(ui.get(id).textContent, guide);
+        assert.ok(ui.get(id).title.trim().length > 0);
+        if (lang !== 'ko') assert.doesNotMatch(ui.get(id).title, /[가-힣]/);
+        assert.equal(ui.get(id).attributes.get('href'), `https://github.com/SeederPowerDrop/ZipLens/blob/main/ZipLens_Astra/docs/guides/${lang}.md`);
+        assert.equal(ui.get(id).attributes.get('target'), '_blank');
+        assert.equal(ui.get(id).attributes.get('rel'), 'noopener noreferrer');
+        assert.equal(ui.get(id).attributes.has('aria-haspopup'), false);
+      }
       const introduction = ui.get('about-introduction');
       assert.equal(introduction.children.length, 6, `${lang}: one introduction including the new philosophy`);
       assert.ok(introduction.children[0].textContent.startsWith(greeting));
@@ -292,6 +298,24 @@ test('the user guide renders all ten languages and replaces previous content wit
       assert.equal(projectLink.rel, 'noopener noreferrer');
       assert.match(projectLink.textContent, /GitHub/);
     }
+  } finally { ui.restore(); }
+});
+
+test('the bundled guide shows a launch-failure notice and clears it when refreshed normally', () => {
+  const ui = fixture();
+  try {
+    const noticeText = '브라우저를 열지 못했습니다. 대신 앱에 포함된 사용 가이드를 보여드립니다.';
+    updateUserGuide('ko', noticeText);
+    const content = ui.get('user-guide-content');
+    assert.equal(content.children.length, 6);
+    assert.equal(content.children[0].id, 'user-guide-fallback-notice');
+    assert.equal(content.children[0].attributes.get('role'), 'status');
+    assert.equal(content.children[0].textContent, noticeText);
+    assert.equal(content.children[1].tagName, 'section');
+    updateUserGuide('en');
+    assert.equal(content.children.length, 5);
+    assert.ok(content.children.every(child => child.tagName === 'section'));
+    assert.doesNotMatch(content.textContent, /[가-힣]/);
   } finally { ui.restore(); }
 });
 

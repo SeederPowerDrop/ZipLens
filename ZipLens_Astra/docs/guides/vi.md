@@ -6,9 +6,9 @@ ZipLens là ứng dụng nén tệp miễn phí, không quảng cáo dành cho m
 
 ## Cài đặt
 
-Tải `ZipLens_2.1.2_arm64-preview.zip` từ [bản phát hành 2.1.2](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.2). Hoàn tất công việc, thoát bản cũ bằng ⌘Q, giải nén bằng Archive Utility của macOS rồi đặt nguyên `ZipLens.app` vào Applications. Sao lưu bản cũ trước khi thay thế. Kiểm tra phiên bản tại **ⓘ**.
+Tải `ZipLens_2.1.3_arm64-preview.dmg` từ [bản phát hành 2.1.3](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3). Hoàn tất công việc và thoát bản cũ bằng ⌘Q. Mở DMG rồi kéo `ZipLens.app` vào lối tắt **Applications** trong cửa sổ hiện ra. Sao lưu bản cũ trước khi thay thế. Tháo ổ đĩa DMG khỏi Finder, mở ZipLens từ Applications và kiểm tra phiên bản **2.1.3** tại **ⓘ**.
 
-Bản xem trước cho Apple Silicon chỉ có chữ ký ad-hoc, chưa được ký bằng Apple Developer ID hoặc công chứng; macOS có thể chặn mở. Chưa xác minh trên Intel Mac. Bản tải về vẫn là **2.1.2**; nhánh `main` có thể chứa thay đổi **Unreleased (chưa phát hành)**. Cập nhật mã nguồn không cập nhật ứng dụng đã cài.
+Ứng dụng đi kèm là bản xem trước cho Apple Silicon, chỉ có chữ ký ad-hoc, chưa được ký bằng Apple Developer ID hoặc công chứng; macOS có thể chặn mở. Chưa xác minh trên Intel Mac. Bản tải về là **2.1.3**; nhánh `main` có thể chứa thay đổi **Unreleased (chưa phát hành)**. Cập nhật mã nguồn không cập nhật ứng dụng đã cài.
 
 ## Tính năng
 
@@ -32,7 +32,7 @@ Thả hoặc chọn tệp/thư mục, đặt định dạng và tùy chọn, né
 
 Đổi ngôn ngữ ở phía trên; tiếng Ả Rập đọc từ phải sang trái. Hộp thoại macOS theo ngôn ngữ hệ thống; lỗi chi tiết có thể dùng ngôn ngữ khác. Cài đặt ứng dụng nén mặc định đổi ứng dụng mở tệp trong Finder, không đổi lệnh nén của Finder.
 
-**ⓘ** chứa phiên bản, tác giả, hướng dẫn ngoại tuyến và hỗ trợ tự nguyện. Nút giấy phép mã nguồn mở mở thư mục giấy phép trong Finder. Địa chỉ Bitcoin và mã QR cũng ở đây.
+**ⓘ** chứa phiên bản, tác giả, hướng dẫn sử dụng và hỗ trợ tự nguyện. Liên kết hướng dẫn trên màn hình chính và trong **ⓘ** mở trang GitHub theo ngôn ngữ đang chọn bằng trình duyệt mặc định. Nếu không thể mở trình duyệt, ứng dụng hiển thị hướng dẫn tích hợp kèm thông báo. Nút giấy phép mã nguồn mở mở thư mục giấy phép trong Finder. Địa chỉ Bitcoin và mã QR cũng ở đây.
 
 ## Tên tệp và hiệu năng
 
