@@ -169,8 +169,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (elements.compressPasswordInput) elements.compressPasswordInput.value = "";
             }
         }
+        updateCompressionPasswordHint();
     };
     }
+    elements.formatSelect?.addEventListener("change", updateCompressionPasswordHint);
+    updateCompressionPasswordHint();
 
     // Language Selector
     const langSelect = document.getElementById("lang-select") as HTMLSelectElement;
@@ -465,6 +468,11 @@ async function routeInputs(paths: string[]) {
     }
 }
 
+function updateCompressionPasswordHint() {
+    const hint = document.getElementById("zip-password-hint");
+    if (hint) hint.hidden = elements.formatSelect?.value !== "zip" || !elements.enablePasswordCb?.checked;
+}
+
 function renderCompressionSelection() {
     const hasSelection = pendingCompressionPaths.length > 0;
     const selection = document.getElementById("compression-selection")!;
@@ -475,6 +483,7 @@ function renderCompressionSelection() {
     const list = document.getElementById("compression-selection-list")!;
     list.replaceChildren(...pendingCompressionPaths.map(path => {
         const item = document.createElement("li");
+        item.dir = "auto";
         item.textContent = path.replace(/[/\\]+$/, "").split(/[\\/]/).pop() || path;
         item.title = path;
         return item;
@@ -655,6 +664,8 @@ function renderFileList(resetPage = true) {
         const createCrumb = (text: string, path: string, isLast: boolean) => {
             const span = document.createElement("button");
             span.type = "button";
+            // Each path component keeps its own writing direction inside the LTR hierarchy.
+            span.dir = "auto";
             span.textContent = text;
             span.title = text;
             if (!isLast) {
@@ -733,7 +744,7 @@ function renderFileList(resetPage = true) {
         const upItem = document.createElement("div");
         upItem.className = "log-item";
         upItem.style.cursor = "pointer";
-        upItem.innerHTML = `<span class="file-name" style="padding-left:24px;">📁 .. (${getTranslation("upToParent")})</span>`;
+        upItem.innerHTML = `<span class="file-name" style="padding-inline-start:24px;">📁 .. (${getTranslation("upToParent")})</span>`;
         upItem.onclick = () => {
             const parts = normCurDir.split('/').filter(p => p);
             parts.pop();
@@ -795,8 +806,8 @@ function renderFileList(resetPage = true) {
         
         if (item.isDir) {
             const errorCount = item.files.filter((f: ArchiveFileInfo) => f.error).length;
-            const errBadge = errorCount > 0 ? `<span style="color:#ef4444;margin-left:6px;font-size:11px;" title="${escapeHTML(getTranslation("failedFiles"))}: ${errorCount}">⚠️ ${errorCount}</span>` : '';
-            info.innerHTML = `<span class="file-name" style="cursor:pointer; color:var(--accent-color);"><span style="margin-right:6px;">📁</span>${escapeHTML(item.name)}${errBadge}</span>
+            const errBadge = errorCount > 0 ? `<span style="color:#ef4444;margin-inline-start:6px;font-size:11px;" title="${escapeHTML(getTranslation("failedFiles"))}: ${errorCount}">⚠️ ${errorCount}</span>` : '';
+            info.innerHTML = `<span class="file-name" style="cursor:pointer; color:var(--accent-color);"><span style="margin-inline-end:6px;">📁</span><bdi dir="auto">${escapeHTML(item.name)}</bdi>${errBadge}</span>
                              <div class="file-size-column">
                                  <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">${getTranslation("size")}</span> ${formatBytes(item.size)}</div>
                              </div>`;
@@ -810,9 +821,9 @@ function renderFileList(resetPage = true) {
             const badge = fileObj.path.match(/\.([^.\\/]+)$/)?.[1]?.toUpperCase().substring(0, 5) || "FILE";
             const lock = fileObj.is_encrypted ? '🔒 ' : '';
             const hasError = fileObj.error;
-            const errIcon = hasError ? `<span style="color:#ef4444;margin-right:4px;" title="${escapeHTML(String(hasError))}">⚠️</span>` : '';
+            const errIcon = hasError ? `<span style="color:#ef4444;margin-inline-end:4px;" title="${escapeHTML(String(hasError))}">⚠️</span>` : '';
             const errStyle = hasError ? 'opacity:0.6;' : '';
-            info.innerHTML = `<span class="file-name" style="${errStyle}">${errIcon}${lock}<span class="ext-badge" style="${hasError ? 'background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3);' : ''}">${escapeHTML(badge)}</span>${escapeHTML(item.name)}</span>
+            info.innerHTML = `<span class="file-name" style="${errStyle}">${errIcon}${lock}<span class="ext-badge" dir="ltr" style="${hasError ? 'background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3);' : ''}">${escapeHTML(badge)}</span><bdi dir="auto">${escapeHTML(item.name)}</bdi></span>
                              <div class="file-size-column">
                                  <div style="font-size:11px;font-family:monospace;"><span style="color:var(--text-muted);font-size:10px;">${getTranslation("size")}</span> ${formatBytes(fileObj.size)}</div>
                                  ${hasError ? `<div style="font-size:10px;color:#ef4444;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHTML(String(hasError))}">${escapeHTML(getTranslation("error"))}: ${escapeHTML(String(hasError))}</div>` : ''}
@@ -1069,10 +1080,16 @@ async function startCompression(paths: string[]) {
 
 /** 현재 컨트롤 값을 검증하고 복사한다. 이후 파일/저장 대화상자에서는 이 값을 사용한다. */
 function readCompressionOptions() {
+    const format = elements.formatSelect?.value || "zip";
     const password = elements.enablePasswordCb?.checked ? elements.compressPasswordInput?.value || null : null;
     if (elements.enablePasswordCb?.checked && !password) throw new Error(getTranslation("passwordRequired"));
+    // Match the bundled 7-Zip ZIP writer before opening any native file/save dialog.
+    // This restriction concerns ZIP creation passwords, never archive filenames or extraction.
+    if (format === "zip" && password && /[^\x20-\x7f]/.test(password)) {
+        throw new Error(getTranslation("zipPasswordHint"));
+    }
     return {
-        format: elements.formatSelect?.value || "zip",
+        format,
         password,
         encryptLevel: (document.getElementById("encrypt-level") as HTMLSelectElement)?.value || null,
         splitSize: elements.splitSelect?.value || "0",
@@ -1154,7 +1171,8 @@ function requestConflictResolution(conflicts: string[]): Promise<string | null> 
         if (!conflictModal || !conflictMsg || !conflictOverwrite || !conflictKeep || !conflictCancel) return resolve(null);
 
         if (conflicts.length === 1) {
-            conflictMsg.innerText = getTranslation("existingFile").replace("{path}", () => conflicts[0]);
+            conflictMsg.innerHTML = escapeHTML(getTranslation("existingFile"))
+                .replace("{path}", () => `<bdi dir="ltr">${escapeHTML(conflicts[0])}</bdi>`);
         } else {
             conflictMsg.innerText = getTranslation("existingFiles").replace("{count}", String(conflicts.length));
         }
@@ -1306,7 +1324,8 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
             const li = document.createElement("li");
             const fname = path.split(/[\/\\]/).pop() || path;
             const ext = fname.match(/\.([^.]+)$/)?.[1]?.toUpperCase() || '-';
-            li.innerHTML = `<div style="margin-bottom:6px;"><strong>${escapeHTML(fname)}</strong> <span style="opacity:0.5;font-size:10px;">[${escapeHTML(ext)}]</span></div><div style="font-size:11px;opacity:0.6;margin-left:8px;">${escapeHTML(path)}</div><div style="font-size:11px;color:#ef4444;margin-left:8px;">${escapeHTML(err)}</div>`;
+            // Isolate display direction without adding invisible characters to stored/exported names.
+            li.innerHTML = `<div style="margin-bottom:6px;"><strong><bdi dir="auto">${escapeHTML(fname)}</bdi></strong> <bdi dir="ltr" style="opacity:0.5;font-size:10px;">[${escapeHTML(ext)}]</bdi></div><div dir="ltr" style="unicode-bidi:isolate;font-size:11px;opacity:0.6;margin-inline-start:8px;">${escapeHTML(path)}</div><div dir="auto" style="font-size:11px;color:#ef4444;margin-inline-start:8px;">${escapeHTML(err)}</div>`;
             li.style.marginBottom = "8px";
             li.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
             li.style.paddingBottom = "8px";
@@ -1339,7 +1358,7 @@ function showArchiveReport(report: ExtractionReport, operation: "extract" | "com
             const li = document.createElement("li");
             const fname = path.split(/[\/\\]/).pop() || path;
             const ext = fname.match(/\.([^.]+)$/)?.[1]?.toUpperCase() || '-';
-            li.innerHTML = `<span style="font-weight:500;">${escapeHTML(fname)}</span> <span style="opacity:0.5;font-size:10px;">[${escapeHTML(ext)}]</span>`;
+            li.innerHTML = `<bdi dir="auto" style="font-weight:500;">${escapeHTML(fname)}</bdi> <bdi dir="ltr" style="opacity:0.5;font-size:10px;">[${escapeHTML(ext)}]</bdi>`;
             li.style.marginBottom = "4px";
             el.reportSuccessList.appendChild(li);
         });

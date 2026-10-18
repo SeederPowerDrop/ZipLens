@@ -2,6 +2,12 @@
 
 첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens`입니다. 현재 공개 GitHub 프리뷰는 **2.1.1**입니다.
 
+[10개 언어 소개·기능·사용 설명서](docs/guides/README.md): [한국어](docs/guides/ko.md) · [English](docs/guides/en.md) · [日本語](docs/guides/ja.md) · [简体中文](docs/guides/zh.md) · [Tiếng Việt](docs/guides/vi.md) · [Español](docs/guides/es.md) · [Français](docs/guides/fr.md) · [Deutsch](docs/guides/de.md) · [Русский](docs/guides/ru.md) · [العربية](docs/guides/ar.md)
+
+`main`에는 공개 2.1.1 이후의 **Unreleased(미배포)** 변경이 있을 수 있습니다. 소스를 갱신해도 설치된 앱은 바뀌지 않습니다. [변경 이력](CHANGELOG.md)과 버전·조건을 구분한 [검증 기록](docs/VALIDATION.md)을 확인하세요.
+
+우리가 추구하는 **소프트웨어 기본권**은 누구나 경제적 여건·언어와 관계없이 기본 디지털 도구를 쓰고, 코드를 공부·수정·공유·기여할 수 있어야 한다는 개발 가치입니다. 사람과 AI가 지식을 나누고 함께 배우며 창작하기를 바랍니다. 무료 사용·다국어 지원·GPLv3 공개로 이 제작 철학을 실천합니다. [제작 철학 자세히 보기](../README.md#우리가-추구하는-소프트웨어-기본권)
+
 개발을 처음 시작한다면 [코드 읽기 안내](docs/CODE_GUIDE_KO.md)에서 구조와 작업 흐름을 보고, [기여·업데이트 안내](docs/CONTRIBUTING_KO.md)에서 주석·이름 기준, 샘플 실습, 변경별 검사 방법을 확인하세요. 이 폴더가 현재 앱이며 저장소 루트는 기존 1.x 프로젝트입니다.
 
 ## 2.1.1 공개 프리뷰 — 2026-10-11
@@ -68,6 +74,7 @@
 
 - [2.1.1 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.1) · [2.1.1 업데이트 안내](docs/RELEASE_2.1.1_KO_EN.md)
 - [2.1.1 사용 설명서 · 한국어 / English](docs/USER_GUIDE_KO_EN.md)
+- [10개 언어별 소개·기능·사용 설명서](docs/guides/README.md)
 
 - [이전 2.0.3 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.0.3) — Apple Silicon용. 로컬 ad-hoc 서명이며 Apple 공증 미완료로 macOS 실행 차단은 남을 수 있습니다.
 - [이전 2.0.3 업데이트 안내 · 한국어 / English](docs/RELEASE_2.0.3_KO_EN.md)
@@ -105,6 +112,10 @@ Finder에서도 파일 선택 → **정보 가져오기(⌘I) → 다음으로 �
 ## 지원 범위
 
 직접 만드는 포맷: ZIP, 7Z, TAR, TAR.GZ, TAR.ZST. ZIP/7Z는 암호와 분할 압축을 지원합니다. 7Z 암호 설정 시 파일 목록도 암호화합니다. ZIP의 기본 암호화는 AES-256입니다.
+
+ZIP 생성 암호에는 영문·숫자·기호 등 출력 가능한 ASCII 문자를 사용하세요. 한글·악센트 문자 등 Unicode 암호가 필요하면 7Z를 선택합니다. 이는 동봉한 7-Zip의 ZIP 생성 제약이며, 파일명이나 기존 압축 파일을 해제할 때의 암호 언어를 제한한다는 뜻은 아닙니다.
+
+화면 언어는 파일명 인코딩과 별개입니다. UTF-8과 유효한 ZIP Unicode 경로 정보는 지원하지만, 인코딩 표시 없는 구형 ZIP은 한국어 CP949 호환 해석을 사용합니다. 무태그 Shift-JIS/CP932·GBK·CP437을 항상 자동 판별하지는 못합니다. 필요하면 제작자에게 UTF-8 ZIP이나 7Z로 다시 만들어 달라고 요청하세요. 압축 해제는 내용의 언어나 텍스트 인코딩을 바꾸지 않습니다.
 
 열기·미리보기·압축 해제의 연결 목록은 36개 확장자입니다(서로 같은 형식의 별칭 포함).
 
@@ -193,6 +204,10 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 
 ## English
 
+[Introduction, features and user guides in ten languages](docs/guides/README.md) explain installation, everyday workflows, filename encoding and optional support. The downloadable app is 2.1.1; `main` may contain later **Unreleased** changes, which do not automatically update an installed app.
+
+Our idea of **basic software rights** is a development value: everyone, regardless of income or language, should be able to use essential digital tools and study, modify, share and contribute to their code. People and AI can share knowledge, learn and create together. See the [project philosophy](../README.md#basic-software-rights-our-guiding-value).
+
 For maintainers and learners: read the [code guide](docs/CODE_GUIDE_KO.md) and [contribution and update workflow](docs/CONTRIBUTING_KO.md) (in Korean). They cover module boundaries, GUI/CLI flows, naming and comments, disposable samples, and validation commands. The active app is in `ZipLens_Astra/`; the repository root retains the legacy 1.x project.
 
 **Public preview 2.1.1 — October 11, 2026.** The app is now named **ZipLens** (`ZipLens.app`), with the actual version shown once in About. The introduction describes a commitment to making basic digital tools freely available to people and AI, in the spirit of shared knowledge and coexistence. About brings together optional [Buy Me a Coffee](https://buymeacoffee.com/master_chief), [Ko-fi](https://ko-fi.com/seederpower) and Bitcoin support, plus a bundled offline user guide. Bitcoin uses the ordinary receiving address from BlueWallet, with copy and QR options. The app remains free and ad-free.
@@ -200,6 +215,8 @@ For maintainers and learners: read the [code guide](docs/CODE_GUIDE_KO.md) and [
 The headless `cli` interface introduced in 2.1.0 remains available for AI agents and terminal automation: `capabilities`, `list`, `extract`, and `compress`. It returns JSON and exit codes, preserves existing files by default, and reports actual output paths. See the [CLI contract and examples](docs/AI_CLI.md). Version 2.1.1 adds GPLv3 licensing and a matching source archive. [2.1.1 release notes](docs/RELEASE_2.1.1_KO_EN.md) · [User guide](docs/USER_GUIDE_KO_EN.md)
 
 The home screen routes selected or dropped archives to browsing, and regular files, folders or mixed selections to compression settings. Double-click its lens illustration to explore ten conceptual lens and beam exhibits with explanations.
+
+ZIP creation passwords require printable ASCII; choose 7Z for accented letters or other Unicode passwords. This is a limitation of the bundled 7-Zip's ZIP creation, not a restriction on filenames or passwords for extracting existing archives. Interface language and filename encoding are separate: UTF-8 and valid ZIP Unicode-path metadata are supported, but untagged old ZIP names use a Korean CP949-compatible fallback. Untagged Shift-JIS/CP932, GBK or CP437 cannot always be inferred; ask the creator for UTF-8 ZIP or 7Z when necessary. Extraction does not translate or re-encode file contents.
 
 ### Real-image validation of local preview 2.1.1
 

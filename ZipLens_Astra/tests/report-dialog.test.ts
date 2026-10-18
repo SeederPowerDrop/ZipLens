@@ -21,7 +21,7 @@ function element() {
   };
 }
 
-test('actual report dialog caps 100,000 failures, retains every export row, and awaits dismissal', async () => {
+function reportFixture() {
   const controls = Object.fromEntries([
     'progressContainer', 'reportModal', 'reportIcon', 'reportFailedList', 'reportSuccessList', 'reportFailedSection',
     'reportTitle', 'reportDesc', 'reportSuccessSection', 'reportExportTxt', 'reportExportCsv', 'reportClose'
@@ -47,6 +47,11 @@ test('actual report dialog caps 100,000 failures, retains every export row, and 
     }
   });
   const showReport = vm.runInContext(script + '\nshowArchiveReport;', context);
+  return { controls, app, listeners, saved, showReport };
+}
+
+test('actual report dialog caps 100,000 failures, retains every export row, and awaits dismissal', async () => {
+  const { controls, app, listeners, saved, showReport } = reportFixture();
   const failures = Array.from({ length: 100_000 }, (_, index) => [`file-${index}.txt`, 'cannot publish']);
   let dismissed = false;
   const pending = showReport({ success_files: [], failed_files: failures, output_paths: [], cancelled: false }, 'extract');
@@ -63,4 +68,47 @@ test('actual report dialog caps 100,000 failures, retains every export row, and 
   assert.equal(dismissed, true);
   assert.equal(app.inert, false);
   assert.equal(listeners.size, 0);
+});
+
+test('mixed-direction filenames are isolated in the report while exports retain exact Unicode paths', async () => {
+  const { controls, saved, showReport } = reportFixture();
+  const failedPath = 'مجلد/تقرير <العربية>.txt';
+  const successPath = '日本語/تقرير cafe\u0301 (1).txt';
+  const outputPath = `/tmp/نتائج/${successPath}`;
+  const pending = showReport({
+    success_files: [successPath], failed_files: [[failedPath, 'تعذر الحفظ']],
+    output_paths: [outputPath], cancelled: false
+  }, 'extract');
+  const failure = controls.reportFailedList.children[0].innerHTML;
+  const success = controls.reportSuccessList.children[0].innerHTML;
+  assert.match(failure, /<bdi dir="auto">تقرير &lt;العربية&gt;\.txt<\/bdi>/);
+  assert.match(failure, /<div dir="ltr"[^>]*>مجلد\/تقرير &lt;العربية&gt;\.txt<\/div>/);
+  assert.match(success, /<bdi dir="auto"[^>]*>تقرير cafe\u0301 \(1\)\.txt<\/bdi>/);
+  assert.doesNotMatch(failure + success, /[\u2066-\u2069]/, 'direction is presentation, never inserted into filenames');
+  await controls.reportExportCsv.onclick!();
+  assert.ok(saved[0].includes(`"${failedPath}"`));
+  assert.ok(saved[0].includes(`"${outputPath}"`));
+  assert.doesNotMatch(saved[0], /[\u2066-\u2069]/);
+  controls.reportClose.onclick!();
+  await pending;
+});
+
+test('a single conflict isolates the full mixed-direction path and still resolves the chosen action', async () => {
+  const declaration = source.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'requestConflictResolution');
+  assert.ok(declaration);
+  const script = ts.transpileModule(declaration.getText(source), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  const controls = Object.fromEntries(['conflictModal', 'conflictMsg', 'conflictOverwrite', 'conflictKeep', 'conflictCancel'].map(key => [key, element()]));
+  const context = vm.createContext({
+    elements: controls, escapeHTML,
+    getTranslation: () => 'هذا الملف موجود بالفعل:\n{path}'
+  });
+  const requestConflict = vm.runInContext(`${script}\nrequestConflictResolution;`, context);
+  const pending = requestConflict(['/tmp/ملفات/<notes>.txt']);
+  assert.equal(controls.conflictMsg.innerHTML, 'هذا الملف موجود بالفعل:\n<bdi dir="ltr">/tmp/ملفات/&lt;notes&gt;.txt</bdi>');
+  controls.conflictKeep.onclick!();
+  assert.equal(await pending, 'keep_both');
+  assert.equal(controls.conflictModal.style.display, 'none');
+  assert.equal(controls.conflictOverwrite.onclick, null);
+  assert.equal(controls.conflictKeep.onclick, null);
+  assert.equal(controls.conflictCancel.onclick, null);
 });

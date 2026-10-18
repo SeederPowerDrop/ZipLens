@@ -23,12 +23,12 @@
   <div id="viewer-modal" class="modal-overlay" style="display: none; z-index: 1000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
     <div class="modal-content" style="width: 80%; max-width: 900px; height: 80%; display: flex; flex-direction: column; background: var(--bg-color); padding: 20px; border-radius: 8px;">
       <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
-        <span id="viewer-title">File Viewer</span>
+        <span id="viewer-title" dir="auto">File Viewer</span>
         <button id="viewer-close" style="background: none; border: none; color: var(--text-color); font-size: 20px; cursor: pointer;">&times;</button>
       </h3>
       <div id="viewer-body" style="flex: 1; overflow: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 10px; display: flex; justify-content: center; align-items: center;">
         <img id="viewer-img" style="max-width: 100%; max-height: 100%; display: none; object-fit: contain;" />
-        <pre id="viewer-text" style="display: none; width: 100%; height: 100%; margin: 0; white-space: pre-wrap; word-wrap: break-word; color: var(--text-color); font-family: monospace; text-align: left;"></pre>
+        <pre id="viewer-text" dir="auto" style="display: none; width: 100%; height: 100%; margin: 0; white-space: pre-wrap; word-wrap: break-word; color: var(--text-color); font-family: monospace; text-align: start; unicode-bidi: plaintext;"></pre>
       </div>
     </div>
   </div>
@@ -92,7 +92,7 @@
         <div id="home-lens-scene"></div>
         <svg class="archive-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M10 3v2m0 2v2m0 2v2"/><rect x="8" y="15" width="4" height="3" rx="1"/></svg>
         <div class="drop-text-wrapper">
-          <div class="drop-text" id="home-drop-title">파일이나 폴더를 놓아주세요</div>
+          <div class="drop-text" id="home-drop-title" dir="auto">파일이나 폴더를 놓아주세요</div>
           <div class="drop-subtext" id="home-drop-description">압축 파일은 풀고, 파일과 폴더는 압축해요</div>
         </div>
         <div class="home-input-actions">
@@ -149,7 +149,7 @@
         </div>
         <div class="password-group" id="compress-password-group">
           <div class="password-input-wrapper" style="flex: 2;">
-            <input type="password" id="compress-password" class="custom-input w-full" placeholder="Password...">
+            <input type="password" id="compress-password" class="custom-input w-full" aria-describedby="zip-password-hint" placeholder="Password...">
             <button tabindex="-1" type="button" class="pwd-toggle-btn" id="compress-pwd-toggle">👁️</button>
           </div>
           <div class="select-wrapper small-select-wrapper">
@@ -159,6 +159,7 @@
             </select>
           </div>
         </div>
+        <p id="zip-password-hint" class="compression-password-hint" hidden></p>
         <div style="margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px;">
           <button id="btn-cancel-compress" class="modern-btn secondary">Cancel</button>
           <button id="btn-confirm-compress" class="modern-btn primary">선택하고 압축 / Compress</button>
@@ -181,7 +182,7 @@
           <div class="progress-fill" id="progress-fill"></div>
         </div>
         <div class="progress-stats">
-          <span id="progress-filename" class="progress-filename"></span>
+          <span id="progress-filename" class="progress-filename" dir="auto"></span>
           <div style="display: flex; align-items: center; gap: 12px;">
             <button id="btn-reveal" class="secondary" style="display: none; padding: 4px 12px; font-size: 11px; height: 26px; border-radius: 6px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2);">Reveal in Finder</button>
             <div class="time-stats">
@@ -197,7 +198,7 @@
       <section id="archive-browser" class="archive-browser" hidden>
         <div id="preview-header" class="preview-header">
           <div class="preview-navigation">
-            <nav id="breadcrumb-container" aria-label="Folder path"></nav>
+            <nav id="breadcrumb-container" dir="ltr" aria-label="Folder path"></nav>
             <div class="preview-search-wrapper">
               <input type="search" id="preview-search" class="custom-input search-input" placeholder="파일명 검색 / Search files" aria-label="Search all filenames">
               <div id="search-matches-text" role="status"></div>
@@ -296,7 +297,7 @@
         </svg>
       </div>
       <h3 id="extract-error-title">Corrupted File</h3>
-      <p id="extract-error-path" style="font-weight: 500; word-break: break-all; margin-bottom: 4px;"></p>
+      <p id="extract-error-path" dir="ltr" style="font-weight: 500; word-break: break-all; margin-bottom: 4px;"></p>
       <p id="extract-error-msg" style="color: #ef4444; font-size: 11px;"></p>
       
       <div class="modal-actions" style="margin-top: 20px; gap: 8px;">
@@ -314,14 +315,14 @@
       <h3 id="report-title">Extraction Report</h3>
       <p id="report-desc" style="margin-bottom: 16px;"></p>
       
-      <div class="report-content-box" id="report-details-box" style="display: none; background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--border-color); padding: 12px; max-height: 250px; overflow-y: auto; text-align: left; margin-bottom: 20px;">
+      <div class="report-content-box" id="report-details-box" style="display: none; background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--border-color); padding: 12px; max-height: 250px; overflow-y: auto; text-align: start; margin-bottom: 20px;">
         <div id="report-failed-section" style="display: none; margin-bottom: 12px;">
           <h4 id="report-failed-title" style="color: #ef4444; font-size: 13px; margin: 0 0 8px 0;">Failed Files</h4>
-          <ul id="report-failed-list" style="margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-color);"></ul>
+          <ul id="report-failed-list" style="margin: 0; padding-inline-start: 20px; font-size: 12px; color: var(--text-color);"></ul>
         </div>
         <div id="report-success-section" style="display: none;">
           <h4 id="report-success-title" style="color: #10b981; font-size: 13px; margin: 0 0 8px 0;">Success Files</h4>
-          <ul id="report-success-list" style="margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-color);"></ul>
+          <ul id="report-success-list" style="margin: 0; padding-inline-start: 20px; font-size: 12px; color: var(--text-color);"></ul>
         </div>
         <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;">
           <button id="report-export-txt" class="modern-btn secondary" style="padding: 4px 8px; font-size: 11px;">Export TXT</button>

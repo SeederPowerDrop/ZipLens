@@ -123,6 +123,7 @@ function fixture() {
     'btn-compress': 'btnCompressFolder', 'btn-cancel-compress': 'cancel',
     'btn-confirm-compress': 'confirmCompress', 'btn-cancel-operation': 'cancelOperation',
     'compression-level-label': 'compressionLevel', 'compression-source-label': 'compressionSource',
+    'zip-password-hint': 'zipPasswordHint',
     'split-option-none': 'noSplit', 'select-all': 'selectAll', 'deselect-all': 'deselectAll',
     'toggle-all': 'invertSelection'
   };

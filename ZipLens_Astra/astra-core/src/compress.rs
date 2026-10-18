@@ -49,6 +49,17 @@ impl Engine {
         if request.password.as_deref() == Some("") {
             return Err("Password cannot be empty".into());
         }
+        if request.format == "zip"
+            && request
+                .password
+                .as_ref()
+                .is_some_and(|password| password.bytes().any(|byte| !(0x20..=0x7f).contains(&byte)))
+        {
+            // The bundled 7-Zip ZIP writer accepts this byte range for both AES
+            // and ZipCrypto, regardless of the process locale. Validate before
+            // creating directories or a staging archive; 7Z supports Unicode.
+            return Err("ZIP creation requires ASCII password characters (U+0020–U+007F); use 7Z for Unicode passwords.".into());
+        }
         let split = request
             .split_size
             .as_deref()
