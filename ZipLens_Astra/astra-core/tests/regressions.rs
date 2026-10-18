@@ -68,6 +68,79 @@ fn hostile_paths_are_rejected_not_rewritten() {
         PathBuf::from("한글/자료.txt")
     );
 }
+
+#[cfg(unix)]
+#[test]
+fn non_regular_archive_inputs_are_rejected_before_opening() {
+    use std::os::unix::{ffi::OsStrExt, fs::OpenOptionsExt};
+
+    let root = tempfile::tempdir().unwrap();
+    let directory = root.path().join("directory.zip");
+    fs::create_dir(&directory).unwrap();
+    let fifo = root.path().join("pipe.zip");
+    let fifo_path = std::ffi::CString::new(fifo.as_os_str().as_bytes()).unwrap();
+    // SAFETY: fifo_path is NUL-terminated and remains alive for this call.
+    assert_eq!(unsafe { libc::mkfifo(fifo_path.as_ptr(), 0o600) }, 0);
+    // Keep both FIFO ends open without blocking. If validation regresses, the
+    // native ZIP reader reaches its seek error instead of hanging in File::open.
+    let _fifo_guard = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .custom_flags(libc::O_NONBLOCK)
+        .open(&fifo)
+        .unwrap();
+    for archive in [&directory, &fifo] {
+        let mut request = request(&root);
+        request.archive = archive.clone();
+        let expected = "Archive input must be a regular file.";
+        assert_eq!(
+            engine()
+                .preview(archive, None, &Context::default())
+                .unwrap_err(),
+            expected
+        );
+        assert_eq!(
+            engine()
+                .read_entry(archive, "file.txt", None, &Context::default())
+                .unwrap_err(),
+            expected
+        );
+        assert_eq!(
+            engine().extract(&request, &Context::default()).unwrap_err(),
+            expected
+        );
+        assert!(!request.destination.exists());
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn archive_symlink_to_regular_file_is_still_supported() {
+    let root = tempfile::tempdir().unwrap();
+    let archive = root.path().join("regular.zip");
+    zip(&archive, &[("file.txt", b"contents")]);
+    let mut request = request(&root);
+    std::os::unix::fs::symlink(&archive, &request.archive).unwrap();
+    assert_eq!(
+        engine()
+            .preview(&request.archive, None, &Context::default())
+            .unwrap()
+            .len(),
+        1
+    );
+    assert_eq!(
+        engine()
+            .read_entry(&request.archive, "file.txt", None, &Context::default())
+            .unwrap(),
+        b"contents"
+    );
+    request.targets = Some(vec!["file.txt".into()]);
+    let report = engine().extract(&request, &Context::default()).unwrap();
+    assert!(!report.cancelled);
+    assert!(report.failed_files.is_empty());
+    assert_eq!(fs::read(&report.output_paths[0]).unwrap(), b"contents");
+}
+
 #[test]
 fn overwrite_merges_and_preserves_unrelated_files() {
     let root = tempfile::tempdir().unwrap();
@@ -292,6 +365,38 @@ fn compression_rejects_self_inclusion_and_missing_sources() {
     fs::write(&r.destination, b"keep").unwrap();
     assert!(engine().compress(&r, &Context::default()).is_err());
     assert_eq!(fs::read(&r.destination).unwrap(), b"keep");
+}
+
+#[test]
+fn compression_rejects_unicode_equivalent_names_before_replacing_output() {
+    let root = tempfile::tempdir().unwrap();
+    let first = root.path().join("first/caf\u{e9}.txt");
+    let second = root.path().join("second/cafe\u{301}.txt");
+    for (source, contents) in [(&first, b"first".as_slice()), (&second, b"second".as_slice())] {
+        fs::create_dir_all(source.parent().unwrap()).unwrap();
+        fs::write(source, contents).unwrap();
+    }
+
+    // Different source folders can hold canonically equivalent basenames even on
+    // a normalization-insensitive volume. All output formats need the same guard.
+    for format in ["zip", "7z", "tar", "tar.gz", "tar.zst"] {
+        let mut request = compression(&root, format);
+        request.sources = vec![first.clone(), second.clone()];
+        fs::write(&request.destination, b"previous archive").unwrap();
+        let error = engine().compress(&request, &Context::default()).unwrap_err();
+        assert!(
+            error.starts_with("Duplicate source name:"),
+            "{format}: {error}"
+        );
+        assert_eq!(fs::read(&request.destination).unwrap(), b"previous archive");
+    }
+    assert_eq!(fs::read(&first).unwrap(), b"first");
+    assert_eq!(fs::read(&second).unwrap(), b"second");
+    assert!(fs::read_dir(root.path()).unwrap().all(|entry| !entry
+        .unwrap()
+        .file_name()
+        .to_string_lossy()
+        .starts_with(".ziplens-astra-compress-")));
 }
 #[test]
 fn native_compression_roundtrips_all_formats_with_empty_directories() {

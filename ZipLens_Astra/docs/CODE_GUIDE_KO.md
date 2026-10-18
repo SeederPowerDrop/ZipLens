@@ -25,7 +25,7 @@ flowchart LR
 | 역할 | 읽을 파일 | 맡는 일 |
 |---|---|---|
 | 화면과 사용자 흐름 | [`src/main.ts`](../src/main.ts), [`src/ui.ts`](../src/ui.ts), [`index.html`](../index.html) | 이벤트·선택 상태·대화상자·IPC 호출을 연결합니다. 압축 알고리즘은 두지 않습니다. |
-| 순수 화면 모델 | [`src/archive-model.ts`](../src/archive-model.ts), [`src/input-routing.ts`](../src/input-routing.ts) | 파일 선택을 요청으로 고정하고 입력을 분류합니다. DOM이나 Tauri 없이 시험할 수 있습니다. |
+| 순수 화면 모델 | [`src/archive-model.ts`](../src/archive-model.ts), [`src/input-routing.ts`](../src/input-routing.ts), [`src/report-model.ts`](../src/report-model.ts) | 선택 고정·입력 분류·보고서 데이터와 내보내기를 담당합니다. DOM이나 Tauri 없이 시험할 수 있습니다. |
 | macOS / Tauri 어댑터 | [`src-tauri/src/archive.rs`](../src-tauri/src/archive.rs), [`src-tauri/src/lib.rs`](../src-tauri/src/lib.rs) | 작업 잠금, 백그라운드 실행, 진행률 이벤트, 앱 창·Finder·메뉴를 연결합니다. |
 | GUI 없는 실행 | [`src-tauri/src/main.rs`](../src-tauri/src/main.rs), [`src-tauri/src/cli.rs`](../src-tauri/src/cli.rs) | 창을 만들기 전에 CLI를 판별하고 입력 검증·JSON·종료 코드를 담당합니다. |
 | 공통 엔진 | [`astra-core/src/lib.rs`](../astra-core/src/lib.rs) | `Engine`, `Entry`, `ExtractRequest`, `ExtractReport`를 정의하고 형식별 엔진과 결과 반영을 조합합니다. |
@@ -87,6 +87,12 @@ sequenceDiagram
 `snapshotExtraction`은 대화상자를 기다리기 **전에** 압축 경로·암호·선택 항목·최상위 항목을 복사합니다. 기다리는 동안 Finder에서 다른 파일이 들어와도 이전 요청의 대상이 바뀌어서는 안 됩니다. `targetFiles: null`은 전체 선택을 뜻하며, 빈 선택과 같지 않습니다. 코어의 `targets`는 정확한 항목 이름 목록입니다. 폴더 이름 하나가 하위 파일까지 자동 확장되는 계약은 아닙니다.
 
 `executeExtraction`은 예상 충돌을 먼저 확인하고 사용자 결정을 받지만, 최종 경로 검사는 코어가 다시 맡습니다. 충돌 확인과 쓰기 사이에 파일 시스템이 달라질 수 있기 때문입니다. 보고서는 요청한 경로를 추측하지 않고 `output_paths`를 사용합니다. 이름을 바꿔 보존한 결과나 일부 실패를 정확히 알려 주는 근거입니다.
+
+### 결과 보고서와 내보내기
+
+[`report-model.ts`](../src/report-model.ts)의 `buildReportRows`는 원본 크기를 한 번 인덱싱하고, 성공 항목에 Core의 실제 `output_paths`를 연결합니다. 파일명 접미사로 찾으면 `a.txt`와 `nested/a.txt`가 섞이고 대량 목록은 반복 전체 검색으로 느려집니다. 이름 보존 모드에서는 최상위 이름이 바뀔 수 있어 원본 크기를 추측하지 않고 `null`로 두며, TXT·CSV에서는 `-`로 표시합니다.
+
+`reportDisplayItems`는 화면에 보여 줄 50개와 나머지 개수만 반환합니다. `formatReportTxt`·`formatReportCsv`는 이 요약 대신 전체 보고서 행을 받습니다. [`report-model.test.ts`](../tests/report-model.test.ts)는 경로 대응·전체 내보내기·100,000건의 선형 접근을, [`report-dialog.test.ts`](../tests/report-dialog.test.ts)는 실제 결과창 함수를 모의 DOM에서 실행해 표시 제한·내보내기·닫기 대기를 확인합니다.
 
 ### 새 압축
 

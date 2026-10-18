@@ -7,6 +7,7 @@ use std::{
     io::{BufReader, BufWriter, Read, Write},
     path::{Path, PathBuf},
 };
+use unicode_normalization::UnicodeNormalization;
 use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
 
@@ -104,7 +105,9 @@ impl Engine {
                     .to_str()
                     .ok_or("Non-UTF-8 source path")?
                     .replace('\\', "/");
-                let key = name.to_lowercase();
+                // Match extraction's collision policy: NFC/NFD spellings can name the
+                // same macOS file. Do not produce an archive our own preview rejects.
+                let key = name.nfc().collect::<String>().to_lowercase();
                 if !seen.insert(key) {
                     return Err(format!("Duplicate source name: {name}"));
                 }

@@ -25,7 +25,7 @@ PROJECT = Path(__file__).resolve().parents[1]
 def run_process(arguments, timeout, *, cwd, stdin=''):
     """Close stdin and kill the whole process group if a CLI or helper hangs."""
     process = subprocess.Popen(
-        [str(argument) for argument in arguments], cwd=cwd,
+        [os.fspath(argument) for argument in arguments], cwd=cwd,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         text=True, encoding='utf-8', start_new_session=True,
     )
@@ -130,6 +130,36 @@ class CommandLineTests(unittest.TestCase):
         self.assertEqual(response['schema_version'], 1)
         self.assertIs(response['ok'], False)
         self.assertEqual(response['error']['code'], 'INVALID_ARGUMENTS')
+
+    def test_non_utf8_startup_paths_fail_without_panicking_or_opening_gui(self):
+        for arguments in [(b'\xff.zip',), ('--extract', b'\xff.zip'),
+                          ('--compress', b'\xff.txt'), ('cli', 'list', b'\xff.zip')]:
+            with self.subTest(arguments=arguments):
+                process = run_process([self.binary, *arguments], self.timeout, cwd=self.root)
+                self.assertEqual(process.returncode, 2, process.stderr)
+                response = json.loads(process.stdout)
+                self.assertEqual(response['schema_version'], 1)
+                self.assertIs(response['ok'], False)
+                self.assertEqual(response['error']['code'], 'INVALID_ARGUMENTS')
+                self.assertIn('UTF-8', response['error']['message'])
+                self.assertNotIn('panicked', process.stderr)
+        self.assertEqual(list(self.root.iterdir()), [])
+
+    def test_native_compression_timeout_preserves_existing_output_and_removes_staging(self):
+        source = self.root / 'sparse-source.bin'
+        # Sparse allocation keeps this fixture small on disk. Its logical size keeps
+        # compression busy beyond the one-second deadline even on a fast machine.
+        logical_size = 64 * 1024**3
+        with source.open('wb') as output:
+            output.truncate(logical_size)
+        destination = self.archive('existing.zip', {'keep.txt': b'existing archive contents'})
+        original_digest = digest(destination)
+        self.invoke('compress', source, '--destination', destination, '--format', 'zip',
+                    '--overwrite', '--timeout-seconds', '1', status=124, error='TIMEOUT')
+        self.assertEqual(digest(destination), original_digest)
+        self.assertEqual(source.stat().st_size, logical_size)
+        self.assertEqual(set(self.root.iterdir()), {source, destination},
+                         'Cancellation must remove both CLI and engine staging directories')
 
     def test_list_and_exact_targets_preserve_unicode_spaces_and_option_like_names(self):
         entries = {'별도 폴더/보고서 2026.txt': '안녕하세요\n'.encode(),

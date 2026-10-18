@@ -716,6 +716,12 @@ fn run_cli_operation(options: &CliOptions) -> Result<Value, CliError> {
 /// Return None only for existing GUI/Finder invocations. Invalid CLI flags never open a window.
 pub fn run_if_requested() -> Option<i32> {
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
+    // GUI startup also uses UTF-8 paths. Reject invalid bytes before its std::env::args()
+    // conversion can panic; lossy replacement could select a different filesystem path.
+    if args.iter().any(|arg| arg.to_str().is_none()) {
+        let error = CliError::usage("Arguments must be valid UTF-8.");
+        return Some(write_json_response(&error.response(), error.exit));
+    }
     let first = args.first()?.to_str()?;
     let cli_args = if first == "cli" {
         &args[1..]
