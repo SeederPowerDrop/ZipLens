@@ -1,7 +1,7 @@
 use crate::{context::PREVIEW_LIMIT, paths, Context, Entry};
 use rayon::prelude::*;
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs::{self, File},
     io::{self, BufReader, BufWriter, Read, Seek, SeekFrom},
     path::Path,
@@ -91,6 +91,38 @@ fn has_unicode_path(mut data: &[u8]) -> bool {
     false
 }
 
+/// ZIP writers sometimes store one leading separator. Rebase those paths
+/// without relaxing the shared checks for traversal, drive letters or UNC paths.
+pub(crate) fn entry_path(name: &str) -> Result<String, String> {
+    let relative = paths::relative(name.strip_prefix(['/', '\\']).unwrap_or(name))?;
+    let mut path = relative.to_string_lossy().replace('\\', "/");
+    if name.ends_with(['/', '\\']) {
+        path.push('/');
+    }
+    Ok(path)
+}
+
+/// 7-Zip selects by the original ZIP spelling, even when it writes to a
+/// different relative path. Only pass names already accepted by ZIP validation.
+pub(crate) fn sidecar_names(
+    path: &Path,
+    targets: &HashSet<String>,
+    ctx: &Context,
+) -> Result<HashMap<String, String>, String> {
+    let mut zip = ZipArchive::new(BufReader::new(File::open(path).map_err(|e| e.to_string())?))
+        .map_err(|e| e.to_string())?;
+    let mut names = HashMap::new();
+    for i in 0..zip.len() {
+        ctx.check()?;
+        let raw = name(&zip.by_index_raw(i).map_err(|e| e.to_string())?);
+        let path = entry_path(&raw)?;
+        if targets.contains(&path) {
+            names.insert(path, raw);
+        }
+    }
+    Ok(names)
+}
+
 pub fn preview(path: &Path, ctx: &Context) -> Result<Vec<Entry>, String> {
     let mut zip = ZipArchive::new(BufReader::new(File::open(path).map_err(|e| e.to_string())?))
         .map_err(|e| e.to_string())?;
@@ -101,8 +133,8 @@ pub fn preview(path: &Path, ctx: &Context) -> Result<Vec<Entry>, String> {
     for i in 0..zip.len() {
         ctx.check()?;
         let f = zip.by_index_raw(i).map_err(|e| e.to_string())?;
-        let path = name(&f);
-        let is_dir = path.ends_with(['/', '\\']);
+        let path = entry_path(&name(&f))?;
+        let is_dir = path.ends_with('/');
         files.push(Entry {
             path,
             size: f.size(),
@@ -158,12 +190,12 @@ pub fn extract(
     for i in 0..archive.len() {
         ctx.check()?;
         let f = archive.by_index_raw(i).map_err(|e| e.to_string())?;
-        let name = name(&f);
+        let name = entry_path(&name(&f))?;
         if !targets.contains(&name) {
             continue;
         }
         let relative = paths::relative(&name)?;
-        if name.ends_with(['/', '\\']) {
+        if name.ends_with('/') {
             fs::create_dir_all(dest.join(&relative)).map_err(|e| e.to_string())?;
             directories.push((relative, f.unix_mode()));
         } else {
@@ -193,7 +225,7 @@ pub fn extract(
                         None => zip.by_index(i),
                     }
                     .map_err(password_error)?;
-                    let filename = name(&f);
+                    let filename = entry_path(&name(&f))?;
                     let output = dest.join(paths::relative(&filename)?);
                     let mut writer = BufWriter::with_capacity(
                         256 * 1024,
@@ -232,7 +264,7 @@ pub fn extract(
             None => archive.by_index(i),
         }
         .map_err(password_error)?;
-        let filename = name(&f);
+        let filename = entry_path(&name(&f))?;
         let rel = paths::relative(&filename)?;
         let mut bytes = Vec::new();
         ctx.copy(&mut f, &mut bytes, &filename, 4096)?;
@@ -314,7 +346,8 @@ pub fn read_entry(
     let mut index = None;
     for i in 0..zip.len() {
         ctx.check()?;
-        if zip.by_index_raw(i).is_ok_and(|f| name(&f) == target) {
+        let f = zip.by_index_raw(i).map_err(|e| e.to_string())?;
+        if entry_path(&name(&f))? == target {
             index = Some(i);
             break;
         }

@@ -1,6 +1,6 @@
-# ZipLens 2.1.3 — Einführung und Bedienung
+# ZipLens 2.1.4 — Einführung und Bedienung
 
-[Sprachen](README.md) · [DMG herunterladen](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.3/ZipLens_2.1.3_arm64-preview.dmg) · [Version, Quelltext und Prüfsummen](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3)
+[Sprachen](README.md) · [DMG herunterladen](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.4/ZipLens_2.1.4_arm64-preview.dmg) · [Version, Quelltext und Prüfsummen](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.4)
 
 <img src="../screenshots/2.1.3/home-ko.png" alt="Echte App: koreanischer Startbildschirm" width="640">
 
@@ -17,7 +17,7 @@
 
 1. Laufende Aufgaben beenden, alte Versionen mit **⌘Q** schließen und die DMG öffnen.
 2. Die **vollständige ZipLens.app nach Programme kopieren**. Eine vorhandene Installation vor dem Ersetzen sichern.
-3. Die kopierte App starten, unter **ⓘ** die Version **2.1.3** prüfen und das DMG-Volume auswerfen.
+3. Die kopierte App starten, unter **ⓘ** die Version **2.1.4** prüfen und das DMG-Volume auswerfen.
 
 Dies ist eine **ad-hoc signierte Apple-Silicon-Vorschau ohne Apple-Notarisierung**. Eine DMG ersetzt keine Notarisierung; macOS kann den Start blockieren. Der Betrieb auf jedem anderen Mac ist nicht garantiert, die Ausführung auf Intel ist ungeprüft. Eine manuelle Freigabe für eine App aus einer von Ihnen als vertrauenswürdig eingestuften Quelle beschreibt [Apple offiziell](https://support.apple.com/102445). [Prüfung von DMG, Download und Installation](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 

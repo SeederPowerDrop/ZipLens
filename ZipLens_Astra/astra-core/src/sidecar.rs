@@ -1,6 +1,7 @@
 //! 번들 7-Zip을 실행하고 목록·추출 결과를 검증합니다. 자식 프로세스 분리는 sandbox가 아닙니다.
 use crate::{paths, Context, Engine, Entry};
 use std::{
+    collections::{HashMap, HashSet},
     fs,
     io::{Read, Write},
     path::Path,
@@ -121,23 +122,51 @@ impl Engine {
         path: &Path,
         dest: &Path,
         entries: &[Entry],
+        zip_names: Option<&HashMap<String, String>>,
         password: Option<&str>,
         ctx: &Context,
     ) -> Result<(), String> {
         let mut list = tempfile::NamedTempFile::new().map_err(|e| e.to_string())?;
+        let mut files = Vec::new();
         for entry in entries.iter().filter(|e| !e.is_dir) {
-            if entry.path.contains(['\r', '\n']) {
+            let output = paths::relative(&entry.path)?;
+            let (name, source) = if let Some(names) = zip_names {
+                let name = names
+                    .get(&entry.path)
+                    .ok_or("ZIP entry changed during extraction")?;
+                // On Unix, 7-Zip writes a literal backslash in ZIP names.
+                // ZIP validation has already checked both kinds of separators.
+                #[cfg(unix)]
+                let source: std::path::PathBuf = name
+                    .split('/')
+                    .filter(|part| !part.is_empty() && *part != ".")
+                    .collect();
+                #[cfg(not(unix))]
+                let source = output.clone();
+                (name.as_str(), source)
+            } else {
+                (entry.path.as_str(), output.clone())
+            };
+            if name.contains(['\r', '\n']) {
                 return Err("7-Zip selection cannot contain line breaks".into());
             }
-            paths::relative(&entry.path)?;
-            writeln!(list, "{}", entry.path.trim_end_matches('/')).map_err(|e| e.to_string())?;
+            writeln!(list, "{name}").map_err(|e| e.to_string())?;
+            files.push((entry, source, output));
         }
+        // Decode ZIPs into a separate stage before moving files to their
+        // portable names. This keeps literal backslashes out of publication.
+        let zip_stage = if zip_names.is_some() && !files.is_empty() {
+            Some(tempfile::tempdir_in(dest).map_err(|e| e.to_string())?)
+        } else {
+            None
+        };
+        let decoded = zip_stage.as_ref().map_or(dest, |stage| stage.path());
         list.flush().map_err(|e| e.to_string())?;
         ctx.set_total(0); // No fabricated 50%/ETA for an external process.
         ctx.progress("7-Zip", false);
         let args = vec![
             "x".into(),
-            format!("-o{}", dest.display()),
+            format!("-o{}", decoded.display()),
             "-y".into(),
             "-sccUTF-8".into(),
             "-scsUTF-8".into(),
@@ -150,23 +179,48 @@ impl Engine {
             "--".into(),
             path.to_string_lossy().into(),
         ];
-        if entries.iter().any(|e| !e.is_dir) {
+        if !files.is_empty() {
             self.run_sidecar(&args, ctx)?;
         }
-        for entry in entries.iter().filter(|e| e.is_dir) {
-            fs::create_dir_all(dest.join(paths::relative(&entry.path)?))
-                .map_err(|e| e.to_string())?;
+        if zip_stage.is_some() {
+            let expected: HashSet<_> = files
+                .iter()
+                .map(|(_, source, _)| source.as_path())
+                .collect();
+            for node in walkdir::WalkDir::new(decoded)
+                .follow_links(false)
+                .min_depth(1)
+            {
+                ctx.check()?;
+                let node = node.map_err(|e| e.to_string())?;
+                if !node.file_type().is_dir()
+                    && (!node.file_type().is_file()
+                        || !expected.contains(node.path().strip_prefix(decoded).unwrap()))
+                {
+                    return Err("7-Zip produced an unexpected ZIP output".into());
+                }
+            }
         }
         // A success exit code still needs a filesystem check; logs are not the result manifest.
-        for entry in entries {
-            let output = dest.join(paths::relative(&entry.path)?);
-            let meta = fs::symlink_metadata(&output).map_err(|e| format!("{}: {e}", entry.path))?;
-            if meta.is_symlink()
-                || (entry.is_dir && !meta.is_dir())
-                || (!entry.is_dir && (!meta.is_file() || meta.len() != entry.size))
-            {
+        for (entry, source, output) in files {
+            ctx.check()?;
+            let source = decoded.join(source);
+            let meta = fs::symlink_metadata(&source).map_err(|e| format!("{}: {e}", entry.path))?;
+            if !meta.is_file() || meta.len() != entry.size {
                 return Err(format!("{}: unexpected extracted file", entry.path));
             }
+            if zip_stage.is_some() {
+                let output = dest.join(output);
+                paths::ensure_under(dest, output.parent().unwrap())?;
+                paths::rename_no_replace(&source, &output).map_err(|e| e.to_string())?;
+            }
+        }
+        if let Some(stage) = zip_stage {
+            stage.close().map_err(|e| e.to_string())?;
+        }
+        for entry in entries.iter().filter(|e| e.is_dir) {
+            let output = dest.join(paths::relative(&entry.path)?);
+            paths::ensure_under(dest, &output)?;
         }
         Ok(())
     }

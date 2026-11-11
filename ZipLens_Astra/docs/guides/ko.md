@@ -1,6 +1,6 @@
-# ZipLens 2.1.3 — 소개와 사용법
+# ZipLens 2.1.4 — 소개와 사용법
 
-[언어 선택](README.md) · [DMG 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.3/ZipLens_2.1.3_arm64-preview.dmg) · [릴리스·소스·체크섬](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3)
+[언어 선택](README.md) · [DMG 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.4/ZipLens_2.1.4_arm64-preview.dmg) · [릴리스·소스·체크섬](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.4)
 
 <img src="../screenshots/2.1.3/home-ko.png" alt="실제 앱 화면: 한국어 홈" width="640">
 
@@ -17,7 +17,7 @@
 
 1. 진행 중인 작업을 마치고 구버전을 **⌘Q**로 종료한 뒤 위 DMG를 엽니다.
 2. **ZipLens.app 전체를 응용 프로그램 폴더에 복사**합니다. 교체할 기존 앱은 먼저 백업하세요.
-3. 복사한 앱을 실행해 **ⓘ**에서 **2.1.3**을 확인하고, 설치 후 DMG 볼륨을 추출합니다.
+3. 복사한 앱을 실행해 **ⓘ**에서 **2.1.4**를 확인하고, 설치 후 DMG 볼륨을 추출합니다.
 
 **Apple Silicon용 ad-hoc 서명·미공증 프리뷰**입니다. DMG가 Apple 공증을 대신하지 않으며 macOS가 실행을 차단할 수 있습니다. 모든 다른 Mac의 실행을 보장하지 않고 Intel 실행은 검증하지 않았습니다. 출처를 신뢰하는 앱의 사용자 허용 절차는 [Apple 공식 안내](https://support.apple.com/102445)를 따르세요. [실제 DMG·다운로드·설치 검증](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 

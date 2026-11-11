@@ -288,10 +288,55 @@ class CommandLineTests(unittest.TestCase):
         with zipfile.ZipFile(destination) as zipped:
             self.assertEqual(zipped.read(source.name), source.read_bytes())
 
+    def check_zip_path_variants(self, compression):
+        entries = {
+            '/home/ubuntu/': ('home/ubuntu/', b''),
+            '/home/ubuntu/보고서.txt': ('home/ubuntu/보고서.txt', b'rooted'),
+            r'\windows\notes.txt': ('windows/notes.txt', b'backslashes'),
+            './data//file.txt': ('data/file.txt', b'dot and duplicate separator'),
+            'plain.txt': ('plain.txt', b'relative'),
+        }
+        archive = self.root / 'paths.zip'
+        with zipfile.ZipFile(archive, 'w', compression=compression) as output:
+            for raw, (_, data) in entries.items():
+                output.writestr(raw, data)
+        before = digest(archive)
+        listing = self.invoke('list', archive)['result']['entries']
+        self.assertEqual([entry['path'] for entry in listing],
+                         [path for path, _ in entries.values()])
+        self.assertTrue(listing[0]['is_dir'])
+
+        destination = self.root / 'all'
+        destination.mkdir()
+        (destination / 'unrelated.txt').write_bytes(b'untouched')
+        self.invoke('extract', archive, '--destination', destination, '--overwrite')
+        expected = {path: data for path, data in entries.values() if not path.endswith('/')}
+        self.assertEqual(files_under(destination), {**expected, 'unrelated.txt': b'untouched'})
+        self.assertTrue((destination / 'home/ubuntu').is_dir())
+
+        selected = self.root / 'selected'
+        target = listing[1]['path']
+        legacy_target = r'\windows\notes.txt'
+        self.invoke('extract', archive, '--destination', selected,
+                    '--target', target, '--target', legacy_target)
+        self.assertEqual(files_under(selected),
+                         {target: expected[target], 'windows/notes.txt': b'backslashes'})
+        self.assertEqual(digest(archive), before)
+
+    def test_zip_path_variants_with_native_decoder(self):
+        self.check_zip_path_variants(zipfile.ZIP_DEFLATED)
+
+    def test_zip_path_variants_with_bundled_decoder(self):
+        self.sidecar()
+        self.check_zip_path_variants(zipfile.ZIP_BZIP2)
+
     def test_traversal_is_rejected_before_publication(self):
         sentinel = self.root / 'sentinel.txt'
         sentinel.write_bytes(b'original sentinel')
-        for index, hostile in enumerate(['../sentinel.txt', str(sentinel), '..\\sentinel.txt']):
+        blocked = ['../sentinel.txt', '/folder/../../sentinel.txt', r'..\sentinel.txt',
+                   '//host/share/file.txt', r'\\host\share\file.txt', r'C:\drive\file.txt',
+                   '/safe.txt', './SAFE.TXT']
+        for index, hostile in enumerate(blocked):
             with self.subTest(entry=hostile):
                 archive = self.archive(f'hostile-{index}.zip',
                                        {'safe.txt': b'safe', hostile: b'bad overwrite'})
@@ -300,7 +345,7 @@ class CommandLineTests(unittest.TestCase):
                 self.invoke('list', archive, status=1)
                 self.invoke('extract', archive, '--destination', destination, '--overwrite', status=1)
                 self.assertEqual(sentinel.read_bytes(), b'original sentinel')
-                self.assertEqual(files_under(destination), {})
+                self.assertFalse(destination.exists())
                 self.assertEqual(digest(archive), before)
 
     def test_overwrite_never_replaces_the_input_archive(self):
