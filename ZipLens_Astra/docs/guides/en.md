@@ -1,6 +1,6 @@
-# ZipLens 2.1.4 — Introduction and user guide
+# ZipLens 2.1.5 — Introduction and user guide
 
-[Languages](README.md) · [Download DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.4/ZipLens_2.1.4_arm64-preview.dmg) · [Release, source and checksums](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.4)
+[Languages](README.md) · [Download DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.5/ZipLens_2.1.5_arm64-preview.dmg) · [Release, source and checksums](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5)
 
 <img src="../screenshots/2.1.3/about-en.png" alt="Actual app: English About window" width="640">
 
@@ -17,7 +17,7 @@
 
 1. Finish ongoing work, quit older copies with **⌘Q**, then open the DMG above.
 2. Copy the **entire ZipLens.app to Applications**. Back up an existing installation before replacing it.
-3. Launch the copied app, check **2.1.4** under **ⓘ**, then eject the DMG volume.
+3. Launch the copied app, check **2.1.5** under **ⓘ**, then eject the DMG volume.
 
 This is an **ad-hoc signed, unnotarized Apple Silicon preview**. A DMG does not replace Apple notarization; macOS may block launch. Operation on every other Mac is not guaranteed, and Intel execution is unverified. For a user-approved exception for an app whose source you trust, follow [Apple’s official instructions](https://support.apple.com/102445). [Actual DMG, download and installation checks](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 

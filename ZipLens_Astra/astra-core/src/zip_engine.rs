@@ -102,6 +102,52 @@ pub(crate) fn entry_path(name: &str) -> Result<String, String> {
     Ok(path)
 }
 
+/// A classic split ZIP stores its end record in the final .zip volume.
+pub(crate) fn is_split(path: &Path) -> Result<bool, String> {
+    const END_RECORD: usize = 22;
+    const END_SIGNATURE: [u8; 4] = *b"PK\x05\x06";
+    let mut file = File::open(path).map_err(|e| e.to_string())?;
+    let len = file.metadata().map_err(|e| e.to_string())?.len();
+    if len < END_RECORD as u64 {
+        return Ok(false);
+    }
+    let tail_size = len.min((END_RECORD + u16::MAX as usize) as u64) as usize;
+    let mut tail = vec![0; tail_size];
+    file.seek(SeekFrom::End(-(tail_size as i64)))
+        .and_then(|_| file.read_exact(&mut tail))
+        .map_err(|e| e.to_string())?;
+    for offset in (0..=tail_size - END_RECORD).rev() {
+        let record = &tail[offset..];
+        if record[..4] == END_SIGNATURE {
+            let comment_len = u16::from_le_bytes([record[20], record[21]]) as usize;
+            if record.len() == END_RECORD + comment_len {
+                let disk = u16::from_le_bytes([record[4], record[5]]);
+                return Ok(disk != 0 && disk != u16::MAX);
+            }
+        }
+    }
+    Ok(false)
+}
+
+/// Ignore empty archive-root directory records, which carry no output path.
+pub(crate) fn root_marker(name: &str, size: u64, is_dir: bool) -> bool {
+    is_dir && size == 0 && matches!(name, "." | "./" | ".\\" | "/" | "\\")
+}
+
+fn output_name(file: &zip::read::ZipFile<'_>, name: &str) -> Result<Option<String>, String> {
+    let is_dir = file.unix_mode().map(|mode| mode & 0o170000) == Some(0o040000)
+        || (name.ends_with(['/', '\\']) && !is_link(file));
+    if !file.encrypted() && root_marker(name, file.size(), is_dir) {
+        return Ok(None);
+    }
+    entry_path(name).map(Some)
+}
+
+fn is_link(file: &zip::read::ZipFile<'_>) -> bool {
+    file.unix_mode()
+        .is_some_and(|mode| mode & 0o170000 == 0o120000)
+}
+
 /// 7-Zip selects by the original ZIP spelling, even when it writes to a
 /// different relative path. Only pass names already accepted by ZIP validation.
 pub(crate) fn sidecar_names(
@@ -114,8 +160,11 @@ pub(crate) fn sidecar_names(
     let mut names = HashMap::new();
     for i in 0..zip.len() {
         ctx.check()?;
-        let raw = name(&zip.by_index_raw(i).map_err(|e| e.to_string())?);
-        let path = entry_path(&raw)?;
+        let file = zip.by_index_raw(i).map_err(|e| e.to_string())?;
+        let raw = name(&file);
+        let Some(path) = output_name(&file, &raw)? else {
+            continue;
+        };
         if targets.contains(&path) {
             names.insert(path, raw);
         }
@@ -133,7 +182,9 @@ pub fn preview(path: &Path, ctx: &Context) -> Result<Vec<Entry>, String> {
     for i in 0..zip.len() {
         ctx.check()?;
         let f = zip.by_index_raw(i).map_err(|e| e.to_string())?;
-        let path = entry_path(&name(&f))?;
+        let Some(path) = output_name(&f, &name(&f))? else {
+            continue;
+        };
         let is_dir = path.ends_with('/');
         files.push(Entry {
             path,
@@ -141,7 +192,7 @@ pub fn preview(path: &Path, ctx: &Context) -> Result<Vec<Entry>, String> {
             compressed_size: Some(f.compressed_size()),
             is_encrypted: f.encrypted(),
             is_dir,
-            is_link: f.unix_mode().is_some_and(|m| m & 0o170000 == 0o120000),
+            is_link: is_link(&f),
             error: None,
         });
     }
@@ -190,7 +241,9 @@ pub fn extract(
     for i in 0..archive.len() {
         ctx.check()?;
         let f = archive.by_index_raw(i).map_err(|e| e.to_string())?;
-        let name = entry_path(&name(&f))?;
+        let Some(name) = output_name(&f, &name(&f))? else {
+            continue;
+        };
         if !targets.contains(&name) {
             continue;
         }
@@ -347,7 +400,7 @@ pub fn read_entry(
     for i in 0..zip.len() {
         ctx.check()?;
         let f = zip.by_index_raw(i).map_err(|e| e.to_string())?;
-        if entry_path(&name(&f))? == target {
+        if output_name(&f, &name(&f))?.as_deref() == Some(target) {
             index = Some(i);
             break;
         }

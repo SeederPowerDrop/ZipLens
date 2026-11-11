@@ -6,9 +6,9 @@
 
 **풀기 전에 확인하고, 필요한 파일만 꺼내세요.** ZipLens는 무료·광고 없는 macOS 압축 앱입니다. 빛을 모으고 퍼뜨리는 렌즈로 압축과 압축 해제를 표현합니다.
 
-**ZipLens 2.1.4 · Apple Silicon 프리뷰**
+**ZipLens 2.1.5 · Apple Silicon 프리뷰**
 
-[**DMG 다운로드**](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.4/ZipLens_2.1.4_arm64-preview.dmg) · [릴리스·소스·체크섬](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.4) · [7개 언어 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.3_MULTILINGUAL.md)
+[**DMG 다운로드**](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.5/ZipLens_2.1.5_arm64-preview.dmg) · [릴리스·소스·체크섬](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5) · [7개 언어 업데이트 안내](ZipLens_Astra/docs/RELEASE_2.1.3_MULTILINGUAL.md)
 
 <img src="ZipLens_Astra/docs/screenshots/2.1.3/home-ko.png" alt="ZipLens 2.1.3 한국어 메인 화면" width="800">
 
@@ -27,13 +27,13 @@
 | 10개 언어와 도움말 | 앱 언어를 선택하고 **ⓘ → 사용 가이드**에서 해당 언어의 GitHub 설명서를 엽니다. 인터넷 연결이 필요합니다. |
 | AI·터미널 자동화 | 같은 앱의 JSON CLI로 목록 조회·압축·해제를 실행합니다. 별도 AI 서비스나 API 키는 필요하지 않습니다. |
 
-2.1.4는 절대 경로 표기가 들어간 ZIP의 목록과 압축 해제를 복구합니다. 2.1.3에서 추가한 DMG 설치 파일과 GitHub 도움말 연결도 사용할 수 있습니다. 번역된 사용 설명서를 앱에서 바로 열고 공개 소스·변경 이력까지 함께 찾아볼 수 있습니다. 브라우저를 실행하지 못하면 내장 기본 가이드를 표시합니다. 브라우저가 열린 뒤의 네트워크 오류까지 자동으로 전환하지는 않습니다.
+2.1.5는 `bsdtar`가 만든 ZIP과 `zip`이 만든 `.z01` 분할 ZIP의 목록과 압축 해제를 개선합니다. ZIP의 선행 구분자 처리도 지원합니다. 2.1.3에서 추가한 DMG 설치 파일과 GitHub 도움말 연결도 사용할 수 있습니다. 번역된 사용 설명서를 앱에서 바로 열고 공개 소스·변경 이력까지 함께 찾아볼 수 있습니다. 브라우저를 실행하지 못하면 내장 기본 가이드를 표시합니다. 브라우저가 열린 뒤의 네트워크 오류까지 자동으로 전환하지는 않습니다.
 
 ## 설치하고 시작하기
 
 1. 위 DMG를 받고, 실행 중인 구버전의 작업을 마친 뒤 **⌘Q**로 종료합니다.
 2. DMG를 열어 **ZipLens.app 전체를 응용 프로그램 폴더로 복사**합니다. 기존 앱을 교체한다면 먼저 백업하세요.
-3. 복사한 앱을 실행하고 **ⓘ**에서 **2.1.4**를 확인합니다. 설치를 마치면 DMG 볼륨을 추출합니다.
+3. 복사한 앱을 실행하고 **ⓘ**에서 **2.1.5**를 확인합니다. 설치를 마치면 DMG 볼륨을 추출합니다.
 
 **압축 해제:** 압축 파일을 앱에 놓기 → 필요한 항목 선택 → 압축 해제 → 저장 폴더 선택.
 
@@ -85,7 +85,7 @@ macOS, Node.js, Rust/Cargo 1.89 이상, Python 3.11 이상과 Xcode Command Line
 
 ## English
 
-ZipLens is a free, ad-free macOS archive app: browse before extracting, choose only what you need, or create ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives. Version **2.1.4** fixes browsing and extracting ZIP files with rooted entry names. [English introduction, installation and usage](ZipLens_Astra/docs/guides/en.md)
+ZipLens is a free, ad-free macOS archive app: browse before extracting, choose only what you need, or create ZIP, 7Z, TAR, TAR.GZ and TAR.ZST archives. Version **2.1.5** fixes browsing and extracting ZIPs created by `bsdtar` and classic split ZIPs created by Info-ZIP. [English introduction, installation and usage](ZipLens_Astra/docs/guides/en.md)
 
 This Apple Silicon preview is **ad-hoc signed and not Apple-notarized**. A DMG does not change that status; macOS may block it, other Macs are not guaranteed, and Intel execution is unverified. Performance figures above are historical **2.1.2 engine/CLI benchmarks**, not a 2.1.3 rerun.
 
