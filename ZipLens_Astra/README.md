@@ -1,16 +1,20 @@
 # ZipLens
 
-첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens`입니다. 현재 공개 GitHub 프리뷰는 **2.1.5**입니다.
+첫 ZipLens를 보존하면서 안정성과 처리 속도를 개선한 독립 개발판입니다. 앱 식별자는 `com.ziplens.astra`, 표시 이름은 `ZipLens`입니다. 현재 공개 GitHub 프리뷰는 **2.2.0**입니다.
 
 [10개 언어 소개·기능·사용 설명서](docs/guides/README.md): [한국어](docs/guides/ko.md) · [English](docs/guides/en.md) · [日本語](docs/guides/ja.md) · [简体中文](docs/guides/zh.md) · [Tiếng Việt](docs/guides/vi.md) · [Español](docs/guides/es.md) · [Français](docs/guides/fr.md) · [Deutsch](docs/guides/de.md) · [Русский](docs/guides/ru.md) · [العربية](docs/guides/ar.md)
 
-`main`에는 공개 2.1.5 이후의 **Unreleased(미배포)** 변경이 있을 수 있습니다. 소스를 갱신해도 설치된 앱은 바뀌지 않습니다. [변경 이력](CHANGELOG.md)과 버전·조건을 구분한 [검증 기록](docs/VALIDATION.md)을 확인하세요.
+`main`에는 공개 2.2.0 이후의 **Unreleased(미배포)** 변경이 있을 수 있습니다. 소스를 갱신해도 설치된 앱은 바뀌지 않습니다. [변경 이력](CHANGELOG.md)과 버전·조건을 구분한 [검증 기록](docs/VALIDATION.md)을 확인하세요.
 
 우리가 추구하는 **소프트웨어 기본권**은 누구나 경제적 여건·언어와 관계없이 기본 디지털 도구를 쓰고, 코드를 공부·수정·공유·기여할 수 있어야 한다는 개발 가치입니다. 사람과 AI가 지식을 나누고 함께 배우며 창작하기를 바랍니다. 무료 사용·다국어 지원·GPLv3 공개로 이 제작 철학을 실천합니다. [제작 철학 자세히 보기](docs/guides/ko.md)
 
 개발을 처음 시작한다면 [코드 읽기 안내](docs/CODE_GUIDE_KO.md)에서 구조와 작업 흐름을 보고, [기여·업데이트 안내](docs/CONTRIBUTING_KO.md)에서 주석·이름 기준, 샘플 실습, 변경별 검사 방법을 확인하세요. 이 폴더가 현재 앱이며 저장소 루트는 기존 1.x 프로젝트입니다.
 
-## 2.1.5 공개 프리뷰
+## 2.2.0 공개 프리뷰
+
+앱 실행 파일의 `mcp` 명령을 로컬 AI 클라이언트에 등록하면 압축 형식 조회, 목록 탐색, 전체·선택 해제, 새 압축을 사용할 수 있습니다. **Local MCP** lets AI clients list, selectively extract, and create archives with the same engine as the app and CLI. [한영 MCP 설정과 예시 / Setup and examples](docs/AI_CLI.md#mcp)
+
+## 이전 2.1.5 공개 프리뷰
 
 `bsdtar`가 만든 ZIP의 루트 디렉터리 표식과 Info-ZIP의 클래식 분할 ZIP을 지원합니다. 분할 ZIP은 `.z01`, `.z02` 등의 조각을 같은 폴더에 두고 마지막 `.zip` 파일을 여세요.
 
@@ -32,9 +36,9 @@ DMG에서 앱을 응용 프로그램 폴더로 복사해 설치할 수 있습니
 "/Applications/ZipLens.app/Contents/MacOS/ziplens" cli extract "/path/to/archive.zip" --destination "/path/to/output"
 ```
 
-공개 2.1.5 앱이나 현재 소스를 빌드한 앱에서 사용할 수 있습니다. 2.1.1부터 적용한 GPLv3와 대응 소스 배포를 유지합니다. [2.1.3 업데이트 안내](docs/RELEASE_2.1.3_MULTILINGUAL.md) · [사용 설명서](docs/USER_GUIDE_KO_EN.md) · [AI/CLI 사용법과 JSON 계약](docs/AI_CLI.md)
+공개 2.2.0 앱이나 현재 소스를 빌드한 앱에서 사용할 수 있습니다. 2.1.1부터 적용한 GPLv3와 대응 소스 배포를 유지합니다. [2.1.3 업데이트 안내](docs/RELEASE_2.1.3_MULTILINGUAL.md) · [사용 설명서](docs/USER_GUIDE_KO_EN.md) · [AI/CLI 사용법과 JSON 계약](docs/AI_CLI.md)
 
-현재 2.1.5 프리뷰는 **한국어, 영어, 일본어, 중국어(간체), 베트남어, 스페인어, 프랑스어, 독일어, 러시아어, 아랍어**를 지원합니다. 앱 화면·압축 설정·정보창·후원 안내·오프라인 사용법·기본 앱 설정·사용자 정의 macOS 메뉴를 번역하며, 아랍어는 오른쪽에서 왼쪽으로 표시합니다. 저장된 언어를 우선 사용하고 처음 실행할 때는 시스템의 선호 언어 중 지원하는 언어를 선택합니다. 지원 언어가 없으면 영어로 표시합니다. macOS 자체 대화상자 버튼과 시스템 제공 메뉴 항목은 운영체제 설정을 따르며, 압축 엔진의 상세 오류 원문은 그대로 표시할 수 있습니다.
+현재 2.2.0 프리뷰는 **한국어, 영어, 일본어, 중국어(간체), 베트남어, 스페인어, 프랑스어, 독일어, 러시아어, 아랍어**를 지원합니다. 앱 화면·압축 설정·정보창·후원 안내·오프라인 사용법·기본 앱 설정·사용자 정의 macOS 메뉴를 번역하며, 아랍어는 오른쪽에서 왼쪽으로 표시합니다. 저장된 언어를 우선 사용하고 처음 실행할 때는 시스템의 선호 언어 중 지원하는 언어를 선택합니다. 지원 언어가 없으면 영어로 표시합니다. macOS 자체 대화상자 버튼과 시스템 제공 메뉴 항목은 운영체제 설정을 따르며, 압축 엔진의 상세 오류 원문은 그대로 표시할 수 있습니다.
 
 메인 화면에서 파일·폴더를 고르거나 끌어 놓으면 압축 파일은 목록을 열고, 일반 파일·폴더·혼합 선택은 새 압축 설정으로 이어집니다. 렌즈 그림을 더블클릭하면 열 가지 렌즈·빛 패턴의 개념도와 설명을 둘러볼 수 있습니다.
 
@@ -82,7 +86,7 @@ DMG에서 앱을 응용 프로그램 폴더로 복사해 설치할 수 있습니
 
 ## 먼저 보기
 
-- [2.1.5 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5) · [2.1.3 업데이트 안내](docs/RELEASE_2.1.3_MULTILINGUAL.md)
+- [2.2.0 프리뷰 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0) · [2.1.3 업데이트 안내](docs/RELEASE_2.1.3_MULTILINGUAL.md)
 - [2.1.3 사용 설명서 · 한국어 / English](docs/USER_GUIDE_KO_EN.md)
 - [10개 언어별 소개·기능·사용 설명서](docs/guides/README.md)
 
@@ -196,9 +200,9 @@ cargo run --manifest-path astra-core/Cargo.toml --example benchmark --release --
 
 빌드 전에 `scripts/prepare-distribution.py`가 동봉된 공식 7-Zip 배포 파일·소스의 해시와 라이선스 자료를 확인하고, ALZ·EGG 해제 보조 프로그램을 빌드합니다. 라이선스 자료가 누락되거나 의존성 변경 후 갱신되지 않았으면 빌드를 중단합니다. 원본 프로젝트의 의존성이나 빌드 폴더를 공유하지 않습니다. 두 Rust lockfile은 각 명령의 재현성을 위해 유지합니다.
 
-현재 소스를 포장하면 로컬 프리뷰 DMG는 `release_build/preview/ZipLens_2.1.5_arm64-preview.dmg`입니다. 서명·공증을 완료한 정식 DMG의 경로는 `release_build/ZipLens_2.1.5_arm64.dmg`입니다. 공개 다운로드는 [2.1.5 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
+현재 소스를 포장하면 로컬 프리뷰 DMG는 `release_build/preview/ZipLens_2.2.0_arm64-preview.dmg`입니다. 서명·공증을 완료한 정식 DMG의 경로는 `release_build/ZipLens_2.2.0_arm64.dmg`입니다. 공개 다운로드는 [2.2.0 프리뷰 릴리스](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0)에서 받을 수 있습니다. 현재 게시본은 프리뷰이며 정식 서명·공증 완료를 의미하지 않습니다.
 
-같은 릴리스의 `ZipLens_2.1.5_source.tar.gz`에는 이 배포본의 전체 자체 소스와 빌드 안내, 실행·빌드에 쓰이는 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브가 포함됩니다. 직접 빌드를 재현할 때 참고하세요. 공개 문서에는 검증 요약을 남기고 개인 작업 기록과 원시 실행 로그는 별도로 비공개 보관합니다.
+같은 릴리스의 `ZipLens_2.2.0_source.tar.gz`에는 이 배포본의 전체 자체 소스와 빌드 안내, 실행·빌드에 쓰이는 Rust crate 소스, npm 의존성의 상위 프로젝트 TypeScript 소스 아카이브가 포함됩니다. 직접 빌드를 재현할 때 참고하세요. 공개 문서에는 검증 요약을 남기고 개인 작업 기록과 원시 실행 로그는 별도로 비공개 보관합니다.
 
 ## 라이선스와 후원
 
@@ -214,7 +218,7 @@ Copyright (C) 2026 SeederPowerDrop and contributors. GPLv3에 명시된 대로 �
 
 ## English
 
-[Introduction, features and user guides in ten languages](docs/guides/README.md) explain installation, everyday workflows, filename encoding and optional support. The downloadable app is 2.1.5; `main` may contain later **Unreleased** changes, which do not automatically update an installed app.
+[Introduction, features and user guides in ten languages](docs/guides/README.md) explain installation, everyday workflows, filename encoding and optional support. The downloadable app is 2.2.0; `main` may contain later **Unreleased** changes, which do not automatically update an installed app.
 
 Our idea of **basic software rights** is a development value: everyone, regardless of income or language, should be able to use essential digital tools and study, modify, share and contribute to their code. People and AI can share knowledge, learn and create together. See the [project philosophy](docs/guides/en.md).
 
@@ -248,7 +252,7 @@ These checks ran the same archive engine used by the app through its CLI. A sing
 
 Previous version 2.0.2 gave archive contents more room with a compact toolbar and archive title, grouped search and selection controls, and a separately scrolling file list. Long filenames have full-name hover text, folder breadcrumbs are keyboard-accessible buttons, and changing languages preserves the open archive's name. That update also simplified display transitions after loading. The Finder startup crash fixed in 2.0.1 remains fixed.
 
-The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. The current 2.1.3 preview supports Korean, English, Japanese, Simplified Chinese, Vietnamese, Spanish, French, German, Russian, and Arabic. Saved language preferences take priority; otherwise the app chooses the first supported system language, falling back to English. App controls, About and support copy, the offline user guide, default-app settings, and custom macOS menu titles are localized. OS-provided controls follow macOS, and detailed backend diagnostics may remain in their original language. The screenshots above show actual windows of the 2.1.3 app.
+The 2.0 series also improves original-file protection, Korean ZIP filenames, password retries, cancellation, and multi-file ZIP extraction. The current 2.2.0 preview supports Korean, English, Japanese, Simplified Chinese, Vietnamese, Spanish, French, German, Russian, and Arabic. Saved language preferences take priority; otherwise the app chooses the first supported system language, falling back to English. App controls, About and support copy, the offline user guide, default-app settings, and custom macOS menu titles are localized. OS-provided controls follow macOS, and detailed backend diagnostics may remain in their original language. The screenshots above show actual windows of the 2.1.3 app.
 
 **This is an Apple Silicon preview with a local ad-hoc signature, without Apple Developer ID signing or notarization. macOS may still block it from opening.** Intel execution and every archive variant have not been verified. Encrypted EGG filenames/full headers are unsupported, and complete preservation of macOS app-bundle metadata remains unverified. See the [validation history](docs/VALIDATION.md) and [launch diagnosis](docs/MACOS_LAUNCH_KO.md) for details.
 
@@ -261,9 +265,9 @@ npm run tauri build -- --bundles app
 python3 scripts/package-macos.py --preview
 ```
 
-The current source produces `release_build/preview/ZipLens.app` and `release_build/preview/ZipLens_2.1.5_arm64-preview.dmg`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.
+The current source produces `release_build/preview/ZipLens.app` and `release_build/preview/ZipLens_2.2.0_arm64-preview.dmg`. Build outputs are not tracked in Git. The packaging process checks extracted file contents, executable permissions, and local signatures. A formal release additionally requires a valid Developer ID identity, an existing notarization profile, and successful notarization and Gatekeeper checks; local preview signing does not satisfy these requirements.
 
-The [2.1.5 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5) provides `ZipLens_2.1.5_source.tar.gz` with the complete matching first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build. Public docs retain validation summaries; personal work records and raw run logs are kept separately in a private archive.
+The [2.2.0 release](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0) provides `ZipLens_2.2.0_source.tar.gz` with the complete matching first-party source, build instructions, runtime/build Rust crate sources and upstream TypeScript source archives for npm dependencies to help reproduce the build. Public docs retain validation summaries; personal work records and raw run logs are kept separately in a private archive.
 
 ### License and support
 

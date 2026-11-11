@@ -20,4 +20,4 @@ These seven guides cover the 2.1.3 introduction, features, DMG installation, eve
 
 **Apple Silicon ad-hoc preview; not Apple-notarized.** A DMG does not guarantee launch on every Mac. Intel execution is unverified. For an app you trust, see [Apple’s user-approval instructions](https://support.apple.com/102445). The guides' performance numbers come from **2.1.2**, not new 2.1.3 measurements. Interface language does not determine filename encoding.
 
-[Download 2.1.5 DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.5/ZipLens_2.1.5_arm64-preview.dmg) · [Release, source and checksums](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5) · [2.1.3 seven-language release notes](../RELEASE_2.1.3_MULTILINGUAL.md) · [Build and format reference](../../README.md) · [CLI](../AI_CLI.md)
+[Download 2.2.0 DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.2.0/ZipLens_2.2.0_arm64-preview.dmg) · [Release, source and checksums](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0) · [2.1.3 seven-language release notes](../RELEASE_2.1.3_MULTILINGUAL.md) · [Build and format reference](../../README.md) · [CLI](../AI_CLI.md)

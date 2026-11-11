@@ -106,17 +106,17 @@ python3 scripts/test-cli.py --binary "release_build/preview/ZipLens.app/Contents
 
 검증 범위와 날짜별 결과는 [검증 요약](VALIDATION.md)에 정리합니다. CLI 회귀 검사는 ZIP/7Z/ALZ/EGG 암호, 생성 형식별 왕복, 복합 확장자 중복 이름, 경로 정규화와 일부 파일 게시 실패를 포함합니다. 자동 검사 통과는 모든 형식·변종의 호환성이나 Apple 공증 완료를 의미하지 않습니다.
 
-## MCP 연동 / MCP setup
+## MCP
 
-현재 소스를 빌드한 앱은 같은 실행 파일의 `mcp` 명령으로 로컬 MCP 서버를 시작합니다. 공개 2.1.5에는 터미널 CLI가 들어 있습니다. MCP 클라이언트가 표준 입출력(stdio)으로 서버를 실행하며, 앱 창이나 네트워크 포트를 열 필요가 없습니다. [MCP stdio 명세](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio)
+ZipLens 2.2.0부터 같은 실행 파일의 `mcp` 명령으로 로컬 MCP 서버를 시작할 수 있습니다. MCP 클라이언트가 표준 입출력(stdio)으로 서버를 실행하며, 앱 창이나 네트워크 포트를 열 필요가 없습니다. [2.2.0 다운로드](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0) · [MCP stdio 명세](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio)
 
-The development build exposes a local MCP server through `ziplens mcp`. The published 2.1.5 build provides the terminal CLI. An MCP host launches the development binary over stdio. Use the executable in the complete built app bundle so the archive helpers are available.
+ZipLens 2.2.0 exposes a local MCP server through `ziplens mcp`. An MCP host launches the installed executable over stdio. Use the executable in the complete built app bundle so the archive helpers are available.
 
 ### 클라이언트 설정 / Client configuration
 
 클라이언트의 로컬 MCP 설정에 아래 실행 파일 경로와 인수를 등록하세요. 앱을 다른 위치에 두었다면 실제 절대 경로를 입력합니다.
 
-Register the built executable's absolute path and the single argument `mcp`. Here is an example for a client that uses a `mcpServers` configuration object.
+Register the installed executable's absolute path and the single argument `mcp`. Here is an example for a client that uses a `mcpServers` configuration object.
 
 ```json
 {
@@ -128,6 +128,10 @@ Register the built executable's absolute path and the single argument `mcp`. Her
   }
 }
 ```
+
+연결한 뒤 “이 ZIP의 파일을 먼저 보여 주고, 선택한 PDF만 새 폴더에 풀어 줘”처럼 요청할 수 있습니다.
+
+After connecting, try “Show me what's inside this ZIP, then extract only the PDFs into a new folder.”
 
 | 도구 / Tool | 동작 / Operation |
 | --- | --- |

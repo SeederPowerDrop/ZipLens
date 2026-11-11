@@ -1,6 +1,6 @@
-# ZipLens 2.1.5 — Présentation et guide d’utilisation
+# ZipLens 2.2.0 — Présentation et guide d’utilisation
 
-[Langues](README.md) · [Télécharger le DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.5/ZipLens_2.1.5_arm64-preview.dmg) · [Version, sources et sommes de contrôle](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5)
+[Langues](README.md) · [Télécharger le DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.2.0/ZipLens_2.2.0_arm64-preview.dmg) · [Version, sources et sommes de contrôle](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0)
 
 <img src="../screenshots/2.1.3/compression-fr.png" alt="Application réelle : options de compression en français" width="640">
 
@@ -17,7 +17,7 @@
 
 1. Terminez les tâches, quittez les anciennes versions avec **⌘Q**, puis ouvrez le DMG.
 2. Copiez **ZipLens.app en entier dans Applications**. Sauvegardez l’ancienne installation avant de la remplacer.
-3. Lancez la copie installée, vérifiez **2.1.5** dans **ⓘ**, puis éjectez le volume DMG.
+3. Lancez la copie installée, vérifiez **2.2.0** dans **ⓘ**, puis éjectez le volume DMG.
 
 Il s’agit d’une **préversion Apple Silicon signée ad-hoc, sans notarisation Apple**. Un DMG ne remplace pas la notarisation : macOS peut bloquer le lancement. Le fonctionnement sur tous les autres Mac n’est pas garanti et l’exécution sur Intel n’a pas été vérifiée. Pour autoriser manuellement une application dont vous jugez la provenance fiable, suivez les [instructions officielles d’Apple](https://support.apple.com/102445). [Vérifications du DMG, du téléchargement et de l’installation](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 

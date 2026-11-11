@@ -6,9 +6,9 @@ ZipLens は SeederPowerDrop が開発した、無料で広告のない macOS 向
 
 ## インストールとバージョン
 
-[2.1.5 リリース](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5)から `ZipLens_2.1.5_arm64-preview.dmg` をダウンロードします。作業を終えて旧版を ⌘Q で終了し、DMG を開いて、表示された `ZipLens.app` を **Applications** のショートカットへドラッグしてください。既存のアプリを置き換える場合は、先にバックアップします。ディスクイメージを取り出した後、アプリケーションフォルダから ZipLens を起動し、**ⓘ** で **2.1.5** を確認します。
+[2.2.0 リリース](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0)から `ZipLens_2.2.0_arm64-preview.dmg` をダウンロードします。作業を終えて旧版を ⌘Q で終了し、DMG を開いて、表示された `ZipLens.app` を **Applications** のショートカットへドラッグしてください。既存のアプリを置き換える場合は、先にバックアップします。ディスクイメージを取り出した後、アプリケーションフォルダから ZipLens を起動し、**ⓘ** で **2.2.0** を確認します。
 
-同梱のアプリは Apple Silicon 用の ad-hoc 署名付きプレビューです。Apple Developer ID による署名・公証は未完了のため、macOS が起動を止める場合があります。Intel Mac での動作は未検証です。配布アプリは **2.1.5**、`main` には **Unreleased（未リリース）**の修正が含まれる場合があります。ソースや文書の更新だけではインストール済みアプリは変わりません。
+同梱のアプリは Apple Silicon 用の ad-hoc 署名付きプレビューです。Apple Developer ID による署名・公証は未完了のため、macOS が起動を止める場合があります。Intel Mac での動作は未検証です。配布アプリは **2.2.0**、`main` には **Unreleased（未リリース）**の修正が含まれる場合があります。ソースや文書の更新だけではインストール済みアプリは変わりません。
 
 ## 主な機能
 

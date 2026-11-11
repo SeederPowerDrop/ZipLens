@@ -1,6 +1,6 @@
-# ZipLens 2.1.5 — 简介与使用指南
+# ZipLens 2.2.0 — 简介与使用指南
 
-[选择语言](README.md) · [下载 DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.5/ZipLens_2.1.5_arm64-preview.dmg) · [发布、源码与校验和](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.5)
+[选择语言](README.md) · [下载 DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.2.0/ZipLens_2.2.0_arm64-preview.dmg) · [发布、源码与校验和](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.2.0)
 
 <img src="../screenshots/2.1.3/home-ko.png" alt="真实应用画面：韩语主界面" width="640">
 
@@ -17,7 +17,7 @@
 
 1. 完成当前任务，用 **⌘Q** 退出旧版本，然后打开 DMG。
 2. 将**完整的 ZipLens.app 复制到“应用程序”**。替换已有安装前先备份。
-3. 启动复制后的应用，在 **ⓘ** 中核对 **2.1.5**，然后推出 DMG 卷。
+3. 启动复制后的应用，在 **ⓘ** 中核对 **2.2.0**，然后推出 DMG 卷。
 
 这是 **Apple Silicon 的 ad-hoc 签名预览版，尚未通过 Apple 公证**。DMG 不能代替公证，macOS 仍可能阻止启动。无法保证在所有其他 Mac 上运行，也未验证 Intel Mac。如果信任应用来源，请按照 [Apple 官方说明](https://support.apple.com/102445)自行决定是否手动允许运行。 [DMG、下载与安装的实际验证](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md)。
 
