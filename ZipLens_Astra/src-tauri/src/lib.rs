@@ -1,5 +1,5 @@
 //! GUI 부팅, 네이티브 메뉴, Finder 요청 큐와 IPC 등록을 구성합니다.
-//! headless `cli` 명령은 main.rs에서 먼저 처리하므로 이 GUI 초기화를 거치지 않습니다.
+//! headless `cli`와 `mcp` 명령은 main.rs에서 먼저 처리하므로 이 GUI 초기화를 거치지 않습니다.
 
 // Tauri 초기 템플릿의 연결 확인 명령입니다. 실제 압축 기능은 archive 모듈에 있습니다.
 // 이미 등록된 IPC 이름을 이번 가독성 정리에서 바꾸지 않습니다.
@@ -13,6 +13,7 @@ pub mod cli;
 mod file_associations;
 mod input;
 mod licenses;
+mod mcp;
 
 use serde::Serialize;
 

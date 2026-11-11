@@ -1,5 +1,11 @@
 # 변경 이력
 
+## 2.2.0 — 2026-11-11 · 공개 프리뷰
+
+- `ziplens mcp` 로컬 서버를 추가했습니다. 지원 형식 조회, 페이지 단위 목록, 전체·선택 해제, 새 압축을 MCP 클라이언트에서 호출할 수 있습니다.
+- 출력 경로를 명시하고, 덮어쓰기를 지정하지 않으면 번호를 붙여 기존 파일을 보존합니다. 기존 JSON CLI와 같은 엔진·오류 코드를 사용합니다.
+- **English.** Added a local stdio MCP server for archive discovery, listing, selective extraction, and compression. [한영 설정 안내 / MCP setup](docs/AI_CLI.md#mcp)
+
 ## 2.1.5 — 2026-11-11 · 공개 프리뷰
 
 - `bsdtar`로 만든 ZIP의 빈 `./` 루트 디렉터리 표식을 건너뛰어 나머지 파일을 표시하고 해제합니다.
