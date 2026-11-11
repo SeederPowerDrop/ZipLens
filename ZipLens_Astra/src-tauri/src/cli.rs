@@ -580,11 +580,17 @@ fn check_regular_output(path: &Path) -> Result<(), CliError> {
     }
 }
 
+pub(crate) struct ListPage {
+    pub offset: usize,
+    pub limit: usize,
+}
+
 fn execute_cli_command(
     engine: &Engine,
     options: &CliOptions,
     password: Option<String>,
     ctx: &Context,
+    list_page: Option<ListPage>,
 ) -> Result<Value, CliError> {
     match options.command {
         Command::Capabilities => build_capabilities_response(engine),
@@ -593,7 +599,21 @@ fn execute_cli_command(
             let entries = engine
                 .preview(&archive, password.as_deref(), ctx)
                 .map_err(CliError::engine)?;
-            Ok(json!({"archive": archive, "entries": entries}))
+            if let Some(page) = list_page {
+                let total = entries.len();
+                let end = page.offset.saturating_add(page.limit);
+                let entries: Vec<_> = entries
+                    .into_iter()
+                    .skip(page.offset)
+                    .take(page.limit)
+                    .collect();
+                Ok(json!({
+                    "archive": archive, "entries": entries, "total_entries": total,
+                    "next_offset": (end < total).then_some(end),
+                }))
+            } else {
+                Ok(json!({"archive": archive, "entries": entries}))
+            }
         }
         Command::Extract => {
             let archive = canonicalize_existing_input(&options.inputs[0], true)?;
@@ -687,13 +707,21 @@ fn run_cli_operation(options: &CliOptions) -> Result<Value, CliError> {
     } else {
         None
     };
+    run_operation(options, password, &Context::default(), None)
+}
+
+fn run_operation(
+    options: &CliOptions,
+    password: Option<String>,
+    ctx: &Context,
+    list_page: Option<ListPage>,
+) -> Result<Value, CliError> {
     let engine = crate::archive::create_archive_engine().map_err(CliError::engine)?;
-    let ctx = Context::default();
     let expired = Arc::new(AtomicBool::new(false));
     let deadline = options
         .timeout
-        .map(|seconds| OperationDeadline::start(seconds, &ctx, expired.clone()));
-    let mut result = execute_cli_command(&engine, options, password.clone(), &ctx);
+        .map(|seconds| OperationDeadline::start(seconds, ctx, expired.clone()));
+    let mut result = execute_cli_command(&engine, options, password.clone(), ctx, list_page);
     drop(deadline);
     if expired.load(Ordering::Acquire) {
         let mut error = CliError::new(
@@ -713,6 +741,26 @@ fn run_cli_operation(options: &CliOptions) -> Result<Value, CliError> {
     result
 }
 
+pub(crate) fn run_mcp_operation(
+    args: &[String],
+    ctx: &Context,
+    list_page: Option<ListPage>,
+) -> Value {
+    let result =
+        parse_cli_options(args).and_then(|options| run_operation(&options, None, ctx, list_page));
+    operation_response(result).0
+}
+
+fn operation_response(result: Result<Value, CliError>) -> (Value, i32) {
+    match result {
+        Ok(result) => (
+            json!({"schema_version": SCHEMA_VERSION, "ok": true, "result": result}),
+            0,
+        ),
+        Err(error) => (error.response(), error.exit),
+    }
+}
+
 /// Return None only for existing GUI/Finder invocations. Invalid CLI flags never open a window.
 pub fn run_if_requested() -> Option<i32> {
     let args: Vec<OsString> = std::env::args_os().skip(1).collect();
@@ -723,6 +771,16 @@ pub fn run_if_requested() -> Option<i32> {
         return Some(write_json_response(&error.response(), error.exit));
     }
     let first = args.first()?.to_str()?;
+    if first == "mcp" {
+        return Some(match &args[1..] {
+            [] => crate::mcp::run(),
+            [flag] if flag == "--help" || flag == "-h" => write_text(crate::mcp::HELP),
+            _ => {
+                eprintln!("Usage: ziplens mcp [--help]");
+                2
+            }
+        });
+    }
     let cli_args = if first == "cli" {
         &args[1..]
     } else if matches!(first, "--help" | "-h" | "--version" | "-V") {
@@ -762,13 +820,8 @@ pub fn run_if_requested() -> Option<i32> {
         }
         _ => (),
     }
-    Some(match run_cli_operation(&options) {
-        Ok(result) => write_json_response(
-            &json!({"schema_version": SCHEMA_VERSION, "ok": true, "result": result}),
-            0,
-        ),
-        Err(error) => write_json_response(&error.response(), error.exit),
-    })
+    let (response, exit) = operation_response(run_cli_operation(&options));
+    Some(write_json_response(&response, exit))
 }
 
 /// 자동화 도구가 파싱하는 stdout에 JSON 한 개와 개행만 씁니다. 로그를 여기에 섞지 않습니다.
@@ -891,7 +944,8 @@ mod tests {
         };
         let mut options = parse_cli_options(&args(&["list", "missing.zip"])).unwrap();
         options.inputs = vec![temp.path().join("missing.zip")];
-        let error = execute_cli_command(&engine, &options, None, &Context::default()).unwrap_err();
+        let error =
+            execute_cli_command(&engine, &options, None, &Context::default(), None).unwrap_err();
         assert_eq!(error.code, "MISSING_INPUT");
         assert_eq!(error.response()["schema_version"], 1);
         assert_eq!(error.response()["ok"], false);
@@ -918,7 +972,8 @@ mod tests {
         .unwrap();
         options.inputs = vec![source.clone()];
         options.destination = Some(destination.clone());
-        let result = execute_cli_command(&engine, &options, None, &Context::default()).unwrap();
+        let result =
+            execute_cli_command(&engine, &options, None, &Context::default(), None).unwrap();
         assert_eq!(
             fs::read_to_string(&destination).unwrap(),
             "existing contents"
@@ -932,7 +987,7 @@ mod tests {
         options.destination = Some(source.clone());
         options.overwrite = true;
         assert_eq!(
-            execute_cli_command(&engine, &options, None, &Context::default())
+            execute_cli_command(&engine, &options, None, &Context::default(), None)
                 .unwrap_err()
                 .code,
             "ARCHIVE_ERROR"
@@ -960,7 +1015,7 @@ mod tests {
         options.inputs = vec![source.clone()];
         options.destination = Some(source.join("new-parent/output.zip"));
         assert_eq!(
-            execute_cli_command(&engine, &options, None, &Context::default())
+            execute_cli_command(&engine, &options, None, &Context::default(), None)
                 .unwrap_err()
                 .code,
             "ARCHIVE_ERROR"
@@ -1007,7 +1062,8 @@ mod tests {
             .unwrap();
             options.inputs = vec![source.clone()];
             options.destination = Some(destination.clone());
-            let result = execute_cli_command(&engine, &options, None, &Context::default()).unwrap();
+            let result =
+                execute_cli_command(&engine, &options, None, &Context::default(), None).unwrap();
             let archive = PathBuf::from(result["output_paths"][0].as_str().unwrap());
             assert_eq!(
                 archive.file_name().unwrap(),
@@ -1061,7 +1117,7 @@ mod tests {
         .unwrap();
         options.inputs = vec![source.clone()];
         options.destination = Some(source.join("new/../../outside.zip"));
-        execute_cli_command(&engine, &options, None, &Context::default()).unwrap();
+        execute_cli_command(&engine, &options, None, &Context::default(), None).unwrap();
         assert!(!source.join("new").exists());
         let entries = engine
             .preview(&temp.path().join("outside.zip"), None, &Context::default())
@@ -1070,7 +1126,7 @@ mod tests {
 
         options.destination = Some(temp.path().join("missing-parent/mismatched.tar"));
         assert_eq!(
-            execute_cli_command(&engine, &options, None, &Context::default())
+            execute_cli_command(&engine, &options, None, &Context::default(), None)
                 .unwrap_err()
                 .code,
             "INVALID_ARGUMENTS"

@@ -106,4 +106,40 @@ python3 scripts/test-cli.py --binary "release_build/preview/ZipLens.app/Contents
 
 검증 범위와 날짜별 결과는 [검증 요약](VALIDATION.md)에 정리합니다. CLI 회귀 검사는 ZIP/7Z/ALZ/EGG 암호, 생성 형식별 왕복, 복합 확장자 중복 이름, 경로 정규화와 일부 파일 게시 실패를 포함합니다. 자동 검사 통과는 모든 형식·변종의 호환성이나 Apple 공증 완료를 의미하지 않습니다.
 
-MCP 서버나 특정 AI 앱용 플러그인을 설치하는 기능은 이 버전에 포함되지 않습니다. 터미널 도구를 쓸 수 있는 AI가 위 명령을 직접 호출하는 방식입니다.
+## MCP 연동 / MCP setup
+
+현재 소스를 빌드한 앱은 같은 실행 파일의 `mcp` 명령으로 로컬 MCP 서버를 시작합니다. 공개 2.1.5에는 터미널 CLI가 들어 있습니다. MCP 클라이언트가 표준 입출력(stdio)으로 서버를 실행하며, 앱 창이나 네트워크 포트를 열 필요가 없습니다. [MCP stdio 명세](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio)
+
+The development build exposes a local MCP server through `ziplens mcp`. The published 2.1.5 build provides the terminal CLI. An MCP host launches the development binary over stdio. Use the executable in the complete built app bundle so the archive helpers are available.
+
+### 클라이언트 설정 / Client configuration
+
+클라이언트의 로컬 MCP 설정에 아래 실행 파일 경로와 인수를 등록하세요. 앱을 다른 위치에 두었다면 실제 절대 경로를 입력합니다.
+
+Register the built executable's absolute path and the single argument `mcp`. Here is an example for a client that uses a `mcpServers` configuration object.
+
+```json
+{
+  "mcpServers": {
+    "ziplens": {
+      "command": "/Applications/ZipLens.app/Contents/MacOS/ziplens",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+| 도구 / Tool | 동작 / Operation |
+| --- | --- |
+| `ziplens_capabilities` | 지원 형식과 사용 가능한 엔진 / Supported formats and available backends |
+| `ziplens_list` | 압축 내부 목록 및 메타데이터 / Paginated archive listing and metadata |
+| `ziplens_extract` | 전체 또는 정확한 항목 이름을 지정해 해제 / Extract all or selected exact entry names |
+| `ziplens_compress` | ZIP·7z·TAR 계열 압축 생성 / Create ZIP, 7z, or TAR-family archives |
+
+로컬 파일 경로는 절대 경로를 사용합니다. 목록의 `next_offset`을 다음 호출의 `offset`에 넘겨 계속 읽습니다. 쓰기 도구는 목적지를 요구하며, 기본적으로 번호를 붙여 기존 파일을 보존합니다. 결과의 `output_paths`에서 실제 생성 경로를 확인할 수 있습니다. 작업 제한 시간은 기본 300초이며 `timeout_seconds`로 조정합니다. 암호는 위 CLI의 `--password-stdin`으로 전달할 수 있습니다.
+
+Use absolute local paths and pass the returned `next_offset` back as `offset` for the next page. Write tools require a destination and use numbered names when files already exist, unless `overwrite` is explicitly enabled. Read `output_paths` for actual output locations. The default operation timeout is 300 seconds and can be set with `timeout_seconds`. For passwords, use the CLI's `--password-stdin` option.
+
+```sh
+python3 scripts/test-mcp.py --binary "src-tauri/target/release/bundle/macos/ZipLens.app/Contents/MacOS/ziplens"
+```
