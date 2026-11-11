@@ -1,6 +1,6 @@
-# ZipLens 2.1.3 — Обзор и руководство
+# ZipLens 2.1.4 — Обзор и руководство
 
-[Языки](README.md) · [Скачать DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.3/ZipLens_2.1.3_arm64-preview.dmg) · [Выпуск, исходники и контрольные суммы](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.3)
+[Языки](README.md) · [Скачать DMG](https://github.com/SeederPowerDrop/ZipLens/releases/download/v2.1.4/ZipLens_2.1.4_arm64-preview.dmg) · [Выпуск, исходники и контрольные суммы](https://github.com/SeederPowerDrop/ZipLens/releases/tag/v2.1.4)
 
 <img src="../screenshots/2.1.3/home-ko.png" alt="Реальное приложение: главный экран на корейском" width="640">
 
@@ -17,7 +17,7 @@
 
 1. Завершите текущие задачи, закройте старые версии через **⌘Q** и откройте DMG.
 2. Скопируйте **ZipLens.app целиком в «Программы»**. Перед заменой сохраните резервную копию прежней установки.
-3. Запустите установленную копию, проверьте **2.1.3** в **ⓘ** и извлеките том DMG.
+3. Запустите установленную копию, проверьте **2.1.4** в **ⓘ** и извлеките том DMG.
 
 Это **предварительная версия для Apple Silicon с подписью ad-hoc, без нотариального заверения Apple**. Формат DMG не заменяет эту проверку; macOS может заблокировать запуск. Работа на всех других Mac не гарантируется, выполнение на Intel не проверено. Если вы доверяете источнику приложения, порядок ручного разрешения запуска описан в [официальной инструкции Apple](https://support.apple.com/102445). [Проверка DMG, загрузки и установки](../INSTALLATION_VALIDATION_2.1.3_KO_EN.md).
 

@@ -157,10 +157,23 @@ impl Engine {
             request.password.as_deref(),
             context,
         )?;
+        let zip = has_zip_extension(prepared_input);
         let targets = request
             .targets
             .as_ref()
-            .map(|v| v.iter().cloned().collect::<HashSet<_>>());
+            .map(|names| {
+                names
+                    .iter()
+                    .map(|name| {
+                        if zip {
+                            zip_engine::entry_path(name)
+                        } else {
+                            Ok(name.clone())
+                        }
+                    })
+                    .collect::<Result<HashSet<_>, String>>()
+            })
+            .transpose()?;
         if let Some(t) = &targets {
             if t.is_empty() {
                 return Err("No files selected".into());
@@ -207,9 +220,7 @@ impl Engine {
             )? {
                 protected_inputs.add(&source)?;
             }
-        } else if has_zip_extension(prepared_input)
-            && zip_engine::native_supported(prepared_input, context)?
-        {
+        } else if zip && zip_engine::native_supported(prepared_input, context)? {
             zip_engine::extract(
                 prepared_input,
                 staging.path(),
@@ -224,10 +235,14 @@ impl Engine {
             if entries.iter().any(|e| e.is_link) {
                 return Err("Links in sidecar archives are not supported safely yet".into());
             }
+            let zip_names = zip
+                .then(|| zip_engine::sidecar_names(prepared_input, &selected_names, context))
+                .transpose()?;
             self.sidecar_extract(
                 prepared_input,
                 staging.path(),
                 &selected_entries,
+                zip_names.as_ref(),
                 request.password.as_deref(),
                 context,
             )?;
@@ -271,12 +286,13 @@ impl Engine {
         password: Option<&str>,
         ctx: &Context,
     ) -> Result<Vec<u8>, String> {
-        paths::relative(name)?;
-        ctx.check()?;
-        require_regular_archive(archive)?;
-        if has_zip_extension(archive) && zip_engine::native_supported(archive, ctx)? {
-            return zip_engine::read_entry(archive, name, password, ctx);
-        }
+        let zip = has_zip_extension(archive);
+        let name = if zip {
+            &zip_engine::entry_path(name)?
+        } else {
+            paths::relative(name)?;
+            name
+        };
         let entries = self.preview(archive, password, ctx)?;
         let entry = entries
             .iter()
@@ -284,6 +300,9 @@ impl Engine {
             .ok_or("File not found in archive")?;
         if entry.size > context::PREVIEW_LIMIT || entry.is_dir || entry.is_link {
             return Err("Preview limit is 20 MiB; links and folders cannot be previewed".into());
+        }
+        if zip && zip_engine::native_supported(archive, ctx)? {
+            return zip_engine::read_entry(archive, name, password, ctx);
         }
         let tmp = tempfile::Builder::new()
             .prefix("ziplens-astra-preview-")

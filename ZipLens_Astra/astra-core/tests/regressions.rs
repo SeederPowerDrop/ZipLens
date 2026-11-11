@@ -193,6 +193,25 @@ fn corrupt_crc_keeps_previous_destination_and_cleans_stage() {
     assert_eq!(fs::read_dir(&r.destination).unwrap().count(), 1);
 }
 #[test]
+fn rooted_zip_entries_can_be_read_by_the_displayed_path() {
+    let root = tempfile::tempdir().unwrap();
+    let r = request(&root);
+    zip(
+        &r.archive,
+        &[("/home/ubuntu/", b""), ("/home/ubuntu/report.txt", b"sample")],
+    );
+    let engine = engine();
+    let entries = engine.preview(&r.archive, None, &Context::default()).unwrap();
+    assert_eq!(entries[0].path, "home/ubuntu/");
+    assert!(entries[0].is_dir);
+    assert_eq!(entries[1].path, "home/ubuntu/report.txt");
+    let bytes = engine
+        .read_entry(&r.archive, &entries[1].path, None, &Context::default())
+        .unwrap();
+    assert_eq!(bytes, b"sample");
+}
+
+#[test]
 fn traversal_zip_never_touches_outside_or_existing_data() {
     let root = tempfile::tempdir().unwrap();
     let r = request(&root);
