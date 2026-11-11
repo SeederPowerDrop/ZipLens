@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -288,6 +289,66 @@ class CommandLineTests(unittest.TestCase):
         with zipfile.ZipFile(destination) as zipped:
             self.assertEqual(zipped.read(source.name), source.read_bytes())
 
+    def test_bsdtar_zip_with_root_directory_marker(self):
+        tool = shutil.which('bsdtar')
+        if not tool:
+            self.skipTest('bsdtar is unavailable')
+        source = self.root / 'source'
+        (source / 'nested').mkdir(parents=True)
+        (source / 'nested/data.txt').write_bytes(b'nested contents')
+        (source / 'top.txt').write_bytes(b'top contents')
+        archive = self.root / 'bsdtar.zip'
+        process = run_process([tool, '-a', '-cf', archive, '-C', source, '.'],
+                              self.timeout, cwd=self.root)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        with zipfile.ZipFile(archive) as zipped:
+            self.assertIn('./', zipped.namelist())
+            self.assertIsNone(zipped.testzip())
+        entries = self.invoke('list', archive)['result']['entries']
+        self.assertEqual({e['path'] for e in entries}, {'nested/', 'nested/data.txt', 'top.txt'})
+        destination = self.root / 'extracted'
+        self.invoke('extract', archive, '--destination', destination)
+        self.assertEqual(files_under(destination), files_under(source))
+
+    def test_infozip_split_archive_with_classic_volumes(self):
+        tool = shutil.which('zip')
+        if not tool:
+            self.skipTest('Info-ZIP is unavailable')
+        seven_zip = self.sidecar()
+        source = self.root / 'source'
+        source.mkdir()
+        (source / 'data.bin').write_bytes(bytes(range(256)) * 801)
+        (source / 'other.txt').write_bytes(b'not selected')
+        archive = self.root / 'split.zip'
+        process = run_process([tool, '-q', '-s', '64k', '-0', '-r', archive, source.name],
+                              self.timeout, cwd=self.root)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        volumes = sorted(self.root.glob('split.z[0-9][0-9]'))
+        self.assertGreaterEqual(len(volumes), 2)
+
+        reference = self.root / 'reference'
+        process = run_process([seven_zip, 'x', '-tzip', '-y', f'-o{reference}', '--', archive],
+                              self.timeout, cwd=self.root)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        expected = {f'source/{name}': data for name, data in files_under(source).items()}
+        self.assertEqual(files_under(reference), expected)
+        before = {volume: digest(volume) for volume in [archive, *volumes]}
+
+        listing = self.invoke('list', archive)['result']['entries']
+        self.assertEqual({e['path'] for e in listing if not e['is_dir']}, expected.keys())
+        destination = self.root / 'extracted'
+        self.invoke('extract', archive, '--destination', destination)
+        self.assertEqual(files_under(destination), expected)
+        selected = self.root / 'selected'
+        self.invoke('extract', archive, '--destination', selected, '--target', 'source/data.bin')
+        self.assertEqual(files_under(selected), {'source/data.bin': expected['source/data.bin']})
+
+        self.assertEqual({volume: digest(volume) for volume in before}, before)
+        volumes[1].rename(volumes[1].with_suffix('.saved'))
+        incomplete = self.root / 'incomplete'
+        self.invoke('extract', archive, '--destination', incomplete, status=1)
+        self.assertEqual(files_under(incomplete), {})
+
     def check_zip_path_variants(self, compression):
         entries = {
             '/home/ubuntu/': ('home/ubuntu/', b''),
@@ -298,6 +359,7 @@ class CommandLineTests(unittest.TestCase):
         }
         archive = self.root / 'paths.zip'
         with zipfile.ZipFile(archive, 'w', compression=compression) as output:
+            output.writestr('./', b'')
             for raw, (_, data) in entries.items():
                 output.writestr(raw, data)
         before = digest(archive)

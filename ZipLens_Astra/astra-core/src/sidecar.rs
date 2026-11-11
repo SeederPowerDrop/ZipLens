@@ -102,18 +102,21 @@ impl Engine {
         path: &Path,
         password: Option<&str>,
         ctx: &Context,
+        zip: bool,
     ) -> Result<Vec<Entry>, String> {
         let path = fs::canonicalize(path).map_err(|e| e.to_string())?;
         // -ba removes the archive header: no filename-based heuristic can discard a real entry.
-        let args = vec![
+        let mut args = vec![
             "l".into(),
             "-slt".into(),
             "-ba".into(),
             "-sccUTF-8".into(),
             format!("-p{}", password.unwrap_or("")),
-            "--".into(),
-            path.to_string_lossy().into(),
         ];
+        if zip {
+            args.push("-tzip".into());
+        }
+        args.extend(["--".into(), path.to_string_lossy().into()]);
         parse_listing(&self.run_sidecar(&args, ctx)?)
     }
 
@@ -164,7 +167,7 @@ impl Engine {
         list.flush().map_err(|e| e.to_string())?;
         ctx.set_total(0); // No fabricated 50%/ETA for an external process.
         ctx.progress("7-Zip", false);
-        let args = vec![
+        let mut args = vec![
             "x".into(),
             format!("-o{}", decoded.display()),
             "-y".into(),
@@ -176,9 +179,11 @@ impl Engine {
             format!("-mmt={}", crate::zip_engine::worker_count()),
             format!("-p{}", password.unwrap_or("")),
             format!("-i@{}", list.path().display()),
-            "--".into(),
-            path.to_string_lossy().into(),
         ];
+        if zip_names.is_some() {
+            args.push("-tzip".into());
+        }
+        args.extend(["--".into(), path.to_string_lossy().into()]);
         if !files.is_empty() {
             self.run_sidecar(&args, ctx)?;
         }

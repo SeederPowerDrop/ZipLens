@@ -84,6 +84,11 @@ fn require_regular_archive(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+struct Preview {
+    entries: Vec<Entry>,
+    split_zip_names: Option<HashMap<String, String>>,
+}
+
 impl Engine {
     /// 목록을 읽고 위험하거나 모호한 경로를 거릅니다. 파일 내용 전체의 무결성 검사는 아닙니다.
     pub fn preview(
@@ -92,6 +97,16 @@ impl Engine {
         password: Option<&str>,
         ctx: &Context,
     ) -> Result<Vec<Entry>, String> {
+        self.preview_with_backend(path, password, ctx)
+            .map(|preview| preview.entries)
+    }
+
+    fn preview_with_backend(
+        &self,
+        path: &Path,
+        password: Option<&str>,
+        ctx: &Context,
+    ) -> Result<Preview, String> {
         ctx.check()?;
         require_regular_archive(path)?;
         let prepared = self.prepare_stream(path, ctx)?;
@@ -104,23 +119,51 @@ impl Engine {
         prepared: Option<&stream::PreparedStream>,
         password: Option<&str>,
         ctx: &Context,
-    ) -> Result<Vec<Entry>, String> {
+    ) -> Result<Preview, String> {
         let path = prepared.map_or(archive, |p| p.file.path());
         if let Some(entry) = prepared.and_then(|p| p.entry.as_ref()) {
             paths::validate_entries(std::slice::from_ref(entry))?;
-            return Ok(vec![entry.clone()]);
+            return Ok(Preview {
+                entries: vec![entry.clone()],
+                split_zip_names: None,
+            });
         }
+        let mut split_zip_names = None;
         let entries = if legacy::supports(path) {
             self.legacy_preview(path, password, ctx)?
         } else if has_zip_extension(path) {
-            zip_engine::preview(path, ctx)?
+            if zip_engine::is_split(path)? {
+                let mut names = HashMap::new();
+                let mut entries = Vec::new();
+                for mut entry in self.sidecar_preview(path, password, ctx, true)? {
+                    ctx.check()?;
+                    if zip_engine::root_marker(
+                        &entry.path,
+                        entry.size,
+                        entry.is_dir && !entry.is_link && !entry.is_encrypted,
+                    ) {
+                        continue;
+                    }
+                    let path = zip_engine::entry_path(&entry.path)?;
+                    let raw = std::mem::replace(&mut entry.path, path);
+                    names.insert(entry.path.clone(), raw);
+                    entries.push(entry);
+                }
+                split_zip_names = Some(names);
+                entries
+            } else {
+                zip_engine::preview(path, ctx)?
+            }
         } else if tar_engine::supports(path) {
             tar_engine::preview(path, ctx)?
         } else {
-            self.sidecar_preview(path, password, ctx)?
+            self.sidecar_preview(path, password, ctx, false)?
         };
         paths::validate_entries(&entries)?;
-        Ok(entries)
+        Ok(Preview {
+            entries,
+            split_zip_names,
+        })
     }
 
     /// 디코딩·검증 후 항목을 목적지로 옮깁니다. 취소는 오류 대신 `cancelled` 보고서로 반환합니다.
@@ -151,7 +194,10 @@ impl Engine {
         let prepared_input = prepared
             .as_ref()
             .map_or(archive.as_path(), |p| p.file.path());
-        let entries = self.preview_prepared(
+        let Preview {
+            entries,
+            split_zip_names,
+        } = self.preview_prepared(
             &archive,
             prepared.as_ref(),
             request.password.as_deref(),
@@ -220,7 +266,10 @@ impl Engine {
             )? {
                 protected_inputs.add(&source)?;
             }
-        } else if zip && zip_engine::native_supported(prepared_input, context)? {
+        } else if zip
+            && split_zip_names.is_none()
+            && zip_engine::native_supported(prepared_input, context)?
+        {
             zip_engine::extract(
                 prepared_input,
                 staging.path(),
@@ -235,9 +284,15 @@ impl Engine {
             if entries.iter().any(|e| e.is_link) {
                 return Err("Links in sidecar archives are not supported safely yet".into());
             }
-            let zip_names = zip
-                .then(|| zip_engine::sidecar_names(prepared_input, &selected_names, context))
-                .transpose()?;
+            let zip_names = match split_zip_names {
+                Some(names) => Some(names),
+                None if zip => Some(zip_engine::sidecar_names(
+                    prepared_input,
+                    &selected_names,
+                    context,
+                )?),
+                None => None,
+            };
             self.sidecar_extract(
                 prepared_input,
                 staging.path(),
@@ -293,7 +348,10 @@ impl Engine {
             paths::relative(name)?;
             name
         };
-        let entries = self.preview(archive, password, ctx)?;
+        let Preview {
+            entries,
+            split_zip_names,
+        } = self.preview_with_backend(archive, password, ctx)?;
         let entry = entries
             .iter()
             .find(|e| e.path == name)
@@ -301,7 +359,7 @@ impl Engine {
         if entry.size > context::PREVIEW_LIMIT || entry.is_dir || entry.is_link {
             return Err("Preview limit is 20 MiB; links and folders cannot be previewed".into());
         }
-        if zip && zip_engine::native_supported(archive, ctx)? {
+        if zip && split_zip_names.is_none() && zip_engine::native_supported(archive, ctx)? {
             return zip_engine::read_entry(archive, name, password, ctx);
         }
         let tmp = tempfile::Builder::new()

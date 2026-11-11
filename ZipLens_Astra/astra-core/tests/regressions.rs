@@ -198,7 +198,11 @@ fn rooted_zip_entries_can_be_read_by_the_displayed_path() {
     let r = request(&root);
     zip(
         &r.archive,
-        &[("/home/ubuntu/", b""), ("/home/ubuntu/report.txt", b"sample")],
+        &[
+            ("./", b""),
+            ("/home/ubuntu/", b""),
+            ("/home/ubuntu/report.txt", b"sample"),
+        ],
     );
     let engine = engine();
     let entries = engine.preview(&r.archive, None, &Context::default()).unwrap();
